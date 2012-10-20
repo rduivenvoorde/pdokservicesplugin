@@ -9,27 +9,31 @@
 
 
 [general]
-name=bla
-qgisMinimumVersion=1.0
-description=bla
-version=0.1
+name=PDOK services plugin
+qgisMinimumVersion=1.8
+description=Plugin to easily load the available dutch PDOK (Publieke Data Op de Kaart) services.
+version=0.3
+author=Richard Duivenvoorde
+email=richard@duif.net
 
 # end of mandatory metadata
 
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-# changelog=
+
+changelog:
+    0.3     (10-2012) initial version
 
 # tags are comma separated with spaces allowed
-tags=
+tags=Nederland, PDOK, ows, services
 
-homepage=
-tracker=
-repository=
+homepage=http://www.qgis.nl
+tracker=https://github.com/rduivenvoorde/pdokservicesplugin/issues
+repository=https://github.com/rduivenvoorde/pdokservicesplugin
 icon=icon.png
 # experimental flag
-experimental=True
+#experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version
 deprecated=False

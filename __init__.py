@@ -3,7 +3,7 @@
 /***************************************************************************
  PdokServicesPlugin
                                  A QGIS plugin
- bla
+ 
                              -------------------
         begin                : 2012-10-11
         copyright            : (C) 2012 by Richard Duivenvoorde
@@ -21,15 +21,19 @@
  This script initializes the plugin, making it known to QGIS.
 """
 def name():
-    return "Pdok service plugin"
+    return "PDOK services plugin"
 def description():
-    return "Check dutch pdok services"
+    return "Plugin to easily load the available dutch PDOK (Publieke Data Op de Kaart) services."
 def version():
-    return "Version 0.1"
+    return "Version 0.3"
 def icon():
     return "icon.png"
 def qgisMinimumVersion():
-    return "1.0"
+    return "1.8"
+def author(): 
+    return "Richard Duivenvoorde"
+def email():
+    return "richard@duif.net"
 def classFactory(iface):
     # load PdokServicesPlugin class from file PdokServicesPlugin
     from pdokservicesplugin import PdokServicesPlugin

@@ -33,7 +33,7 @@ PLUGINNAME = pdokservicesplugin
 
 PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py
 
-EXTRAS = icon.png pdok.json
+EXTRAS = icon.png help.png pdok.json
 
 UI_FILES = ui_pdokservicesplugin.py
 

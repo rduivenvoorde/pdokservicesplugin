@@ -84,7 +84,7 @@ class PdokServicesPlugin:
     def about(self):
         infoString = QString("Written by Richard Duivenvoorde\nEmail - richard@duif.net\n")
         infoString = infoString.append("Company - http://www.webmapper.net\n")
-        infoString = infoString.append("Source: TODO")
+        infoString = infoString.append("Source: https://github.com/rduivenvoorde/pdokservicesplugin")
         QMessageBox.information(self.iface.mainWindow(), "Pdok Services Plugin About", infoString)
 
     def unload(self):
