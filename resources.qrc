@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/plugins/pdokservicesplugin">
+    <file>help.png</file>
+    <file>icon.png</file>
+  </qresource>
+</RCC>
