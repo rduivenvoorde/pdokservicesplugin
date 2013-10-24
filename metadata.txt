@@ -10,11 +10,12 @@
 
 [general]
 name=PDOK services plugin
-qgisMinimumVersion=1.8
+qgisMinimumVersion=1.5
+qgisMaximumVersion=2.99
 description=Plugin to easily load the available dutch PDOK (Publieke Data Op de Kaart) services.
-version=0.3
+version=0.5
 author=Richard Duivenvoorde
-email=richard@duif.net
+email=richard@webmapper.net
 
 # end of mandatory metadata
 
@@ -23,6 +24,8 @@ email=richard@duif.net
 # Uncomment the following line and add your changelog entries:
 
 changelog:
+    0.5     (10-2013) fix for QGIS 2.0 api
+    0.4     (11-2012) updated for new pdok services
     0.3     (10-2012) initial version
 
 # tags are comma separated with spaces allowed

@@ -50,7 +50,7 @@ class PdokServicesPlugin:
         self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/pdokservicesplugin"
         # initialize locale
         localePath = ""
-        locale = QSettings().value("locale/userLocale").toString()[0:2]
+        locale = QSettings().value("locale/userLocale")[0:2]
 
         if QFileInfo(self.plugin_dir).exists():
             localePath = self.plugin_dir + "/i18n/pdokservicesplugin_" + locale + ".qm"
@@ -100,11 +100,11 @@ class PdokServicesPlugin:
         #namespace = url.split("/")[3]
         #print self.pdoklayers[i]
         #layer = self.pdoklayers[i]
-        layer = item.data(Qt.UserRole).toList()
-        url = layer[3].toString()
+        layer = item.data(Qt.UserRole)
+        url = layer[3]
         namespace = url.split("/")[3]
-        title = layer[1].toString()
-        name = layer[2].toString()
+        title = layer[1]
+        name = layer[2]
         if layer[0]=="wms":
             if QGis.QGIS_VERSION_INT < 10900:
                 # qgis <= 1.8
@@ -113,13 +113,15 @@ class PdokServicesPlugin:
                     uri, # service uri
                     title, # name for layer (as seen in QGIS)
                     "wms", # dataprovider key
-                    [namespace+':'+name], # array of layername(s) for provider (id's)
+                    #[namespace+':'+name], # array of layername(s) for provider (id's)
+                    [name], # array of layername(s) for provider (id's)
                     [""], # array of stylename(s)
                     "image/png", # image format string
                     "EPSG:28992") # crs code string
             else:
                 # qgis > 1.8
-                uri = "crs=EPSG:28992&layers="+namespace+":"+name+"&styles=&format=image/png&url="+url;
+                #uri = "crs=EPSG:28992&layers="+namespace+":"+name+"&styles=&format=image/png&url="+url;
+                uri = "crs=EPSG:28992&layers="+name+"&styles=&format=image/png&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
         elif layer[0]=="wmts":
             if QGis.QGIS_VERSION_INT < 10900:
