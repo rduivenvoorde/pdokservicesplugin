@@ -125,7 +125,7 @@ class PdokServicesPlugin:
                 self.iface.addRasterLayer(uri, title, "wms")
         elif layer[0]=="wmts":
             if QGis.QGIS_VERSION_INT < 10900:
-                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+layer[0].toString()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u de ontwikkelversie van QGIS ernaast installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
+                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+layer[0]+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u de ontwikkelversie van QGIS ernaast installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
                 return
             uri = "tileMatrixSet=EPSG:28992&crs=EPSG:28992&layers="+name+"&styles=&format=image/png&url="+url;
             self.iface.addRasterLayer(uri, title, "wms")
@@ -133,7 +133,7 @@ class PdokServicesPlugin:
             uri = url+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+name+"&SRSNAME=EPSG:28992"
             self.iface.addVectorLayer(uri, title, "WFS")
         else:
-            QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+layer[0].toString()+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+layer[0]+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
             return
 
 
