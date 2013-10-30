@@ -27,24 +27,8 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>OpenGeoGroep en PDOK</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QWebView" name="webView">
-         <property name="url">
-          <url>
-           <string>file:///home/richard/dev/qgis/git/pdokservicesplugin/infotab.html</string>
-          </url>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
        <string>PDOK services</string>
@@ -92,11 +76,25 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>OpenGeoGroep en PDOK</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QWebView" name="webView">
+         <property name="url">
+          <url>
+           <string>file:///home/richard/dev/qgis/git/pdokservicesplugin/infotab.html</string>
+          </url>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
-  <zorder>buttonBox</zorder>
-  <zorder>tabWidget</zorder>
  </widget>
  <customwidgets>
   <customwidget>
