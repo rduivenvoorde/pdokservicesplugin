@@ -62,6 +62,7 @@ class PdokServicesPlugin:
             self.translator.load(localePath)
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
+        self.currentLayer = None
 
 
     def initGui(self):
@@ -99,30 +100,27 @@ class PdokServicesPlugin:
         self.iface.removeToolBarIcon(self.action)
 
     def showService(self, item):
-        print 'showService'
-        print self.dlg.servicesView.selectedIndexes()
-        if len(self.dlg.servicesView.selectedIndexes())==0:
-            return
-        row = self.dlg.servicesView.selectedIndexes()[0].row()
-        layer = self.sourceModel.item(row, 1).data(Qt.UserRole)
-        url = layer[3]
+        self.currentLayer =  item.data(Qt.UserRole)
+        print self.currentLayer
+        url = self.currentLayer[3]
         namespace = url.split("/")[3]
-        title = layer[1]
-        name = layer[2]
+        title = self.currentLayer[1]
+        name = self.currentLayer[2]
         self.dlg.ui.layerInfo.setText('')
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.layerInfo.setHtml('<h3>%s</h3><lu><li>%s</li><li>%s</li><li>%s</li></lu>' % (title, name, title, url))
 
     def loadService(self):
-        if len(self.dlg.servicesView.selectedIndexes())==0:
+        print self.currentLayer
+        if self.currentLayer == None:
+            print 'geen'
             return
-        row = self.dlg.servicesView.selectedIndexes()[0].row()
-        layer = self.sourceModel.item(row, 1).data(Qt.UserRole)
-        url = layer[3]
+        print 'wel'
+        url = self.currentLayer[3]
         namespace = url.split("/")[3]
-        title = layer[1]
-        name = layer[2]
-        if layer[0]=="wms":
+        title = self.currentLayer[1]
+        name = self.currentLayer[2]
+        if self.currentLayer[0]=="wms":
             if QGis.QGIS_VERSION_INT < 10900:
                 # qgis <= 1.8
                 uri = url
@@ -140,17 +138,22 @@ class PdokServicesPlugin:
                 #uri = "crs=EPSG:28992&layers="+namespace+":"+name+"&styles=&format=image/png&url="+url;
                 uri = "crs=EPSG:28992&layers="+name+"&styles=&format=image/png&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
-        elif layer[0]=="wmts":
+        elif self.currentLayer[0]=="wmts":
             if QGis.QGIS_VERSION_INT < 10900:
-                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+layer[0]+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u de ontwikkelversie van QGIS ernaast installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
+                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+self.currentLayer[0]+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u de ontwikkelversie van QGIS ernaast installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
                 return
-            uri = "tileMatrixSet=EPSG:28992&crs=EPSG:28992&layers="+name+"&styles=&format=image/png&url="+url;
+            # special case for luchtfoto
+            if name=="luchtfoto":
+                uri = url;
+            else:
+                uri = "tileMatrixSet=EPSG:28992&crs=EPSG:28992&layers="+name+"&styles=&format=image/png&url="+url;
+            #print uri
             self.iface.addRasterLayer(uri, title, "wms")
-        elif layer[0]=="wfs":
+        elif self.currentLayer[0]=="wfs":
             uri = url+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+name+"&SRSNAME=EPSG:28992"
             self.iface.addVectorLayer(uri, title, "WFS")
         else:
-            QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+layer[0]+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+self.currentLayer[0]+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
             return
 
 
@@ -159,6 +162,7 @@ class PdokServicesPlugin:
         self.dlg.servicesView.clearSelection()
         # remove layer info
         self.dlg.ui.layerInfo.setText('')
+        self.currentLayer = None
         self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.proxyModel.setFilterFixedString(string)
 
@@ -204,10 +208,9 @@ class PdokServicesPlugin:
                     #self.sourceModel.appendRow( [itemType, itemBtn, item] )
                     self.sourceModel.appendRow( [itemType, item] )
 
-            #QObject.connect(self.dlg.servicesView, SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), self.showService)
-            self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
+            #self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
             #QObject.connect(self.dlg.servicesView, SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.showService)
-            #QObject.connect(self.dlg.servicesView, SIGNAL("clicked(QModelIndex)"), self.showService)
+            QObject.connect(self.dlg.servicesView, SIGNAL("clicked(QModelIndex)"), self.showService)
             QObject.connect(self.dlg.layerSearch, SIGNAL("textChanged(QString)"), self.filterLayers)
             self.dlg.servicesView.resizeColumnToContents(0)
             self.dlg.servicesView.resizeColumnToContents(1)
