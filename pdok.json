@@ -116,6 +116,9 @@
 {"naam":"WMTS Agrarisch Areaal Nederland","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/aan","layers":["aan"],"type":"wmts","pngformaat":"image/png"},
 {"naam":"WMTS Natura 2000","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/natura2000","layers":["natura2000"],"type":"wmts","pngformaat":"image/png8"},
 {"naam":"WMTS BRT achtergrondkaart","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/brtachtergrondkaart","layers":["brtachtergrondkaart"],"type":"wmts","pngformaat":"image/png8"},
+
+{"naam":"WMTS Luchtfoto","url":"http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml","layers":["luchtfoto"],"type":"wmts","pngformaat":"image/png8"},
+
 {"naam":"WMTS Top10NL","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/top10nl","layers":["top10nl"],"type":"wmts","pngformaat":"image/png8"},
 {"naam":"WMTS Top250Raster","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/top250raster","layers":["top250raster"],"type":"wmts","pngformaat":"image/png8"},
 {"naam":"WMTS Top50Raster","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/top50raster","layers":["top50raster"],"type":"wmts","pngformaat":"image/png8"},

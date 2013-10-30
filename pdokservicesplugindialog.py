@@ -29,5 +29,12 @@ class PdokServicesPluginDialog(QtGui.QDialog):
         # Set up the user interface from Designer.
         self.ui = Ui_PdokServicesPlugin()
         self.ui.setupUi(self)
-        self.servicesListView = self.ui.servicesListView
+        self.servicesView = self.ui.servicesView
+        # only select one row at a time:
+        self.servicesView.setSelectionMode(self.servicesView.SingleSelection)
+        # select whole row if an item is clicked
+        self.servicesView.setSelectionBehavior(self.servicesView.SelectRows)
+        self.servicesView.setAutoScroll(False)
         self.layerSearch = self.ui.layerSearch
+        QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
+        QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("rejected()"), self.reject)

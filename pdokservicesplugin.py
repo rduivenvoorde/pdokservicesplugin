@@ -7,11 +7,13 @@
 
 Services url:
 
-http://geodata.nationaalgeoregister.nl/apps/preview/serviceinfo.js.jsp 
+http://pdokviewer.pdok.nl/config/default.xml
+and
+https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls
 
 from 
 
-http://geodata.nationaalgeoregister.nl/apps/preview/
+http://pdokviewer.pdok.nl/
 
                               -------------------
         begin                : 2012-10-11
@@ -81,6 +83,10 @@ class PdokServicesPlugin:
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.aboutAction)
         QObject.connect(self.aboutAction, SIGNAL("activated()"), self.about)
 
+        QObject.connect(self.dlg.ui.btnLoadLayer, SIGNAL("clicked()"), self.loadService)
+
+
+
     def about(self):
         infoString = QString("Written by Richard Duivenvoorde\nEmail - richard@duif.net\n")
         infoString = infoString.append("Company - http://www.webmapper.net\n")
@@ -92,15 +98,26 @@ class PdokServicesPlugin:
         self.iface.removePluginMenu(u"&Pdok Services Plugin",self.action)
         self.iface.removeToolBarIcon(self.action)
 
-    def loadService(self, item):
-        #service = self.pdok["services"][i]
-        #url = service["url"]
-        #name = service["naam"]
-        #layers = service["layers"][0]
-        #namespace = url.split("/")[3]
-        #print self.pdoklayers[i]
-        #layer = self.pdoklayers[i]
-        layer = item.data(Qt.UserRole)
+    def showService(self, item):
+        print 'showService'
+        print self.dlg.servicesView.selectedIndexes()
+        if len(self.dlg.servicesView.selectedIndexes())==0:
+            return
+        row = self.dlg.servicesView.selectedIndexes()[0].row()
+        layer = self.sourceModel.item(row, 1).data(Qt.UserRole)
+        url = layer[3]
+        namespace = url.split("/")[3]
+        title = layer[1]
+        name = layer[2]
+        self.dlg.ui.layerInfo.setText('')
+        self.dlg.ui.btnLoadLayer.setEnabled(True)
+        self.dlg.ui.layerInfo.setHtml('<h3>%s</h3><lu><li>%s</li><li>%s</li><li>%s</li></lu>' % (title, name, title, url))
+
+    def loadService(self):
+        if len(self.dlg.servicesView.selectedIndexes())==0:
+            return
+        row = self.dlg.servicesView.selectedIndexes()[0].row()
+        layer = self.sourceModel.item(row, 1).data(Qt.UserRole)
         url = layer[3]
         namespace = url.split("/")[3]
         title = layer[1]
@@ -138,6 +155,10 @@ class PdokServicesPlugin:
 
 
     def filterLayers(self, string):
+        # remove selection if one row is selected
+        self.dlg.servicesView.clearSelection()
+        # remove layer info
+        self.dlg.ui.layerInfo.setText('')
         self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.proxyModel.setFilterFixedString(string)
 
@@ -153,37 +174,44 @@ class PdokServicesPlugin:
             #self.pdoklayers = []
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
-            
-            self.proxyModel.setSourceModel(self.sourceModel)
-            self.dlg.servicesListView.setModel(self.proxyModel)
-            i = 0
-            for service in self.pdok["services"]:
 
-                #print service["naam"]
-                #print "\t"+service["type"]
-                #print "\t"+service["url"]
-                #print "\t"+str(service["layers"])
+            self.proxyModel.setSourceModel(self.sourceModel)
+            self.proxyModel.setFilterKeyColumn(1)
+
+            self.dlg.servicesView.setModel(self.proxyModel)
+
+            # TODO: not working
+            #self.sourceModel.setHeaderData(0, Qt.Horizontal, "Type")
+            #self.sourceModel.setHeaderData(1, Qt.Horizontal, "Naam")
+
+            for service in self.pdok["services"]:
 
                 for layer in service["layers"]:
                     #self.pdoklayers.append([ service["type"], service["naam"], layer, service["url"] ])
                     #item = QListWidgetItem("%s  %i %s" % (service["naam"], i+1, layer))
-                    #self.dlg.servicesListView.addItem(item)
+                    #self.dlg.servicesView.addItem(item)
                     #item = QStandardItem()
 
                     # you can attache different "data's" to to an QStandarditem
                     # default one is the visible one:
-                    item = QStandardItem("%i %s %s" % (i+1, service["naam"], layer))
+                    item = QStandardItem("%s %s" % (service["naam"], layer))
                     # userrole is a free one:
                     item.setData([ service["type"], service["naam"], layer, service["url"] ], Qt.UserRole)
-                    #item = QStandardItem()
-                    #item.appendColumn([QStandardItem(service["naam"])])
-                    #item.appendColumn([QStandardItem(i+1)])
-                    #item.appendColumn([QStandardItem(layer)])
-                    self.sourceModel.appendRow( item )
-                    i=i+1
-            #QObject.connect(self.dlg.servicesListView, SIGNAL("currentRowChanged(int)"), self.loadService)
-            QObject.connect(self.dlg.servicesListView, SIGNAL("clicked(QModelIndex)"), self.loadService)
+
+                    itemType = QStandardItem("%s" % (service["type"].upper()) )
+                    #itemBtn = QStandardItem( " Klik om te laden " )
+
+                    #self.sourceModel.appendRow( [itemType, itemBtn, item] )
+                    self.sourceModel.appendRow( [itemType, item] )
+
+            #QObject.connect(self.dlg.servicesView, SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), self.showService)
+            self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
+            #QObject.connect(self.dlg.servicesView, SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.showService)
+            #QObject.connect(self.dlg.servicesView, SIGNAL("clicked(QModelIndex)"), self.showService)
             QObject.connect(self.dlg.layerSearch, SIGNAL("textChanged(QString)"), self.filterLayers)
+            self.dlg.servicesView.resizeColumnToContents(0)
+            self.dlg.servicesView.resizeColumnToContents(1)
+            #self.dlg.servicesView.resizeColumnToContents(2)
             self.servicesLoaded = True;
 
         # show the dialog
@@ -195,3 +223,4 @@ class PdokServicesPlugin:
             # do something useful (delete the line containing pass and
             # substitute with your code)
             pass
+
