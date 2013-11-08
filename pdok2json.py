@@ -137,11 +137,6 @@ def handleWMTS(wmtscapsurl):
         layername = childNodeValue(layer, 'ows:Identifier')
         imgformats = childNodeValue(layer, 'Format')
         tilematrixsets = childNodeValue(layer, 'TileMatrixSet')
-        #print '\n'
-        #print title
-        #print layername
-        #print imgformats
-        #print tilematrixsets
         # wmts does not have some kind of abstract or description :-(
         abstract = ''
         # {"naam":"WMTS Agrarisch Areaal Nederland","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/aan","layers":["aan"],"type":"wmts","pngformaat":"image/png"},
@@ -170,6 +165,7 @@ def handleWMS(wmscapsurl):
     cap = dom.getElementsByTagName('Capability')
     getmap = cap[0].getElementsByTagName('GetMap');
     url = getmap[0].getElementsByTagName('OnlineResource')[0].getAttribute('xlink:href')
+    imgformats = childNodeValue(getmap[0], 'Format')
     servicetitle = childNodeValue(dom.getElementsByTagName('Service')[0], 'Title')
     global firstOne
     root = dom.getElementsByTagName('Layer')[0]
@@ -189,7 +185,7 @@ def handleWMS(wmscapsurl):
             if not firstOne:
                 comma = ','
             # some extract have strange chars, we decode to utf8
-            s = unicode('%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle)).encode('utf8')
+            s = unicode('%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats)).encode('utf8')
             # the comma behind the print makes print NOT add a \n newline behind it
             # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
             print s,
@@ -326,18 +322,14 @@ services = [
 #services = [ ('wcs', 'ff', 'ff') ]
 
 #services = [
-## https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/a
-#('wms', 'AAN (WMS | Open)',
-#'http://geodata.nationaalgeoregister.nl/aan/wms?request=GetCapabilities')
-#,
-#('wfs','AAN (WFS | Open)',
-#'http://geodata.nationaalgeoregister.nl/aan/wfs?version=1.0.0&request=GetCapabilities')
-#,
-#('wcs','AHN (WCS | Open)',
-#'http://geodata.nationaalgeoregister.nl/ahn25m/wcs?request=getcapabilities')
-#,
-#('wmts', 'PDOK luchtfoto',
-#'http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml')
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/a
+#('wms', 'AAN (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/aan/wms?request=GetCapabilities') ,
+#('wfs','AAN (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/aan/wfs?version=1.0.0&request=GetCapabilities') ,
+#('wcs','AHN (WCS | Open)', 'http://geodata.nationaalgeoregister.nl/ahn25m/wcs?request=getcapabilities') ,
+#('wmts', 'PDOK luchtfoto', 'http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml'),
+#('wms', 'TOP10NL (WMS | Open) ','http://geodata.nationaalgeoregister.nl/top10nl/wms?SERVICE=WMS&request=GetCapabilities'),
+#('wms', 'Weggeg (WMS | Open) ','http://geodata.nationaalgeoregister.nl/weggeg/wms?SERVICE=WMS&request=GetCapabilities'),
+#('wms', 'Luchtfoto (PDOK-achtergrond) (WMS | Open) ','http://geodata1.nationaalgeoregister.nl/luchtfoto/wms?request=GetCapabilities'),
 #]
 
 #services = [ 
@@ -354,7 +346,8 @@ services = [
 #('wms', 'Luchtfoto Landelijke Voorziening Beeldmateriaal (2013) (WMS | Gesloten) ','https://secure.geodata2.nationaalgeoregister.nl/lv-beeldmateriaal/2013/wms?'),
 ## OP DIT MOMENT STUK: 
 #('wms', 'Ruimtelijke plannen (WMS | Open) ','http://geodata.nationaalgeoregister.nl/plu/wms?service=wms&request=getcapabilities'),
-#
+#('wfs' , 'Ahn25m (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/ahn25m/wfs?version=1.0.0&request=GetCapabilities') ,
+#]
 
 firstOne = True
 print '{"services":[',

@@ -2,8 +2,8 @@
   <qresource prefix="/plugins/pdokservicesplugin">
     <file>ogg.gif</file>
     <file>pdok.png</file>
-    <file>infotab.html</file>
     <file>help.png</file>
+    <file>infotab.html</file>
     <file>icon.png</file>
   </qresource>
 </RCC>

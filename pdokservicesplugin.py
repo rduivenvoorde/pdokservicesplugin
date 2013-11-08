@@ -53,7 +53,10 @@ class PdokServicesPlugin:
         self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/pdokservicesplugin"
         # initialize locale
         localePath = ""
-        locale = QSettings().value("locale/userLocale")[0:2]
+        if isinstance(QSettings().value("locale/userLocale"), QVariant):
+            locale = QSettings().value("locale/userLocale").toString()[0:2]
+        else:
+            locale = QSettings().value("locale/userLocale")[0:2]
 
         if QFileInfo(self.plugin_dir).exists():
             localePath = self.plugin_dir + "/i18n/pdokservicesplugin_" + locale + ".qm"
@@ -108,7 +111,17 @@ class PdokServicesPlugin:
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[1])
         # itemType holds the data (== column 1)
         self.currentLayer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
+        if isinstance(self.currentLayer, QVariant):
+            self.currentLayer = self.currentLayer.toMap()
+            # QGIS 1.8: QVariants
+            currentLayer = {}
+            for key in self.currentLayer.keys():
+                val = self.currentLayer[key]
+                print unicode(val.toString())
+                currentLayer[unicode(key)]=unicode(val.toString())
+            self.currentLayer = currentLayer
         url = self.currentLayer['url']
+        print url
         title = self.currentLayer['title']
         servicetitle = self.currentLayer['servicetitle']
         layername = self.currentLayer['layers']
@@ -136,7 +149,9 @@ class PdokServicesPlugin:
             url +=('?'+urllib.quote_plus(query))
         title = self.currentLayer['title']
         layers = self.currentLayer['layers']
+        # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
         if servicetype=="wms":
+            imgformat = self.currentLayer['imgformats'].split(',')[0]
             if QGis.QGIS_VERSION_INT < 10900:
                 # qgis <= 1.8
                 uri = url
@@ -144,17 +159,17 @@ class PdokServicesPlugin:
                     uri, # service uri
                     title, # name for layer (as seen in QGIS)
                     "wms", # dataprovider key
-                    [layername], # array of layername(s) for provider (id's)
+                    [layers], # array of layername(s) for provider (id's)
                     [""], # array of stylename(s)
-                    "image/png", # image format string
+                    imgformat, # image format string
                     "EPSG:28992") # crs code string
             else:
                 # qgis > 1.8
-                uri = "crs=EPSG:28992&layers="+layers+"&styles=&format=image/png&url="+url;
+                uri = "crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
         elif servicetype=="wmts":
             if QGis.QGIS_VERSION_INT < 10900:
-                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u de ontwikkelversie van QGIS ernaast installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
+                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
                 return
             # tilematrixsets and imgformat can be more then one, split on comma and take first one
             tilematrixsets = self.currentLayer['tilematrixsets'].split(',')[0]
@@ -197,7 +212,7 @@ class PdokServicesPlugin:
     def filterLayers(self, string):
         # remove selection if one row is selected
         self.dlg.servicesView.selectRow(0)
-        self.currentLayer = None
+        #self.currentLayer = None
         self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.proxyModel.setFilterFixedString(string)
 
@@ -267,10 +282,10 @@ class PdokServicesPlugin:
         self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
         self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignLeft)
         #self.dlg.servicesView.verticalHeader().hide()
-        self.dlg.servicesView.resizeColumnToContents(0)
-        self.dlg.servicesView.resizeColumnToContents(1)
-        self.dlg.servicesView.resizeColumnToContents(2)
-
+        #self.dlg.servicesView.resizeColumnToContents(0)
+        #self.dlg.servicesView.resizeColumnToContents(1)
+        #self.dlg.servicesView.resizeColumnToContents(2)
+        self.dlg.servicesView.resizeColumnsToContents()
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
