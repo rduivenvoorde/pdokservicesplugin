@@ -36,6 +36,7 @@ from PyQt4.QtGui import *
 from qgis.core import *
 import json
 import os
+import urllib
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
@@ -99,28 +100,43 @@ class PdokServicesPlugin:
         self.iface.removePluginMenu(u"&Pdok Services Plugin",self.action)
         self.iface.removeToolBarIcon(self.action)
 
-    def showService(self, item):
-        self.currentLayer =  item.data(Qt.UserRole)
-        print self.currentLayer
-        url = self.currentLayer[3]
-        namespace = url.split("/")[3]
-        title = self.currentLayer[1]
-        name = self.currentLayer[2]
+    def showService(self, selectedIndexes):
+        if len(selectedIndexes)==0:
+            self.currentLayer = None
+            self.dlg.ui.layerInfo.setHtml('')
+            return
+        self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[1])
+        # itemType holds the data (== column 1)
+        self.currentLayer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
+        url = self.currentLayer['url']
+        title = self.currentLayer['title']
+        servicetitle = self.currentLayer['servicetitle']
+        layername = self.currentLayer['layers']
+        abstract = self.currentLayer['abstract']
+        stype = self.currentLayer['type'].upper()
+        minscale =''
+        if self.currentLayer.has_key('minscale') and self.currentLayer['minscale'] != None and self.currentLayer['minscale'] != '':
+            minscale = "min. schaal 1:"+self.currentLayer['minscale']
+        maxscale = ''
+        if self.currentLayer.has_key('maxscale') and self.currentLayer['maxscale'] != None and self.currentLayer['maxscale'] != '':
+            maxscale = "max. schaal 1:"+self.currentLayer['maxscale']
         self.dlg.ui.layerInfo.setText('')
         self.dlg.ui.btnLoadLayer.setEnabled(True)
-        self.dlg.ui.layerInfo.setHtml('<h3>%s</h3><lu><li>%s</li><li>%s</li><li>%s</li></lu>' % (title, name, title, url))
+        self.dlg.ui.layerInfo.setHtml('<h4>%s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li></lu>' % (servicetitle, title, abstract, stype, url, layername, minscale, maxscale))
 
     def loadService(self):
-        print self.currentLayer
         if self.currentLayer == None:
-            print 'geen'
             return
-        print 'wel'
-        url = self.currentLayer[3]
-        namespace = url.split("/")[3]
-        title = self.currentLayer[1]
-        name = self.currentLayer[2]
-        if self.currentLayer[0]=="wms":
+        servicetype = self.currentLayer['type']
+        url = self.currentLayer['url']
+        # some services have an url with query parameters in it, we have to urlencode those:
+        location,query = urllib.splitquery(url)
+        url = location
+        if query != None and query != '':
+            url +=('?'+urllib.quote_plus(query))
+        title = self.currentLayer['title']
+        layers = self.currentLayer['layers']
+        if servicetype=="wms":
             if QGis.QGIS_VERSION_INT < 10900:
                 # qgis <= 1.8
                 uri = url
@@ -128,94 +144,132 @@ class PdokServicesPlugin:
                     uri, # service uri
                     title, # name for layer (as seen in QGIS)
                     "wms", # dataprovider key
-                    #[namespace+':'+name], # array of layername(s) for provider (id's)
-                    [name], # array of layername(s) for provider (id's)
+                    [layername], # array of layername(s) for provider (id's)
                     [""], # array of stylename(s)
                     "image/png", # image format string
                     "EPSG:28992") # crs code string
             else:
                 # qgis > 1.8
-                #uri = "crs=EPSG:28992&layers="+namespace+":"+name+"&styles=&format=image/png&url="+url;
-                uri = "crs=EPSG:28992&layers="+name+"&styles=&format=image/png&url="+url;
+                uri = "crs=EPSG:28992&layers="+layers+"&styles=&format=image/png&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
-        elif self.currentLayer[0]=="wmts":
+        elif servicetype=="wmts":
             if QGis.QGIS_VERSION_INT < 10900:
-                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+self.currentLayer[0]+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u de ontwikkelversie van QGIS ernaast installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
+                QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u de ontwikkelversie van QGIS ernaast installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
                 return
+            # tilematrixsets and imgformat can be more then one, split on comma and take first one
+            tilematrixsets = self.currentLayer['tilematrixsets'].split(',')[0]
+            # hack because ...
+            if tilematrixsets == '':
+                tilematrixsets = 'EPSG:28992'
+            imgformat = self.currentLayer['imgformats'].split(',')[0]
             # special case for luchtfoto
-            if name=="luchtfoto":
-                uri = url;
-            else:
-                uri = "tileMatrixSet=EPSG:28992&crs=EPSG:28992&layers="+name+"&styles=&format=image/png&url="+url;
+            #if layers=="luchtfoto":
+            #    # tileMatrixSet=nltilingschema&crs=EPSG:28992&layers=luchtfoto&styles=&format=image/jpeg&url=http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml
+            #    # {u'layers': u'luchtfoto', u'imgformats': u'image/jpeg', u'title': u'PDOK-achtergrond luchtfoto', u'url': u'http://geodata1.nationaalgeoregister.nl/luchtfoto/wms', u'abstract': u'', u'tilematrixsets': u'nltilingschema', u'type': u'wmts'}
+            #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url
+            #else:
+            #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
+            uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
+            #print "############ PDOK URI #################"
             #print uri
             self.iface.addRasterLayer(uri, title, "wms")
-        elif self.currentLayer[0]=="wfs":
-            uri = url+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+name+"&SRSNAME=EPSG:28992"
+        elif servicetype=="wfs":
+            location,query = urllib.splitquery(url)
+            uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
+            # adding a bbox paramater forces QGIS to NOT cache features but retrieve new features all the time
+            # QGIS will update the BBOX to the right value
+            uri += "&BBOX=0,300000,300000,600000"
             self.iface.addVectorLayer(uri, title, "WFS")
+        elif servicetype=="wcs":
+            # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
+            uri = ''
+            # cache=AlwaysCache
+            # cache=PreferNetwork 
+            # cache=AlwaysNetwork
+            # cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
+            uri = "cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs"
+            self.iface.addRasterLayer(uri, title, "wcs")
         else:
-            QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+self.currentLayer[0]+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
             return
 
 
     def filterLayers(self, string):
         # remove selection if one row is selected
-        self.dlg.servicesView.clearSelection()
-        # remove layer info
-        self.dlg.ui.layerInfo.setText('')
+        self.dlg.servicesView.selectRow(0)
         self.currentLayer = None
         self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.proxyModel.setFilterFixedString(string)
 
+    #def addSourceRow(self, service, layer):
+    def addSourceRow(self, serviceLayer):
+        # you can attache different "data's" to to an QStandarditem
+        # default one is the visible one:
+        itemType = QStandardItem("%s" % (serviceLayer["type"].upper()) )
+        # userrole is a free form one:
+        # only attach the data to the first item
+        # service layer = a dict/object with all props of the layer
+        itemType.setData( serviceLayer , Qt.UserRole )
+        itemLayername = QStandardItem("%s" % (serviceLayer["title"]))
+        itemServicetitle = QStandardItem("%s" % (serviceLayer["servicetitle"]))
+        itemFilter = QStandardItem("%s %s %s %s" % (serviceLayer["type"], serviceLayer["title"], serviceLayer["servicetitle"], serviceLayer["abstract"]) )
+        self.sourceModel.appendRow( [itemServicetitle, itemType, itemLayername, itemFilter] )
+
     # run method that performs all the real work
     def run(self):
-
         if self.servicesLoaded == False:
-            #listWidget = QListWidget()
-            #f = open('/home/richard/dev/qgis/projects/pdok/json.txt','r')
             pdokjson = os.path.join(os.path.dirname(__file__), ".","pdok.json")
             f = open(pdokjson,'r')
             self.pdok = json.load(f)
-            #self.pdoklayers = []
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
 
             self.proxyModel.setSourceModel(self.sourceModel)
-            self.proxyModel.setFilterKeyColumn(1)
+            # filter == search on itemFilter column:
+            self.proxyModel.setFilterKeyColumn(3)
 
             self.dlg.servicesView.setModel(self.proxyModel)
+            self.dlg.servicesView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-            # TODO: not working
-            #self.sourceModel.setHeaderData(0, Qt.Horizontal, "Type")
-            #self.sourceModel.setHeaderData(1, Qt.Horizontal, "Naam")
 
+            #{"services":[
+            #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"},
+            #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"}
+            # ]}
+            # 
             for service in self.pdok["services"]:
+                # service[layer] was an array
+                if isinstance(service["layers"], str) or isinstance(service["layers"], unicode):
+                    #layer = service["layers"]
+                    #self.addSourceRow(service, layer)
+                    self.addSourceRow(service)
+                #else:
+                #    for layer in service["layers"]:
+                #        self.addSourceRow(service, layer)
+                        ## you can attache different "data's" to to an QStandarditem
+                        ## default one is the visible one:
+                        #item = QStandardItem("%s %s" % (service["naam"], layer))
+                        ## userrole is a free form one:
+                        #item.setData( { "type":service["type"], "title":service["naam"], "layername":layer, "url":service["url"], "abstract":service["abstract"] }, Qt.UserRole)
+                        #itemType = QStandardItem("%s" % (service["type"].upper()) )
+                        #self.sourceModel.appendRow( [itemType, item] )
 
-                for layer in service["layers"]:
-                    #self.pdoklayers.append([ service["type"], service["naam"], layer, service["url"] ])
-                    #item = QListWidgetItem("%s  %i %s" % (service["naam"], i+1, layer))
-                    #self.dlg.servicesView.addItem(item)
-                    #item = QStandardItem()
-
-                    # you can attache different "data's" to to an QStandarditem
-                    # default one is the visible one:
-                    item = QStandardItem("%s %s" % (service["naam"], layer))
-                    # userrole is a free one:
-                    item.setData([ service["type"], service["naam"], layer, service["url"] ], Qt.UserRole)
-
-                    itemType = QStandardItem("%s" % (service["type"].upper()) )
-                    #itemBtn = QStandardItem( " Klik om te laden " )
-
-                    #self.sourceModel.appendRow( [itemType, itemBtn, item] )
-                    self.sourceModel.appendRow( [itemType, item] )
-
-            #self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
-            #QObject.connect(self.dlg.servicesView, SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.showService)
-            QObject.connect(self.dlg.servicesView, SIGNAL("clicked(QModelIndex)"), self.showService)
-            QObject.connect(self.dlg.layerSearch, SIGNAL("textChanged(QString)"), self.filterLayers)
-            self.dlg.servicesView.resizeColumnToContents(0)
-            self.dlg.servicesView.resizeColumnToContents(1)
-            #self.dlg.servicesView.resizeColumnToContents(2)
+            self.dlg.layerSearch.textChanged.connect(self.filterLayers)
+            self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
+            # hide itemFilter column:
+            self.dlg.servicesView.hideColumn(3)
             self.servicesLoaded = True;
+
+        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Service")
+        self.sourceModel.setHeaderData(1, Qt.Horizontal, "Type")
+        self.sourceModel.setHeaderData(2, Qt.Horizontal, "Laagnaam")
+        self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
+        self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
+        self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignLeft)
+        #self.dlg.servicesView.verticalHeader().hide()
+        self.dlg.servicesView.resizeColumnToContents(0)
+        self.dlg.servicesView.resizeColumnToContents(1)
+        self.dlg.servicesView.resizeColumnToContents(2)
 
         # show the dialog
         self.dlg.show()

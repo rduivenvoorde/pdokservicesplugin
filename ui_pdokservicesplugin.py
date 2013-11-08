@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugin.ui'
 #
-# Created: Wed Oct 30 22:22:48 2013
+# Created: Fri Nov  8 15:23:52 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -64,7 +64,7 @@ class Ui_PdokServicesPlugin(object):
         self.gridLayout_3 = QtGui.QGridLayout(self.tab)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
         self.webView = QtWebKit.QWebView(self.tab)
-        self.webView.setUrl(QtCore.QUrl(_fromUtf8("file:///home/richard/dev/qgis/git/pdokservicesplugin/infotab.html")))
+        self.webView.setUrl(QtCore.QUrl(_fromUtf8("qrc:/plugins/pdokservicesplugin/infotab.html")))
         self.webView.setObjectName(_fromUtf8("webView"))
         self.gridLayout_3.addWidget(self.webView, 0, 0, 1, 1)
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
@@ -76,7 +76,7 @@ class Ui_PdokServicesPlugin(object):
 
     def retranslateUi(self, PdokServicesPlugin):
         PdokServicesPlugin.setWindowTitle(_translate("PdokServicesPlugin", "PdokServicesPlugin", None))
-        self.label.setText(_translate("PdokServicesPlugin", "Filter:", None))
+        self.label.setText(_translate("PdokServicesPlugin", "Zoek in servicetitel, laagnaam en beschrijving:", None))
         self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Laad deze laag in QGIS", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PdokServicesPlugin", "PDOK services", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PdokServicesPlugin", "OpenGeoGroep en PDOK", None))

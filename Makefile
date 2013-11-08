@@ -57,6 +57,7 @@ compile: $(UI_FILES) $(RESOURCE_FILES)
 # The deploy  target only works on unix like operating system where
 # the Python plugin directory is located at:
 # $HOME/.qgis2/python/plugins
+#deploy: compile
 deploy: compile doc transcompile
 	mkdir -p $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)
 	cp -vf $(PY_FILES) $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)

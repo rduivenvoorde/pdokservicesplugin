@@ -60,7 +60,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Filter:</string>
+          <string>Zoek in servicetitel, laagnaam en beschrijving:</string>
          </property>
         </widget>
        </item>
@@ -85,7 +85,7 @@
         <widget class="QWebView" name="webView">
          <property name="url">
           <url>
-           <string>file:///home/richard/dev/qgis/git/pdokservicesplugin/infotab.html</string>
+           <string>qrc:/plugins/pdokservicesplugin/infotab.html</string>
           </url>
          </property>
         </widget>
