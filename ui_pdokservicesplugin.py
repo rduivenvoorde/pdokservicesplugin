@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugin.ui'
 #
-# Created: Fri Nov  8 21:49:35 2013
+# Created: Wed Nov 13 08:31:22 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -71,7 +71,7 @@ class Ui_PdokServicesPlugin(object):
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
         self.retranslateUi(PdokServicesPlugin)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(PdokServicesPlugin)
 
     def retranslateUi(self, PdokServicesPlugin):

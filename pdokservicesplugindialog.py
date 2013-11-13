@@ -36,5 +36,6 @@ class PdokServicesPluginDialog(QtGui.QDialog):
         self.servicesView.setSelectionBehavior(self.servicesView.SelectRows)
         self.servicesView.setAutoScroll(False)
         self.layerSearch = self.ui.layerSearch
+        self.tabs = self.ui.tabWidget
         QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
         QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("rejected()"), self.reject)

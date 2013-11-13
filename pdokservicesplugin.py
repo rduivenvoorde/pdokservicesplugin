@@ -231,8 +231,13 @@ class PdokServicesPlugin:
 
     # run method that performs all the real work
     def run(self):
+        # last viewed/selected tab
         if QSettings().contains("/pdokservicesplugin/currenttab"):
-            self.dlg.tabs.widget(int(QSettings().value("/pdokservicesplugin/currenttab")))
+            if QGis.QGIS_VERSION_INT < 10900:
+                # qgis <= 1.8
+                self.dlg.tabs.widget(QSettings().value("/pdokservicesplugin/currenttab").toInt()[0])
+            else:
+                self.dlg.tabs.widget(int(QSettings().value("/pdokservicesplugin/currenttab")))
 
         if self.servicesLoaded == False:
             pdokjson = os.path.join(os.path.dirname(__file__), ".","pdok.json")
@@ -292,5 +297,9 @@ class PdokServicesPlugin:
         self.dlg.show()
         # Run the dialog event loop
         result = self.dlg.exec_()
-        QSettings().setValue("/pdokservicesplugin/currenttab", self.dlg.tabs.currentIndex())
+        if QGis.QGIS_VERSION_INT < 10900:
+            # qgis <= 1.8
+            QSettings().setValue("/pdokservicesplugin/currenttab", QVariant(self.dlg.tabs.currentIndex()))
+        else:
+            QSettings().setValue("/pdokservicesplugin/currenttab", self.dlg.tabs.currentIndex())
 
