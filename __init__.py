@@ -23,7 +23,7 @@
 def name():
     return "PDOK services plugin"
 def description():
-    return "Plugin to easily load the available dutch PDOK (Publieke Data Op de Kaart) services."
+    return "Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services."
 def version():
     return "Version 0.6"
 def icon():

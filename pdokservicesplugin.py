@@ -121,7 +121,6 @@ class PdokServicesPlugin:
                 currentLayer[unicode(key)]=unicode(val.toString())
             self.currentLayer = currentLayer
         url = self.currentLayer['url']
-        print url
         title = self.currentLayer['title']
         servicetitle = self.currentLayer['servicetitle']
         layername = self.currentLayer['layers']
@@ -232,6 +231,9 @@ class PdokServicesPlugin:
 
     # run method that performs all the real work
     def run(self):
+        if QSettings().contains("/pdokservicesplugin/currenttab"):
+            self.dlg.tabs.widget(int(QSettings().value("/pdokservicesplugin/currenttab")))
+
         if self.servicesLoaded == False:
             pdokjson = os.path.join(os.path.dirname(__file__), ".","pdok.json")
             f = open(pdokjson,'r')
@@ -290,9 +292,5 @@ class PdokServicesPlugin:
         self.dlg.show()
         # Run the dialog event loop
         result = self.dlg.exec_()
-        # See if OK was pressed
-        if result == 1:
-            # do something useful (delete the line containing pass and
-            # substitute with your code)
-            pass
+        QSettings().setValue("/pdokservicesplugin/currenttab", self.dlg.tabs.currentIndex())
 
