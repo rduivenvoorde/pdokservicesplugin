@@ -321,32 +321,27 @@ services = [
 # testing
 #services = [ ('wcs', 'ff', 'ff') ]
 
-#services = [
-# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/a
-#('wms', 'AAN (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/aan/wms?request=GetCapabilities') ,
-#('wfs','AAN (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/aan/wfs?version=1.0.0&request=GetCapabilities') ,
-#('wcs','AHN (WCS | Open)', 'http://geodata.nationaalgeoregister.nl/ahn25m/wcs?request=getcapabilities') ,
-#('wmts', 'PDOK luchtfoto', 'http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml'),
-#('wms', 'TOP10NL (WMS | Open) ','http://geodata.nationaalgeoregister.nl/top10nl/wms?SERVICE=WMS&request=GetCapabilities'),
-#('wms', 'Weggeg (WMS | Open) ','http://geodata.nationaalgeoregister.nl/weggeg/wms?SERVICE=WMS&request=GetCapabilities'),
-#('wms', 'Luchtfoto (PDOK-achtergrond) (WMS | Open) ','http://geodata1.nationaalgeoregister.nl/luchtfoto/wms?request=GetCapabilities'),
-#]
+services = [
+('wmts', 'AAN (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/tiles/service/wmts/aan?VERSION=1.0.0&request=GetCapabilities') ,
+]
 
 #services = [ 
-## GESLOTEN
+# GESLOTEN
 #('wms', 'Asbest scholenkaart (WMS | PDOK Basis)','http://geodata.nationaalgeoregister.nl/asbestscholenkaart/wms?SERVICE=WMS&request=GetCapabilities'),
-## GESLOTEN
+# GESLOTEN
 #('wfs', 'Asbest scholenkaart (WFS | PDOK Basis)','http://geodata.nationaalgeoregister.nl/asbestscholenkaart/wfs?version=1.0.0&request=GetCapabilities'),
-## GESLOTEN alleen na aanmelding: 
+# GESLOTEN alleen na aanmelding: 
 #('wms', 'Kadastrale kaart (WMS | PDOK Basis)','http://geodata.nationaalgeoregister.nl/kadastralekaart/wms?SERVICE=WMS&request=GetCapabilities'),
 #('wmts',  'Kadastrale kaart (WMTS | PDOK Basis)', 'http://geodata.nationaalgeoregister.nl/wmts/kadastralekaart?VERSION=1.0.0&request=GetCapabilities'),
-## GESLOTEN ACHTER PKI
-##('wms', 'Luchtfoto Landelijke Voorziening Beeldmateriaal (2012) (WMS | Gesloten) ','https://secure.geodata2.nationaalgeoregister.nl/lv-beeldmateriaal/2012/wms?'),
-## GESLOTEN ACHTER PKI
+# GESLOTEN ACHTER PKI
+#('wms', 'Luchtfoto Landelijke Voorziening Beeldmateriaal (2012) (WMS | Gesloten) ','https://secure.geodata2.nationaalgeoregister.nl/lv-beeldmateriaal/2012/wms?'),
+# GESLOTEN ACHTER PKI
 #('wms', 'Luchtfoto Landelijke Voorziening Beeldmateriaal (2013) (WMS | Gesloten) ','https://secure.geodata2.nationaalgeoregister.nl/lv-beeldmateriaal/2013/wms?'),
-## OP DIT MOMENT STUK: 
+# OP DIT MOMENT STUK: 
 #('wms', 'Ruimtelijke plannen (WMS | Open) ','http://geodata.nationaalgeoregister.nl/plu/wms?service=wms&request=getcapabilities'),
 #('wfs' , 'Ahn25m (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/ahn25m/wfs?version=1.0.0&request=GetCapabilities') ,
+
+#('wms', 'AAN (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/aan/wms?request=GetCapabilities') ,
 #]
 
 firstOne = True
