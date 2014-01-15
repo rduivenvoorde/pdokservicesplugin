@@ -27,7 +27,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -70,9 +70,43 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Laad deze laag in QGIS</string>
+          <string>Laad deze laag in QGIS (of dubbelklik op de regel)</string>
          </property>
         </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>PDOK geocoder</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="0" colspan="2">
+        <widget class="QLineEdit" name="geocoderSearch">
+         <property name="text">
+          <string>postcode, adres of plaatsnaam</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="geocoderSearchBtn">
+         <property name="text">
+          <string>Zoek</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Filter resultaten op:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="2">
+        <widget class="QLineEdit" name="geocoderResultSearch"/>
+       </item>
+       <item row="2" column="0" colspan="3">
+        <widget class="QTableView" name="geocoderResultView"/>
        </item>
       </layout>
      </widget>

@@ -34,7 +34,7 @@ def main(options, args):
     except xmlrpclib.Fault, err:
         print "A fault occurred"
         print "Fault code: %d" % err.faultCode
-        print "Fault string: %s" % err.faultString
+        print "Fault searchstring: %s" % err.faultString
 
 def hidepassword(url, start = 6):
     """Returns the http url with password part replaced with '*'."""

@@ -25,11 +25,11 @@ def name():
 def description():
     return "Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services."
 def version():
-    return "Version 0.5.1"
+    return "Version 0.6"
 def icon():
     return "icon.png"
 def qgisMinimumVersion():
-    return "1.5"
+    return "1.8"
 def author(): 
     return "Richard Duivenvoorde"
 def email():

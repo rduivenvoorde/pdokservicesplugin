@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugin.ui'
 #
-# Created: Wed Nov 13 08:31:22 2013
+# Created: Wed Jan 15 20:37:32 2014
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -59,6 +59,26 @@ class Ui_PdokServicesPlugin(object):
         self.btnLoadLayer.setObjectName(_fromUtf8("btnLoadLayer"))
         self.gridLayout_2.addWidget(self.btnLoadLayer, 4, 0, 1, 2)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
+        self.tab_3 = QtGui.QWidget()
+        self.tab_3.setObjectName(_fromUtf8("tab_3"))
+        self.gridLayout_4 = QtGui.QGridLayout(self.tab_3)
+        self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
+        self.geocoderSearch = QtGui.QLineEdit(self.tab_3)
+        self.geocoderSearch.setObjectName(_fromUtf8("geocoderSearch"))
+        self.gridLayout_4.addWidget(self.geocoderSearch, 0, 0, 1, 2)
+        self.geocoderSearchBtn = QtGui.QPushButton(self.tab_3)
+        self.geocoderSearchBtn.setObjectName(_fromUtf8("geocoderSearchBtn"))
+        self.gridLayout_4.addWidget(self.geocoderSearchBtn, 0, 2, 1, 1)
+        self.label_2 = QtGui.QLabel(self.tab_3)
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.gridLayout_4.addWidget(self.label_2, 1, 0, 1, 1)
+        self.geocoderResultSearch = QtGui.QLineEdit(self.tab_3)
+        self.geocoderResultSearch.setObjectName(_fromUtf8("geocoderResultSearch"))
+        self.gridLayout_4.addWidget(self.geocoderResultSearch, 1, 1, 1, 2)
+        self.geocoderResultView = QtGui.QTableView(self.tab_3)
+        self.geocoderResultView.setObjectName(_fromUtf8("geocoderResultView"))
+        self.gridLayout_4.addWidget(self.geocoderResultView, 2, 0, 1, 3)
+        self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
         self.tab = QtGui.QWidget()
         self.tab.setObjectName(_fromUtf8("tab"))
         self.gridLayout_3 = QtGui.QGridLayout(self.tab)
@@ -71,14 +91,18 @@ class Ui_PdokServicesPlugin(object):
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
         self.retranslateUi(PdokServicesPlugin)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(PdokServicesPlugin)
 
     def retranslateUi(self, PdokServicesPlugin):
         PdokServicesPlugin.setWindowTitle(_translate("PdokServicesPlugin", "PdokServicesPlugin", None))
         self.label.setText(_translate("PdokServicesPlugin", "Zoek in servicetitel, laagnaam en beschrijving:", None))
-        self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Laad deze laag in QGIS", None))
+        self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Laad deze laag in QGIS (of dubbelklik op de regel)", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PdokServicesPlugin", "PDOK services", None))
+        self.geocoderSearch.setText(_translate("PdokServicesPlugin", "postcode, adres of plaatsnaam", None))
+        self.geocoderSearchBtn.setText(_translate("PdokServicesPlugin", "Zoek", None))
+        self.label_2.setText(_translate("PdokServicesPlugin", "Filter resultaten op:", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PdokServicesPlugin", "PDOK geocoder", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PdokServicesPlugin", "OpenGeoGroep en PDOK", None))
 
 from PyQt4 import QtWebKit
