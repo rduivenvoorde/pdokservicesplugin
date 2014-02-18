@@ -41,6 +41,7 @@ class PdokServicesPluginDialog(QtGui.QDialog):
         self.geocoderSearch = self.ui.geocoderSearch
         self.geocoderResultSearch = self.ui.geocoderResultSearch
         self.geocoderResultView = self.ui.geocoderResultView
+        self.buttonBox = self.ui.buttonBox
         self.geocoderResultView.setSelectionMode(self.geocoderResultView.SingleSelection)
         # select whole row if an item is clicked
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)

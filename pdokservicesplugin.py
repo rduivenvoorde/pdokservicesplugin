@@ -95,9 +95,11 @@ class PdokServicesPlugin:
         QObject.connect(self.dlg.ui.btnLoadLayer, SIGNAL("clicked()"), self.loadService)
 
         self.dlg.geocoderSearchBtn.clicked.connect(self.searchAddress)
-        self.dlg.geocoderSearch.returnPressed.connect(self.dlg.geocoderSearchBtn.click)
+        self.dlg.geocoderSearch.returnPressed.connect(self.searchAddress)
 
         self.dlg.geocoderResultSearch.textChanged.connect(self.filterGeocoderResult)
+
+        self.dlg.buttonBox.button(QDialogButtonBox.Close).setAutoDefault(False)
 
 
     def about(self):
@@ -217,7 +219,7 @@ class PdokServicesPlugin:
             return
 
     def filterGeocoderResult(self, string):
-        print "filtering geocoder results: %s" % string
+        #print "filtering geocoder results: %s" % string
         self.dlg.geocoderResultView.selectRow(0)
         self.geocoderProxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.geocoderProxyModel.setFilterFixedString(string)
@@ -318,6 +320,7 @@ class PdokServicesPlugin:
             QSettings().setValue("/pdokservicesplugin/currenttab", QVariant(self.dlg.tabs.currentIndex()))
         else:
             QSettings().setValue("/pdokservicesplugin/currenttab", self.dlg.tabs.currentIndex())
+        self.removePointer()
 
     def geocode(self, string):
         addresses = pdokgeocoder.search(string)
