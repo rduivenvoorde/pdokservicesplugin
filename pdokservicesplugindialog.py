@@ -21,15 +21,19 @@
 """
 
 from PyQt4 import QtCore, QtGui
-from ui_pdokservicesplugin import Ui_PdokServicesPlugin
+#from ui_pdokservicesplugin import Ui_PdokServicesPlugin
+from ui_pdokservicesplugindockwidget import Ui_PDOKservices
 
 # create the dialog for zoom to point
-class PdokServicesPluginDialog(QtGui.QDialog):
+#class PdokServicesPluginDialog(QtGui.QDialog):
+class PdokServicesPluginDialog(QtGui.QDockWidget):
 
     def __init__(self):
-        QtGui.QDialog.__init__(self)
+#        QtGui.QDialog.__init__(self)
+        QtGui.QDockWidget.__init__(self)
         # Set up the user interface from Designer.
-        self.ui = Ui_PdokServicesPlugin()
+        #self.ui = Ui_PdokServicesPlugin()
+        self.ui = Ui_PDOKservices()
         self.ui.setupUi(self)
         self.servicesView = self.ui.servicesView
         # only select one row at a time:
@@ -41,13 +45,13 @@ class PdokServicesPluginDialog(QtGui.QDialog):
         self.geocoderSearch = self.ui.geocoderSearch
         self.geocoderResultSearch = self.ui.geocoderResultSearch
         self.geocoderResultView = self.ui.geocoderResultView
-        self.buttonBox = self.ui.buttonBox
         self.geocoderResultView.setSelectionMode(self.geocoderResultView.SingleSelection)
         # select whole row if an item is clicked
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
         self.geocoderSearchBtn = self.ui.geocoderSearchBtn
         self.tabs = self.ui.tabWidget
+#        self.buttonBox = self.ui.buttonBox
         #QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
         #QtCore.QObject.disconnect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
-        QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("rejected()"), self.reject)
+#        QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("rejected()"), self.reject)
 

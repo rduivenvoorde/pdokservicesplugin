@@ -42,6 +42,7 @@ import urllib
 import resources_rc
 # Import the code for the dialog
 from pdokservicesplugindialog import PdokServicesPluginDialog
+#from pdokservicesplugindockwidget import Ui_DockWidget
 from xml.dom.minidom import parse
 import pdokgeocoder
 
@@ -52,6 +53,7 @@ class PdokServicesPlugin:
         self.iface = iface
         # Create the dialog and keep reference
         self.dlg = PdokServicesPluginDialog()
+        self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dlg)
         # initialize plugin directory
         self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/pdokservicesplugin"
         # initialize locale
@@ -78,7 +80,8 @@ class PdokServicesPlugin:
         self.action = QAction(QIcon(":/plugins/pdokservicesplugin/icon.png"), \
             u"Pdok Services Plugin", self.iface.mainWindow())
         # connect the action to the run method
-        QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+#        QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+        QObject.connect(self.action, SIGNAL("triggered()"), self.showAndRaise)
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
@@ -99,8 +102,12 @@ class PdokServicesPlugin:
 
         self.dlg.geocoderResultSearch.textChanged.connect(self.filterGeocoderResult)
 
-        self.dlg.buttonBox.button(QDialogButtonBox.Close).setAutoDefault(False)
+        #self.dlg.buttonBox.button(QDialogButtonBox.Close).setAutoDefault(False)
+        self.run()
 
+    def showAndRaise(self):
+        self.dlg.show()
+        self.dlg.raise_()
 
     def about(self):
         infoString = QString("Written by Richard Duivenvoorde\nEmail - richard@duif.net\n")
@@ -314,7 +321,7 @@ class PdokServicesPlugin:
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
-        result = self.dlg.exec_()
+        #result = self.dlg.exec_()
         if QGis.QGIS_VERSION_INT < 10900:
             # qgis <= 1.8
             QSettings().setValue("/pdokservicesplugin/currenttab", QVariant(self.dlg.tabs.currentIndex()))

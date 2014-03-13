@@ -35,7 +35,7 @@ PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py
 
 EXTRAS = icon.png help.png pdok.json metadata.txt
 
-UI_FILES = ui_pdokservicesplugin.py
+UI_FILES = ui_pdokservicesplugindialog.py ui_pdokservicesplugindockwidget.py
 
 RESOURCE_FILES = resources_rc.py
 
