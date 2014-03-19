@@ -84,7 +84,18 @@ class PdokServicesPlugin:
         QObject.connect(self.action, SIGNAL("triggered()"), self.showAndRaise)
 
         # Add toolbar button and menu item
-        self.iface.addToolBarIcon(self.action)
+        #self.iface.addToolBarIcon(self.action)
+
+        self.toolbar = self.iface.addToolBar("PDOK services plugin")
+        self.toolbar.setObjectName("PDOK services plugin")
+        self.toolbar.addAction(self.action)
+        self.toolbarSearch = QLineEdit()
+        self.toolbarSearch.setMaximumWidth(200)
+        self.toolbarSearch.setAlignment(Qt.AlignLeft)
+        self.toolbarSearch.setPlaceholderText("PDOK Geocoder zoek")
+        self.toolbar.addWidget(self.toolbarSearch)
+        self.toolbarSearch.returnPressed.connect(self.searchAddressFromToolbar)
+
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.action)
         self.servicesLoaded = False
 
@@ -99,15 +110,18 @@ class PdokServicesPlugin:
 
         self.dlg.geocoderSearchBtn.clicked.connect(self.searchAddress)
         self.dlg.geocoderSearch.returnPressed.connect(self.searchAddress)
+        self.dlg.geocoderSearch.setPlaceholderText("PDOK Geocoder zoek")
 
         self.dlg.geocoderResultSearch.textChanged.connect(self.filterGeocoderResult)
+        self.dlg.geocoderResultSearch.setPlaceholderText("een of meer zoekwoorden uit resultaat")
 
-        #self.dlg.buttonBox.button(QDialogButtonBox.Close).setAutoDefault(False)
         self.run()
 
     def showAndRaise(self):
         self.dlg.show()
         self.dlg.raise_()
+        # also remove the pointer
+        self.removePointer()
 
     def about(self):
         infoString = QString("Written by Richard Duivenvoorde\nEmail - richard@duif.net\n")
@@ -231,6 +245,11 @@ class PdokServicesPlugin:
         self.geocoderProxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.geocoderProxyModel.setFilterFixedString(string)
 
+    def searchAddressFromToolbar(self):
+        self.removePointer()
+        self.geocoderSourceModel.clear()
+        self.geocode(self.toolbarSearch.text())
+
     def searchAddress(self):
         self.removePointer()
         #print "search geocoder for: %s" % self.dlg.geocoderSearch.text()
@@ -253,10 +272,13 @@ class PdokServicesPlugin:
         # only attach the data to the first item
         # service layer = a dict/object with all props of the layer
         itemType.setData( serviceLayer, Qt.UserRole )
+        itemType.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
         itemLayername = QStandardItem("%s" % (serviceLayer["title"]))
+        itemLayername.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["servicetitle"] ))
         itemServicetitle = QStandardItem("%s" % (serviceLayer["servicetitle"]))
+        itemServicetitle.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
         itemFilter = QStandardItem("%s %s %s %s" % (serviceLayer["type"], serviceLayer["title"], serviceLayer["servicetitle"], serviceLayer["abstract"]) )
-        self.sourceModel.appendRow( [itemServicetitle, itemType, itemLayername, itemFilter] )
+        self.sourceModel.appendRow( [ itemLayername, itemType, itemServicetitle, itemFilter ] )
 
     # run method that performs all the real work
     def run(self):
@@ -300,6 +322,7 @@ class PdokServicesPlugin:
                     self.addSourceRow(service)
 
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
+            self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
             self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
             self.dlg.servicesView.doubleClicked.connect(self.loadService)
 
@@ -309,12 +332,12 @@ class PdokServicesPlugin:
             self.dlg.servicesView.hideColumn(3)
             self.servicesLoaded = True;
 
-        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Service")
+        self.sourceModel.setHeaderData(2, Qt.Horizontal, "Service")
         self.sourceModel.setHeaderData(1, Qt.Horizontal, "Type")
-        self.sourceModel.setHeaderData(2, Qt.Horizontal, "Laagnaam")
-        self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
-        self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
+        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Laagnaam")
         self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignLeft)
+        self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
+        self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
         #self.dlg.servicesView.verticalHeader().hide()
         self.dlg.servicesView.resizeColumnsToContents()
         self.dlg.servicesView.horizontalHeader().setStretchLastSection(True)
@@ -348,6 +371,10 @@ class PdokServicesPlugin:
             provincie = QStandardItem("%s" % (address["provincie"]))
             self.geocoderSourceModel.appendRow( [adrestekst, straat, adres, postcode, plaats, gemeente, provincie ] )
 
+        #if len(addresses)==1:
+        self.dlg.geocoderResultView.selectRow(0)
+        self.zoomToAddress()
+
         self.geocoderSourceModel.setHeaderData(0, Qt.Horizontal, "Resultaat")
         self.geocoderSourceModel.setHeaderData(1, Qt.Horizontal, "Straat")
         self.geocoderSourceModel.setHeaderData(2, Qt.Horizontal, "Nr")
@@ -367,7 +394,7 @@ class PdokServicesPlugin:
         self.dlg.geocoderResultView.resizeColumnsToContents()
         self.dlg.geocoderResultView.horizontalHeader().setStretchLastSection(True)
 
-    def zoomToAddress(self, modelindex):
+    def zoomToAddress(self):
         # get x,y from data of record
         self.removePointer()
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
