@@ -24,7 +24,7 @@ email=richard@webmapper.net
 # Uncomment the following line and add your changelog entries:
 
 changelog:
-    0.6     (01-2014) added geocoder tab
+    0.6     (03-2014) new services (ahn2!), added geocoder tab and geocoder toolbar
     0.5     (10-2013) fix for QGIS 2.0 api
     0.4     (11-2012) updated for new pdok services
     0.3     (10-2012) initial version
