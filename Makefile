@@ -23,7 +23,7 @@ PLUGIN_UPLOAD = $(CURDIR)/plugin_upload.py
 # Makefile for a PyQGIS plugin 
 
 # translation
-SOURCES = pdokservicesplugin.py ui_pdokservicesplugin.py __init__.py pdokservicesplugindialog.py
+SOURCES = pdokservicesplugin.py ui_pdokservicesplugin.py __init__.py pdokservicesplugindialog.py pdokgeocoder.py
 #TRANSLATIONS = i18n/pdokservicesplugin_en.ts
 TRANSLATIONS = 
 
@@ -31,7 +31,7 @@ TRANSLATIONS =
 
 PLUGINNAME = pdokservicesplugin
 
-PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py
+PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py
 
 EXTRAS = icon.png help.png pdok.json metadata.txt
 

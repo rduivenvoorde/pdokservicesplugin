@@ -25,7 +25,8 @@ def search(searchstring):
     :param searchstring:
     """
     # be carefull NO spaces in it: urllib2 will think these are two urls and choke
-    url = "http://geodata.nationaalgeoregister.nl/geocoder/Geocoder?zoekterm=" + urllib.quote_plus(searchstring)
+    # in QGIS 1.8 searchstring will be a QString, that is why we cast to string
+    url = "http://geodata.nationaalgeoregister.nl/geocoder/Geocoder?zoekterm=" + urllib.quote_plus(unicode(searchstring))
     #url = "http://www.geocoders.nl/places?format=xml&address=" + urllib.quote_plus(searchstring)
     #print url
     addressesarray = []
@@ -99,6 +100,12 @@ def search(searchstring):
             elif len(prov)>0:
                 adres = 'provincie: ' + prov
             #print adres.strip().replace('  ',' ') + ' ('+str(x) + ", " + str(y)+')'
+            if isinstance(adres, str) or isinstance(adres, unicode):
+                adres = adres.strip().replace('  ',' ')
+            else:
+                # QGIS 1.8
+                adres = adres.simplified()
+
             addressdict = {
                 'straat':street,
                 'adres':building,
@@ -108,7 +115,7 @@ def search(searchstring):
                 'provincie':prov,
                 'x':x,
                 'y':y,
-                'adrestekst': adres.strip().replace('  ',' ')
+                'adrestekst': adres
             }
             addressesarray.append(addressdict)
     except Exception, e:

@@ -133,7 +133,9 @@ class PdokServicesPlugin:
         self.removePointer()
         # Remove the plugin menu item and icon
         self.iface.removePluginMenu(u"&Pdok Services Plugin",self.action)
-        self.iface.removeToolBarIcon(self.action)
+        #self.iface.removeToolBarIcon(self.action)
+        if hasattr(self.iface, "removeToolBar"):
+            self.iface.removeToolBar(self.toolbarSearch)
 
     def showService(self, selectedIndexes):
         if len(selectedIndexes)==0:
