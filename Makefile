@@ -49,7 +49,7 @@ compile: $(UI_FILES) $(RESOURCE_FILES)
 	pyrcc4 -o $*_rc.py  $<
 
 %.py : %.ui
-	pyuic4 -o $@ $<
+	pyuic4 -do $@ $<
 
 %.qm : %.ts
 	lrelease $<

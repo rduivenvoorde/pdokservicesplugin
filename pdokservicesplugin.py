@@ -42,18 +42,22 @@ import urllib
 import resources_rc
 # Import the code for the dialog
 from pdokservicesplugindialog import PdokServicesPluginDialog
-#from pdokservicesplugindockwidget import Ui_DockWidget
+from pdokservicesplugindialog import PdokServicesPluginDockWidget
 from xml.dom.minidom import parse
 import pdokgeocoder
 
 class PdokServicesPlugin:
 
     def __init__(self, iface):
+        self.docked = True
         # Save reference to the QGIS interface
         self.iface = iface
         # Create the dialog and keep reference
-        self.dlg = PdokServicesPluginDialog()
-        self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dlg)
+        if self.docked:
+            self.dlg = PdokServicesPluginDockWidget()
+            self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dlg)
+        else:
+            self.dlg = PdokServicesPluginDialog()
         # initialize plugin directory
         self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/pdokservicesplugin"
         # initialize locale
@@ -80,8 +84,10 @@ class PdokServicesPlugin:
         self.action = QAction(QIcon(":/plugins/pdokservicesplugin/icon.png"), \
             u"Pdok Services Plugin", self.iface.mainWindow())
         # connect the action to the run method
-#        QObject.connect(self.action, SIGNAL("triggered()"), self.run)
-        QObject.connect(self.action, SIGNAL("triggered()"), self.showAndRaise)
+        if self.docked:
+            QObject.connect(self.action, SIGNAL("triggered()"), self.showAndRaise)
+        else:
+            QObject.connect(self.action, SIGNAL("triggered()"), self.run)
 
         # Add toolbar button and menu item
         #self.iface.addToolBarIcon(self.action)
@@ -110,7 +116,7 @@ class PdokServicesPlugin:
 
         self.dlg.geocoderSearchBtn.clicked.connect(self.searchAddress)
         self.dlg.geocoderSearch.returnPressed.connect(self.searchAddress)
-        self.dlg.geocoderSearch.setPlaceholderText("PDOK Geocoder zoek")
+        self.dlg.geocoderSearch.setPlaceholderText("PDOK Geocoder zoek, bv postcode of postcode huisnummer")
 
         self.dlg.geocoderResultSearch.textChanged.connect(self.filterGeocoderResult)
         self.dlg.geocoderResultSearch.setPlaceholderText("een of meer zoekwoorden uit resultaat")
@@ -140,7 +146,8 @@ class PdokServicesPlugin:
             self.currentLayer = None
             self.dlg.ui.layerInfo.setHtml('')
             return
-        self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[1])
+        # needed to scroll To the selected row incase of using the keyboard / arrows
+        self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
         # itemType holds the data (== column 1)
         self.currentLayer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
         if isinstance(self.currentLayer, QVariant):
@@ -154,6 +161,10 @@ class PdokServicesPlugin:
             self.currentLayer = currentLayer
         url = self.currentLayer['url']
         title = self.currentLayer['title']
+        style = ''
+        if self.currentLayer.has_key('style'):
+            style = self.currentLayer['style']
+            title = title + ' [' + style + ']'
         servicetitle = self.currentLayer['servicetitle']
         layername = self.currentLayer['layers']
         abstract = self.currentLayer['abstract']
@@ -166,7 +177,7 @@ class PdokServicesPlugin:
             maxscale = "max. schaal 1:"+self.currentLayer['maxscale']
         self.dlg.ui.layerInfo.setText('')
         self.dlg.ui.btnLoadLayer.setEnabled(True)
-        self.dlg.ui.layerInfo.setHtml('<h4>%s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li></lu>' % (servicetitle, title, abstract, stype, url, layername, minscale, maxscale))
+        self.dlg.ui.layerInfo.setHtml('<h4>%s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li></lu>' % (servicetitle, title, abstract, stype, url, layername, style, minscale, maxscale))
 
     def loadService(self):
         if self.currentLayer == None:
@@ -179,6 +190,11 @@ class PdokServicesPlugin:
         if query != None and query != '':
             url +=('?'+urllib.quote_plus(query))
         title = self.currentLayer['title']
+        if self.currentLayer.has_key('style'):
+            style = self.currentLayer['style']
+            title = title + ' [' + style + ']'
+        else:
+            style = '' # == default for this service
         layers = self.currentLayer['layers']
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
         if servicetype=="wms":
@@ -191,12 +207,12 @@ class PdokServicesPlugin:
                     title, # name for layer (as seen in QGIS)
                     "wms", # dataprovider key
                     [layers], # array of layername(s) for provider (id's)
-                    [""], # array of stylename(s)
+                    [""], # array of stylename(s)  NOTE: ignoring styles here!!!
                     imgformat, # image format searchstring
                     "EPSG:28992") # crs code searchstring
             else:
                 # qgis > 1.8
-                uri = "crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
+                uri = "crs=EPSG:28992&layers="+layers+"&styles="+style+"&format="+imgformat+"&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
         elif servicetype=="wmts":
             if QGis.QGIS_VERSION_INT < 10900:
@@ -273,7 +289,11 @@ class PdokServicesPlugin:
         # service layer = a dict/object with all props of the layer
         itemType.setData( serviceLayer, Qt.UserRole )
         itemType.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
-        itemLayername = QStandardItem("%s" % (serviceLayer["title"]))
+        # only wms services have styles (sometimes)
+        if serviceLayer.has_key('style'):
+            itemLayername = QStandardItem("%s [%s]" % (serviceLayer["title"], serviceLayer["style"]) )
+        else:
+            itemLayername = QStandardItem("%s" % (serviceLayer["title"]))
         itemLayername.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["servicetitle"] ))
         itemServicetitle = QStandardItem("%s" % (serviceLayer["servicetitle"]))
         itemServicetitle.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
@@ -334,12 +354,13 @@ class PdokServicesPlugin:
 
         self.sourceModel.setHeaderData(2, Qt.Horizontal, "Service")
         self.sourceModel.setHeaderData(1, Qt.Horizontal, "Type")
-        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Laagnaam")
+        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Laagnaam [style]")
         self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignLeft)
         self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
         self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
         #self.dlg.servicesView.verticalHeader().hide()
-        self.dlg.servicesView.resizeColumnsToContents()
+        #self.dlg.servicesView.resizeColumnsToContents()
+        self.dlg.servicesView.setColumnWidth(0, 300)  # set name to 300px (there are some huge layernames)
         self.dlg.servicesView.horizontalHeader().setStretchLastSection(True)
         # show the dialog
         self.dlg.show()

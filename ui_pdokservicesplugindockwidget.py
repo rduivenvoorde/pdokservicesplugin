@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindockwidget.ui'
 #
-# Created: Wed Mar 19 13:04:22 2014
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Fri May 30 13:17:34 2014
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -87,6 +87,17 @@ class Ui_PDOKservices(object):
         self.geocoderResultView.setObjectName(_fromUtf8("geocoderResultView"))
         self.gridLayout_4.addWidget(self.geocoderResultView, 2, 0, 1, 3)
         self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
+        self.tab_4 = QtGui.QWidget()
+        self.tab_4.setObjectName(_fromUtf8("tab_4"))
+        self.gridLayout = QtGui.QGridLayout(self.tab_4)
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.groupBox = QtGui.QGroupBox(self.tab_4)
+        self.groupBox.setObjectName(_fromUtf8("groupBox"))
+        self.gridLayout.addWidget(self.groupBox, 0, 0, 1, 1)
+        self.groupBox_2 = QtGui.QGroupBox(self.tab_4)
+        self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
+        self.gridLayout.addWidget(self.groupBox_2, 1, 0, 1, 1)
+        self.tabWidget.addTab(self.tab_4, _fromUtf8(""))
         self.tab = QtGui.QWidget()
         self.tab.setObjectName(_fromUtf8("tab"))
         self.gridLayout_3 = QtGui.QGridLayout(self.tab)
@@ -111,7 +122,10 @@ class Ui_PDOKservices(object):
         self.geocoderSearchBtn.setText(_translate("PDOKservices", "Zoek", None))
         self.label_2.setText(_translate("PDOKservices", "Filter resultaten op:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PDOKservices", "PDOK geocoder", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PDOKservices", "Info", None))
+        self.groupBox.setTitle(_translate("PDOKservices", "GroupBox", None))
+        self.groupBox_2.setTitle(_translate("PDOKservices", "GroupBox", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("PDOKservices", "Extra", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PDOKservices", "OpenGeoGroep en PDOK", None))
 
 from PyQt4 import QtWebKit
 import resources_rc

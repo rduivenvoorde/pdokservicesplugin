@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindialog.ui'
 #
-# Created: Wed Mar 19 13:04:22 2014
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Fri May 30 13:17:34 2014
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -64,6 +64,7 @@ class Ui_PdokServicesPlugin(object):
         self.gridLayout_4 = QtGui.QGridLayout(self.tab_3)
         self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
         self.geocoderSearch = QtGui.QLineEdit(self.tab_3)
+        self.geocoderSearch.setText(_fromUtf8(""))
         self.geocoderSearch.setObjectName(_fromUtf8("geocoderSearch"))
         self.gridLayout_4.addWidget(self.geocoderSearch, 0, 0, 1, 2)
         self.geocoderSearchBtn = QtGui.QPushButton(self.tab_3)
@@ -99,7 +100,6 @@ class Ui_PdokServicesPlugin(object):
         self.label.setText(_translate("PdokServicesPlugin", "Zoek in servicetitel, laagnaam en beschrijving:", None))
         self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Laad deze laag in QGIS (of dubbelklik op de regel)", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PdokServicesPlugin", "PDOK services", None))
-        self.geocoderSearch.setText(_translate("PdokServicesPlugin", "postcode, adres of plaatsnaam", None))
         self.geocoderSearchBtn.setText(_translate("PdokServicesPlugin", "Zoek", None))
         self.label_2.setText(_translate("PdokServicesPlugin", "Filter resultaten op:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PdokServicesPlugin", "PDOK geocoder", None))

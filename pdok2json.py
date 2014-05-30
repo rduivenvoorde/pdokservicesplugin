@@ -175,32 +175,43 @@ def handleWMS(wmscapsurl):
         abstract = childNodeValue(layer, 'Abstract')
         maxscale = childNodeValue(layer, 'MaxScaleDenominator')
         minscale = childNodeValue(layer, 'MinScaleDenominator')
+        #meta = layer.getElementsByTagName('MetadataURL')
+        #if meta != None:
+        #    print "URL%s"%meta[0].getElementsByTagName('OnlineResource')[0].getAttribute('xlink:href')
         # abstract can have newlines in it, which create havoc in json
         # because we only use abstract in html, we make <br/> of them
         abstract = abstract.replace('\r', '')
         abstract = abstract.replace('\t', ' ')
         abstract = abstract.replace('\n', '<br/>')
         comma = ''
-        try:
-            if not firstOne:
-                comma = ','
-            # some extract have strange chars, we decode to utf8
-            s = unicode('%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats)).encode('utf8')
-            # the comma behind the print makes print NOT add a \n newline behind it
-            # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
-            print s,
-            firstOne=False
-        except Exception, e:
-            #pass
-            print "\n\nFout!! In laag: %s" % layername
-            print e
-            return
+        for style in layer.getElementsByTagName('Style'):
+            styleName = childNodeValue(style, 'Name')
+            try:
+                if not firstOne:
+                    comma = ','
+                # some extract have strange chars, we decode to utf8
+                s = unicode('%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
+                # the comma behind the print makes print NOT add a \n newline behind it
+                # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
+                print s,
+                firstOne=False
+            except Exception, e:
+                #pass
+                print "\n\nFout!! In laag: %s" % layername
+                print e
+                return
 
 # services zoals genoemd in https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/
 services = [
 # alle wmts lagen (behalve luchtfoto) zitten in 1 service
 ('wmts', 'PDOK luchtfoto', 'http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml'),
 ('wmts', 'PDOK overige services', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
+
+#('wmts', 'Basisregistratie Grootschalige Topografie - Achtergrond (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
+#('wmts', 'Basisregistratie Grootschalige Topografie - Lijngericht (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
+#('wmts', 'Basisregistratie Grootschalige Topografie - Omtrekgericht (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
+#('wmts', 'Basisregistratie Grootschalige Topografie - Standaard (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
+
 # GESLOTEN
 #('wms', 'Asbest scholenkaart (WMS | PDOK Basis)', 'http://geodata.nationaalgeoregister.nl/asbestscholenkaart/wms?SERVICE=WMS&request=GetCapabilities'),
 # GESLOTEN
@@ -217,11 +228,11 @@ services = [
 ('wfs', 'AHN2 (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/ahn2/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wcs', 'AHN2 (WCS | Open)', 'http://geodata.nationaalgeoregister.nl/ahn2/wcs?request=getcapabilities') ,
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/b
-('wfs', 'BAG (tijdelijk) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bagviewer/wfs?request=getcapabilities') ,
-('wms', 'BAG (tijdelijk) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bagviewer/wms?request=getcapabilities') ,
+('wfs', 'BAG (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bagviewer/wfs?request=getcapabilities') ,
+('wms', 'BAG (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bagviewer/wms?request=getcapabilities') ,
 ('wfs', 'BBG 2008 (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wms', 'BBG 2008 (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wms?request=getcapabilities') ,
-('wfs', 'Bekendmakingen (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/pdok/wfs?version=1.0.0&request=GetCapabilities') ,
+('wfs', 'Bekendmakingen (WFS | Open)', 'http://geozet.koop.overheid.nl/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wms', 'Beschermde natuurmonumenten (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/beschermdenatuurmonumenten/ows?service=wms&request=getcapabilities') ,
 ('wfs', 'Beschermde natuurmonumenten (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/beschermdenatuurmonumenten/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wms', 'Bestuurlijke grenzen (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestuurlijkegrenzen/wms?&Request=getcapabilities') ,
@@ -231,8 +242,14 @@ services = [
 #zit in algemene WMTS Caps ('wmts', 'BRP Gewaspercelen (WMTS | Open) ', 'http://geodata.nationaalgeoregister.nl/wmts/brtachtergrondkaart?VERSION=1.0.0&request=GetCapabilities') ,
 #zit in algemene WMTS Caps ('wmts', 'BRT achtergrondkaart (WMTS | Open) ', 'http://geodata.nationaalgeoregister.nl/wmts/brtachtergrondkaart?VERSION=1.0.0&request=GetCapabilities') ,
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/c
+('wms', 'CBS Bestand Bodemgebruik 2008 (BBG 2008) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wms?request=getcapabilities') ,
+('wfs', 'CBS Bestand Bodemgebruik 2008 (BBG 2008) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wfs?version=1.0.0&request=GetCapabilities') ,
+('wms', 'CBS Bestand Bodemgebruik 2010 (BBG 2010) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2010/wms?service=wms&request=getcapabilities') ,
+('wfs', 'CBS Bestand Bodemgebruik 2010 (BBG 2010) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2010/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wms', 'CBS Bevolkingskernen 2008 (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/bevolkingskernen2008/wms?request=getcapabilities') ,
 ('wfs', 'CBS Bevolkingskernen 2008 (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/bevolkingskernen2008/wfs?version=1.0.0&request=GetCapabilities') ,
+('wms', 'CBS Bevolkingskernen 2011 (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/bevolkingskernen2011/wms?request=getcapabilities') ,
+('wfs', 'CBS Bevolkingskernen 2011 (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/bevolkingskernen2011/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wms', 'CBS Provincies (WMS | Open)' , 'http://geodata.nationaalgeoregister.nl/cbsprovincies/wms?request=GetCapabilities') ,
 ('wfs', 'CBS Provincies (WFS | Open)' , 'http://geodata.nationaalgeoregister.nl/cbsprovincies/wfs?request=GetCapabilities') ,
 ('wms', 'CBS Vierkantstatistieken 100m (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten100m/wms?request=GetCapabilities') ,
@@ -247,6 +264,8 @@ services = [
 ('wfs', 'CBS Wijken en Buurten 2011 (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/wijkenbuurten2011/wfs?version=1.0.0&request=getcapabilities') ,
 ('wms', 'CBS Wijken en Buurten 2012 (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/wijkenbuurten2012/wms?request=getcapabilities') ,
 ('wfs', 'CBS Wijken en Buurten 2012 (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/wijkenbuurten2012/wfs?version=1.0.0&request=getcapabilities') ,
+('wms', 'CBS Wijken en Buurten 2013 (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/wijkenbuurten2013/wms?request=getcapabilities') ,
+('wfs', 'CBS Wijken en Buurten 2013 (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/wijkenbuurten2013/wfs?version=1.0.0&request=getcapabilities') ,
 ('wms', 'CultGIS (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/cultgis/wms?SERVICE=WMS&request=GetCapabilities') ,
 ('wfs', 'CultGIS (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/cultgis/wfs?version=1.0.0&request=GetCapabilities') ,
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/d
@@ -356,14 +375,20 @@ services = [
 ('wms', 'Wetlands (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/wetlands/ows?service=wms&request=getcapabilities'),
 ('wfs', 'Wetlands (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/wetlands/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms', 'WKPB (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/wkpb/wms?request=GetCapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/z
+('wms', 'Zeegraskartering (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/zeegraskartering/wms?request=GetCapabilities'),
+('wfs', 'Zeegraskartering (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/zeegraskartering/wfs?request=GetCapabilities'),
 ]
 
 # testing
 #services = [ ('wcs', 'ff', 'ff') ]
 
-#services = [
-#('wfs', 'AAN (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/nok2013/wfs?version=1.0.0&request=GetCapabilities') ,
-#]
+sservices = [
+('wms', 'CBS Bestand Bodemgebruik 2008 (BBG 2008) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wms?request=getcapabilities') ,
+('wfs', 'CBS Bestand Bodemgebruik 2008 (BBG 2008) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wfs?version=1.0.0&request=GetCapabilities') ,
+('wms', 'CBS Bestand Bodemgebruik 2010 (BBG 2010) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2010/wms?service=wms&request=getcapabilities') ,
+('wfs', 'CBS Bestand Bodemgebruik 2010 (BBG 2010) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2010/wfs?version=1.0.0&request=GetCapabilities') ,
+]
 
 #services = [ 
 # GESLOTEN
@@ -384,10 +409,12 @@ services = [
 #('wms', 'AAN (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/aan/wms?request=GetCapabilities') ,
 #]
 
+
 firstOne = True
 print '{"services":[',
 
 for (stype, title, url) in services:
+    #print '\n --> %s'%url
     if stype == 'wms':
         handleWMS(url)
     elif stype == 'wmts':
