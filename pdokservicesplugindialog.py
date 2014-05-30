@@ -21,6 +21,7 @@
 """
 
 from PyQt4 import QtCore, QtGui
+from qgis.core import *
 from ui_pdokservicesplugindialog import Ui_PdokServicesPlugin
 from ui_pdokservicesplugindockwidget import Ui_PDOKservices
 
@@ -47,7 +48,7 @@ class PdokServicesPluginDockWidget(QtGui.QDockWidget):
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
         self.geocoderSearchBtn = self.ui.geocoderSearchBtn
         self.tabs = self.ui.tabWidget
-
+        self.radioDocked = self.ui.radio_docked_widget
 
 
 class PdokServicesPluginDialog(QtGui.QDialog):
@@ -76,3 +77,4 @@ class PdokServicesPluginDialog(QtGui.QDialog):
         #QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
         #QtCore.QObject.disconnect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
         QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("rejected()"), self.reject)
+        self.radioDocked = self.ui.radio_docked_widget

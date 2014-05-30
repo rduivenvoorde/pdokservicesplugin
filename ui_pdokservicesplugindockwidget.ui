@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>891</width>
+    <width>872</width>
     <height>756</height>
    </rect>
   </property>
@@ -20,7 +20,7 @@
    <string>PDOK services</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="sizePolicy">
@@ -47,18 +47,15 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QTextEdit" name="layerInfo">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>200</height>
-           </size>
+        <item row="4" column="0" colspan="2">
+         <widget class="QPushButton" name="btnLoadLayer">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Laad deze laag in QGIS (of dubbelklik op de regel)</string>
           </property>
          </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="layerSearch"/>
         </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label">
@@ -67,13 +64,16 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0" colspan="2">
-         <widget class="QPushButton" name="btnLoadLayer">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Laad deze laag in QGIS (of dubbelklik op de regel)</string>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="layerSearch"/>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QTextEdit" name="layerInfo">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>200</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -117,20 +117,98 @@
        <attribute name="title">
         <string>Extra</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>GroupBox</string>
+           <string>PDOK services check</string>
           </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Er worden periodiek nieuwe services of lagen toegevoegd aan de PDOK services.</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Klik op de Check services button om te kijken of er op qgis.nl een nieuw configuratie bestand beschikbaar is.</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_check_pdokjson">
+             <property name="text">
+              <string>Check services</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item>
          <widget class="QGroupBox" name="groupBox_2">
           <property name="title">
-           <string>GroupBox</string>
+           <string>Docked widget of Dialoog</string>
           </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>De plugin can zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radio_dialog">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Losse dialoog</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radio_docked_widget">
+             <property name="text">
+              <string>Docked widget</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>

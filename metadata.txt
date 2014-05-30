@@ -24,6 +24,7 @@ email=richard@webmapper.net
 # Uncomment the following line and add your changelog entries:
 
 changelog:
+    0.7     (05-2014) new services, styles of wms's are working, extra settings for docked/dialog, retrieve pdok.json over network
     0.6     (03-2014) new services (ahn2!), added geocoder tab and geocoder toolbar
     0.5     (10-2013) fix for QGIS 2.0 api
     0.4     (11-2012) updated for new pdok services

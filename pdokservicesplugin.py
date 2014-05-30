@@ -49,11 +49,15 @@ import pdokgeocoder
 class PdokServicesPlugin:
 
     def __init__(self, iface):
-        self.docked = True
         # Save reference to the QGIS interface
         self.iface = iface
+        # docked or dialog, defaults to dialog
+        if isinstance(QSettings().value("locale/userLocale"), QVariant):
+            self.docked = QSettings().value("/pdokservicesplugin/docked", QVariant(False)).toBool()
+        else:
+            self.docked = QSettings().value("/pdokservicesplugin/docked", False)
         # Create the dialog and keep reference
-        if self.docked:
+        if "True" == self.docked or "true" == self.docked or  True == self.docked:
             self.dlg = PdokServicesPluginDockWidget()
             self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dlg)
         else:
@@ -83,11 +87,17 @@ class PdokServicesPlugin:
         # Create action that will start plugin configuration
         self.action = QAction(QIcon(":/plugins/pdokservicesplugin/icon.png"), \
             u"Pdok Services Plugin", self.iface.mainWindow())
+        self.servicesLoaded = False
         # connect the action to the run method
-        if self.docked:
+        if "True" == self.docked or "true" == self.docked or  True == self.docked:
             QObject.connect(self.action, SIGNAL("triggered()"), self.showAndRaise)
+            self.dlg.radioDocked.setChecked(True)
+            # docked the dialog is immidiately visible, so should run NOW
+            self.run()
         else:
             QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+            self.dlg.radioDocked.setChecked(False)
+
 
         # Add toolbar button and menu item
         #self.iface.addToolBarIcon(self.action)
@@ -103,7 +113,6 @@ class PdokServicesPlugin:
         self.toolbarSearch.returnPressed.connect(self.searchAddressFromToolbar)
 
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.action)
-        self.servicesLoaded = False
 
         # about
         self.aboutAction = QAction(QIcon(":/plugins/pdokservicesplugin/help.png"), \
@@ -121,7 +130,15 @@ class PdokServicesPlugin:
         self.dlg.geocoderResultSearch.textChanged.connect(self.filterGeocoderResult)
         self.dlg.geocoderResultSearch.setPlaceholderText("een of meer zoekwoorden uit resultaat")
 
-        self.run()
+        self.dlg.radioDocked.toggled.connect(self.set_docked)
+
+
+    def set_docked(self, foo):
+        if QGis.QGIS_VERSION_INT < 10900:
+            # qgis <= 1.8
+            QSettings().setValue("/pdokservicesplugin/docked", QVariant(self.dlg.radioDocked.isChecked()))
+        else:
+            QSettings().setValue("/pdokservicesplugin/docked", self.dlg.radioDocked.isChecked())
 
     def showAndRaise(self):
         self.dlg.show()
@@ -156,7 +173,6 @@ class PdokServicesPlugin:
             currentLayer = {}
             for key in self.currentLayer.keys():
                 val = self.currentLayer[key]
-                print unicode(val.toString())
                 currentLayer[unicode(key)]=unicode(val.toString())
             self.currentLayer = currentLayer
         url = self.currentLayer['url']
