@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>872</width>
+    <width>565</width>
     <height>756</height>
    </rect>
   </property>
@@ -30,7 +30,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -129,12 +129,18 @@
              <property name="text">
               <string>Er worden periodiek nieuwe services of lagen toegevoegd aan de PDOK services.</string>
              </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_4">
              <property name="text">
               <string>Klik op de Check services button om te kijken of er op qgis.nl een nieuw configuratie bestand beschikbaar is.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -171,6 +177,9 @@
             <widget class="QLabel" name="label_5">
              <property name="text">
               <string>De plugin kan zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist).</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>

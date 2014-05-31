@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindialog.ui'
 #
-# Created: Fri May 30 22:54:50 2014
+# Created: Sat May 31 14:21:12 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -89,9 +89,11 @@ class Ui_PdokServicesPlugin(object):
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.label_3 = QtGui.QLabel(self.groupBox)
+        self.label_3.setWordWrap(True)
         self.label_3.setObjectName(_fromUtf8("label_3"))
         self.verticalLayout_2.addWidget(self.label_3)
         self.label_4 = QtGui.QLabel(self.groupBox)
+        self.label_4.setWordWrap(True)
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.verticalLayout_2.addWidget(self.label_4)
         self.btn_check_pdokjson = QtGui.QPushButton(self.groupBox)
@@ -105,6 +107,7 @@ class Ui_PdokServicesPlugin(object):
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox_2)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.label_5 = QtGui.QLabel(self.groupBox_2)
+        self.label_5.setWordWrap(True)
         self.label_5.setObjectName(_fromUtf8("label_5"))
         self.verticalLayout_3.addWidget(self.label_5)
         self.radio_dialog = QtGui.QRadioButton(self.groupBox_2)
@@ -136,7 +139,7 @@ class Ui_PdokServicesPlugin(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(PdokServicesPlugin)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(PdokServicesPlugin)
 
     def retranslateUi(self, PdokServicesPlugin):

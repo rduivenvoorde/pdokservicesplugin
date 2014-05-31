@@ -160,7 +160,7 @@ class PdokServicesPlugin:
     def checkPdokJson(self):
         myversion = self.getSettingsValue('pdokversion', '1')
         msgtxt = ''
-        msglvl = QgsMessageBar.INFO
+        msglvl = 0  # QgsMessageBar.INFO
         try:
             #pdokversion = json.load(urllib.urlopen('http://46.21.168.170/pdok.version'))
             pdokversion = json.load(urllib.urlopen('http://localhost/pdok.version'))
@@ -175,13 +175,16 @@ class PdokServicesPlugin:
                 self.run()
                 self.setSettingsValue('pdokversion', pdokversion)
             else:
-                msgtxt = "Geen nieuwere versie beschikbaar dan " + str(pdokversion) + ' <= ' + myversion
+                msgtxt = "Geen nieuwere versie beschikbaar dan " + str(pdokversion) + ' (' + str(pdokversion) + ' <= ' + myversion + ')'
         except Exception, e:
             #print e
             msgtxt = "Fout bij ophalen van service info. Netwerk probleem?"
-            msglvl = QgsMessageBar.CRITICAL
+            msglvl = 2 # QgsMessageBar.CRITICAL
         # msg
-        self.iface.messageBar().pushMessage("PDOK services update", msgtxt, level=msglvl, duration=10)
+        if hasattr(self.iface, 'messageBar'):
+            self.iface.messageBar().pushMessage("PDOK services update", msgtxt, level=msglvl, duration=10)
+        else: # 1.8
+            QMessageBox.information(self.iface.mainWindow(), "Pdok Services Plugin", msgtxt)
 
     def set_docked(self, foo):
         self.setSettingsValue('docked', self.dlg.radioDocked.isChecked())
@@ -487,7 +490,14 @@ class PdokServicesPlugin:
         # get x,y from data of record
         self.removePointer()
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
-        point = QgsPoint( data['x'], data['y'])
+        # 1.8
+        if isinstance(data, QVariant):
+            data = data.toMap()
+            point = QgsPoint( data[QString(u'x')].toInt()[0], data[QString(u'y')].toInt()[0] )
+            adrestekst = uniunicodee(data[QString(u'adrestekst')])
+        else:
+            point = QgsPoint( data['x'], data['y'])
+            adrestekst = data['adrestekst']
         # just always transform from 28992 to mapcanvas crs
         if hasattr(self.iface.mapCanvas().mapRenderer(), "destinationSrs"):
             # QGIS < 2.0
@@ -499,17 +509,17 @@ class PdokServicesPlugin:
         crsTransform = QgsCoordinateTransform(crs28992, crs)
 
         r = 100
-        if data['adrestekst'].startswith('adres'):
+        if adrestekst.startswith('adres'):
             r = 75
-        elif data['adrestekst'].startswith('straat'):
+        elif adrestekst.startswith('straat'):
             r = 150
-        elif data['adrestekst'].startswith('postcode'):
+        elif adrestekst.startswith('postcode'):
             r = 500
-        elif data['adrestekst'].startswith('plaats'):
+        elif adrestekst.startswith('plaats'):
             r = 1000
-        elif data['adrestekst'].startswith('gemeente'):
+        elif adrestekst.startswith('gemeente'):
             r = 2000
-        elif data['adrestekst'].startswith('provincie'):
+        elif adrestekst.startswith('provincie'):
             r = 30000
 
         geom = QgsGeometry.fromPoint(point)
