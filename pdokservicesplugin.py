@@ -18,7 +18,7 @@ http://pdokviewer.pdok.nl/
                               -------------------
         begin                : 2012-10-11
         copyright            : (C) 2012 by Richard Duivenvoorde
-        email                : richard@webmapper.net
+        email                : richard@zuidt.nl
  ***************************************************************************/
 
 /***************************************************************************

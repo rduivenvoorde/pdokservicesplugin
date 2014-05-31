@@ -7,7 +7,7 @@
                              -------------------
         begin                : 2012-10-11
         copyright            : (C) 2012 by Richard Duivenvoorde
-        email                : richard@webmapper.net
+        email                : richard@zuidt.nl
  ***************************************************************************/
 
 /***************************************************************************
@@ -33,7 +33,7 @@ def qgisMinimumVersion():
 def author(): 
     return "Richard Duivenvoorde"
 def email():
-    return "richard@duif.net"
+    return "richard@zuidt.nl"
 def classFactory(iface):
     # load PdokServicesPlugin class from file PdokServicesPlugin
     from pdokservicesplugin import PdokServicesPlugin
