@@ -162,11 +162,11 @@ class PdokServicesPlugin:
         msgtxt = ''
         msglvl = 0  # QgsMessageBar.INFO
         try:
-            #pdokversion = json.load(urllib.urlopen('http://46.21.168.170/pdok.version'))
-            pdokversion = json.load(urllib.urlopen('http://localhost/pdok.version'))
+            pdokversion = json.load(urllib.urlopen('http://www.qgis.nl/pdok.version'))
+            #pdokversion = json.load(urllib.urlopen('http://localhost/pdok.version'))
             if pdokversion > int(myversion):
-                #pdokjson = json.load(urllib.urlopen('http://46.21.168.170/pdok.json'))
-                pdokjson = json.load(urllib.urlopen('http://localhost/pdok.json'))
+                pdokjson = json.load(urllib.urlopen('http://www.qgis.nl/pdok.json'))
+                #pdokjson = json.load(urllib.urlopen('http://localhost/pdok.json'))
                 with open(self.plugin_dir +'/pdok.json', 'w') as outfile:
                     json.dump(pdokjson, outfile)
                 msgtxt = "De laatste versie is opgehaald en zal worden gebruikt " + \
@@ -175,7 +175,7 @@ class PdokServicesPlugin:
                 self.run()
                 self.setSettingsValue('pdokversion', pdokversion)
             else:
-                msgtxt = "Geen nieuwere versie beschikbaar dan " + str(pdokversion) + ' (' + str(pdokversion) + ' <= ' + myversion + ')'
+                msgtxt = "Geen nieuwere versie beschikbaar dan " + str(pdokversion)
         except Exception, e:
             #print e
             msgtxt = "Fout bij ophalen van service info. Netwerk probleem?"
