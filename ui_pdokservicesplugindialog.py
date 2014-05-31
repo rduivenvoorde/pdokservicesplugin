@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindialog.ui'
 #
-# Created: Fri May 30 14:57:31 2014
+# Created: Fri May 30 22:54:50 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_PdokServicesPlugin(object):
     def setupUi(self, PdokServicesPlugin):
         PdokServicesPlugin.setObjectName(_fromUtf8("PdokServicesPlugin"))
-        PdokServicesPlugin.resize(783, 728)
+        PdokServicesPlugin.resize(787, 728)
         self.verticalLayout = QtGui.QVBoxLayout(PdokServicesPlugin)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.tabWidget = QtGui.QTabWidget(PdokServicesPlugin)
@@ -152,7 +152,7 @@ class Ui_PdokServicesPlugin(object):
         self.label_4.setText(_translate("PdokServicesPlugin", "Klik op de Check services button om te kijken of er op qgis.nl een nieuw configuratie bestand beschikbaar is.", None))
         self.btn_check_pdokjson.setText(_translate("PdokServicesPlugin", "Check services", None))
         self.groupBox_2.setTitle(_translate("PdokServicesPlugin", "Docked widget of Dialoog", None))
-        self.label_5.setText(_translate("PdokServicesPlugin", "De plugin can zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist)", None))
+        self.label_5.setText(_translate("PdokServicesPlugin", "De plugin kan zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist).", None))
         self.radio_dialog.setText(_translate("PdokServicesPlugin", "Losse dialoog", None))
         self.radio_docked_widget.setText(_translate("PdokServicesPlugin", "Docked widget", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("PdokServicesPlugin", "Extra", None))

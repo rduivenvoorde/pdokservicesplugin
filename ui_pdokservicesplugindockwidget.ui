@@ -170,7 +170,7 @@
            <item>
             <widget class="QLabel" name="label_5">
              <property name="text">
-              <string>De plugin can zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist)</string>
+              <string>De plugin kan zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist).</string>
              </property>
             </widget>
            </item>

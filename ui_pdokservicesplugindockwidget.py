@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindockwidget.ui'
 #
-# Created: Fri May 30 14:57:31 2014
+# Created: Fri May 30 22:54:50 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -155,7 +155,7 @@ class Ui_PDOKservices(object):
         self.label_4.setText(_translate("PDOKservices", "Klik op de Check services button om te kijken of er op qgis.nl een nieuw configuratie bestand beschikbaar is.", None))
         self.btn_check_pdokjson.setText(_translate("PDOKservices", "Check services", None))
         self.groupBox_2.setTitle(_translate("PDOKservices", "Docked widget of Dialoog", None))
-        self.label_5.setText(_translate("PDOKservices", "De plugin can zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist)", None))
+        self.label_5.setText(_translate("PDOKservices", "De plugin kan zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist).", None))
         self.radio_dialog.setText(_translate("PDOKservices", "Losse dialoog", None))
         self.radio_docked_widget.setText(_translate("PDOKservices", "Docked widget", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("PDOKservices", "Extra", None))

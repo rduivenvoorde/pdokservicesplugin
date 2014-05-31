@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>783</width>
+    <width>787</width>
     <height>728</height>
    </rect>
   </property>
@@ -163,7 +163,7 @@
           <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>De plugin can zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist)</string>
+             <string>De plugin kan zich tonen als een losse Dialoog, of zich als een Docked Widget gedragen (QGIS herstart vereist).</string>
             </property>
            </widget>
           </item>

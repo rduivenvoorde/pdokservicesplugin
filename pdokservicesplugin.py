@@ -80,7 +80,25 @@ class PdokServicesPlugin:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
         self.currentLayer = None
+        self.SETTINGS_SECTION = '/pdokservicesplugin/'
         self.pointer = None
+
+    def getSettingsValue(self, key, default=''):
+        if QSettings().contains(self.SETTINGS_SECTION + key):
+            key = self.SETTINGS_SECTION + key
+            if QGis.QGIS_VERSION_INT < 10900: # qgis <= 1.8
+                return unicode(QSettings().value(key).toString())
+            else:
+                return unicode(QSettings().value(key))
+        else:
+            return default
+    def setSettingsValue(self, key, value):
+        key = self.SETTINGS_SECTION + key
+        if QGis.QGIS_VERSION_INT < 10900:
+            # qgis <= 1.8
+            QSettings().setValue(key, QVariant(value))
+        else:
+            QSettings().setValue(key, value)
 
 
     def initGui(self):
@@ -93,11 +111,9 @@ class PdokServicesPlugin:
             QObject.connect(self.action, SIGNAL("triggered()"), self.showAndRaise)
             self.dlg.radioDocked.setChecked(True)
             # docked the dialog is immidiately visible, so should run NOW
-            self.run()
         else:
             QObject.connect(self.action, SIGNAL("triggered()"), self.run)
             self.dlg.radioDocked.setChecked(False)
-
 
         # Add toolbar button and menu item
         #self.iface.addToolBarIcon(self.action)
@@ -132,13 +148,48 @@ class PdokServicesPlugin:
 
         self.dlg.radioDocked.toggled.connect(self.set_docked)
 
+        self.dlg.btnCheckPdokJson.clicked.connect(self.checkPdokJson)
+        #self.iface.mapCanvas().renderStarting.connect(self.extentsChanged)
+
+        self.run(True)
+
+    # for now hiding the pointer as soon as the extent changes
+    #def extentsChanged(self):
+    #    self.removePointer()
+
+    def checkPdokJson(self):
+        myversion = self.getSettingsValue('pdokversion', '1')
+        msgtxt = ''
+        msglvl = QgsMessageBar.INFO
+        try:
+            #pdokversion = json.load(urllib.urlopen('http://46.21.168.170/pdok.version'))
+            pdokversion = json.load(urllib.urlopen('http://localhost/pdok.version'))
+            if pdokversion > int(myversion):
+                #pdokjson = json.load(urllib.urlopen('http://46.21.168.170/pdok.json'))
+                pdokjson = json.load(urllib.urlopen('http://localhost/pdok.json'))
+                with open(self.plugin_dir +'/pdok.json', 'w') as outfile:
+                    json.dump(pdokjson, outfile)
+                msgtxt = "De laatste versie is opgehaald en zal worden gebruikt " + \
+                    str(pdokversion) + ' (was ' + myversion +')'
+                self.servicesLoaded = False # reset reading of json
+                self.run()
+                self.setSettingsValue('pdokversion', pdokversion)
+            else:
+                msgtxt = "Geen nieuwere versie beschikbaar dan " + str(pdokversion) + ' <= ' + myversion
+        except Exception, e:
+            #print e
+            msgtxt = "Fout bij ophalen van service info. Netwerk probleem?"
+            msglvl = QgsMessageBar.CRITICAL
+        # msg
+        self.iface.messageBar().pushMessage("PDOK services update", msgtxt, level=msglvl, duration=10)
 
     def set_docked(self, foo):
-        if QGis.QGIS_VERSION_INT < 10900:
-            # qgis <= 1.8
-            QSettings().setValue("/pdokservicesplugin/docked", QVariant(self.dlg.radioDocked.isChecked()))
-        else:
-            QSettings().setValue("/pdokservicesplugin/docked", self.dlg.radioDocked.isChecked())
+        self.setSettingsValue('docked', self.dlg.radioDocked.isChecked())
+        #if QGis.QGIS_VERSION_INT < 10900:
+        #    # qgis <= 1.8
+        #    QSettings().setValue("/pdokservicesplugin/docked", QVariant(self.dlg.radioDocked.isChecked()))
+        #else:
+        #    QSettings().setValue("/pdokservicesplugin/docked", self.dlg.radioDocked.isChecked())
 
     def showAndRaise(self):
         self.dlg.show()
@@ -147,9 +198,9 @@ class PdokServicesPlugin:
         self.removePointer()
 
     def about(self):
-        infoString = QString("Written by Richard Duivenvoorde\nEmail - richard@duif.net\n")
-        infoString = infoString.append("Company - http://www.webmapper.net\n")
-        infoString = infoString.append("Source: https://github.com/rduivenvoorde/pdokservicesplugin")
+        infoString =  "Written by Richard Duivenvoorde\nEmail - richard@duif.net\n"
+        infoString += "Company - Zuidt - http://www.zuidt.nl\n"
+        infoString += "Source: https://github.com/rduivenvoorde/pdokservicesplugin"
         QMessageBox.information(self.iface.mainWindow(), "Pdok Services Plugin About", infoString)
 
     def unload(self):
@@ -317,7 +368,7 @@ class PdokServicesPlugin:
         self.sourceModel.appendRow( [ itemLayername, itemType, itemServicetitle, itemFilter ] )
 
     # run method that performs all the real work
-    def run(self):
+    def run(self, hiddenDialog=False):
         # last viewed/selected tab
         if QSettings().contains("/pdokservicesplugin/currenttab"):
             if QGis.QGIS_VERSION_INT < 10900:
@@ -378,8 +429,9 @@ class PdokServicesPlugin:
         #self.dlg.servicesView.resizeColumnsToContents()
         self.dlg.servicesView.setColumnWidth(0, 300)  # set name to 300px (there are some huge layernames)
         self.dlg.servicesView.horizontalHeader().setStretchLastSection(True)
-        # show the dialog
-        self.dlg.show()
+        # show the dialog ?
+        if not hiddenDialog:
+            self.dlg.show()
         # Run the dialog event loop
         #result = self.dlg.exec_()
         if QGis.QGIS_VERSION_INT < 10900:

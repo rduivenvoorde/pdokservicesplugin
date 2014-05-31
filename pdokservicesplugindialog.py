@@ -49,6 +49,7 @@ class PdokServicesPluginDockWidget(QtGui.QDockWidget):
         self.geocoderSearchBtn = self.ui.geocoderSearchBtn
         self.tabs = self.ui.tabWidget
         self.radioDocked = self.ui.radio_docked_widget
+        self.btnCheckPdokJson = self.ui.btn_check_pdokjson
 
 
 class PdokServicesPluginDialog(QtGui.QDialog):
@@ -78,3 +79,4 @@ class PdokServicesPluginDialog(QtGui.QDialog):
         #QtCore.QObject.disconnect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
         QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("rejected()"), self.reject)
         self.radioDocked = self.ui.radio_docked_widget
+        self.btnCheckPdokJson = self.ui.btn_check_pdokjson
