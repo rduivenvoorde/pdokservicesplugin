@@ -360,14 +360,17 @@ class PdokServicesPlugin:
         itemType.setData( serviceLayer, Qt.UserRole )
         itemType.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
         # only wms services have styles (sometimes)
+        layername = serviceLayer["title"]
         if serviceLayer.has_key('style'):
             itemLayername = QStandardItem("%s [%s]" % (serviceLayer["title"], serviceLayer["style"]) )
+            layername = "%s [%s]" % (serviceLayer["title"], serviceLayer["style"])
         else:
             itemLayername = QStandardItem("%s" % (serviceLayer["title"]))
         itemLayername.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["servicetitle"] ))
+        # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
+        itemFilter = QStandardItem("%s %s %s %s" % (serviceLayer["type"], layername, serviceLayer["servicetitle"], serviceLayer["abstract"]) )
         itemServicetitle = QStandardItem("%s" % (serviceLayer["servicetitle"]))
         itemServicetitle.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
-        itemFilter = QStandardItem("%s %s %s %s" % (serviceLayer["type"], serviceLayer["title"], serviceLayer["servicetitle"], serviceLayer["abstract"]) )
         self.sourceModel.appendRow( [ itemLayername, itemType, itemServicetitle, itemFilter ] )
 
     # run method that performs all the real work
