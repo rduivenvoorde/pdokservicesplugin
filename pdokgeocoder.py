@@ -3,6 +3,7 @@ import os
 import urllib
 import urllib2
 from xml.dom.minidom import parse
+from PyQt4 import QtCore
 
 searchstring = 'riouwstaat, haarlem'
 #searchstring = 'kenaustraat 12, haarlem'
@@ -19,6 +20,26 @@ searchstring = 'riouwstraat 23'
 #searchstring = '2022ZJ'
 #searchstring = '2022ZJ 23'
 
+# Set Proxy from QGIS-Settings
+def setup_urllib2():
+    # TODO: test with different proxy settings
+    settings = QtCore.QSettings()
+
+    if settings.value("/proxy/proxyEnabled"):
+        proxyHost = str(settings.value("proxy/proxyHost", unicode()))
+        proxyPassword = str(settings.value("proxy/proxyPassword", unicode()))
+        proxyPort = str(settings.value("proxy/proxyPort", unicode()))
+        proxyType = str(settings.value("proxy/proxyType", unicode()))
+        proxyTypes = { 'DefaultProxy' : 'http', 'HttpProxy' : 'http', 'Socks5Proxy' : 'socks', 'HttpCachingProxy' : 'http', 'FtpCachingProxy' : 'ftp' }
+        if proxyType in proxyTypes: 
+            proxyType = proxyTypes[proxyType]
+        proxyUser = str(settings.value("proxy/proxyUser", unicode()))
+        proxyString = 'http://' + proxyUser + ':' + proxyPassword + '@' + proxyHost + ':' + proxyPort
+        proxy = urllib2.ProxyHandler({proxyType : proxyString})
+        auth = urllib2.HTTPBasicAuthHandler()
+        opener = urllib2.build_opener(proxy, auth, urllib2.HTTPHandler)
+        urllib2.install_opener(opener)
+
 def search(searchstring):
     """
 
@@ -31,7 +52,8 @@ def search(searchstring):
     #print url
     addressesarray = []
     try:
-        response = urllib.urlopen(url)
+        setup_urllib2()
+        response = urllib2.urlopen(url)
         if response.code != 200:
             print 'ERROR %s' % response.code
             exit()
