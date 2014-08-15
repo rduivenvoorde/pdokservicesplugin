@@ -418,6 +418,10 @@ class PdokServicesPlugin:
             self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
             self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
             self.dlg.servicesView.doubleClicked.connect(self.loadService)
+            # actually I want to load a service when doubleclicked on header
+            # but as I cannot get this to work, let's disable clicking it then
+            self.dlg.servicesView.verticalHeader().setClickable(False)
+            self.dlg.servicesView.horizontalHeader().setClickable(False)
 
             self.dlg.geocoderResultView.doubleClicked.connect(self.zoomToAddress)
 
