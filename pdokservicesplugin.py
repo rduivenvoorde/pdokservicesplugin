@@ -511,24 +511,28 @@ class PdokServicesPlugin:
         crs28992.createFromId(28992)
         crsTransform = QgsCoordinateTransform(crs28992, crs)
 
-        r = 100
+        z = 1587
         if adrestekst.startswith('adres'):
-            r = 75
+            z = 1587
         elif adrestekst.startswith('straat'):
-            r = 150
+            z = 3175
         elif adrestekst.startswith('postcode'):
-            r = 500
+            z = 6350
         elif adrestekst.startswith('plaats'):
-            r = 1000
+            z = 25398
         elif adrestekst.startswith('gemeente'):
-            r = 2000
+            z = 50797
         elif adrestekst.startswith('provincie'):
-            r = 30000
+            z = 812750
 
         geom = QgsGeometry.fromPoint(point)
         geom.transform(crsTransform)
-        self.setPointer(geom.asPoint())
-        self.iface.mapCanvas().setExtent(geom.buffer(r, 1).boundingBox())
+        center = geom.asPoint()
+        self.setPointer(center)
+        # zoom to with center is actually setting a point rectangle and then zoom
+        rect = QgsRectangle(center, center)
+        self.iface.mapCanvas().setExtent(rect)
+        self.iface.mapCanvas().zoomScale(z)
         self.iface.mapCanvas().refresh()
 
     def setPointer(self, point):
