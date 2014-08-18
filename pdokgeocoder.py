@@ -25,7 +25,11 @@ def setup_urllib2():
     # TODO: test with different proxy settings
     settings = QtCore.QSettings()
 
-    if settings.value("/proxy/proxyEnabled"):
+    if settings.value( "proxy/proxyEnabled", 'false' ) == 'false':
+        # no action needed
+        pass
+    else:
+        # set up for using the actual proxy
         proxyHost = str(settings.value("proxy/proxyHost", unicode()))
         proxyPassword = str(settings.value("proxy/proxyPassword", unicode()))
         proxyPort = str(settings.value("proxy/proxyPort", unicode()))
@@ -39,6 +43,7 @@ def setup_urllib2():
         auth = urllib2.HTTPBasicAuthHandler()
         opener = urllib2.build_opener(proxy, auth, urllib2.HTTPHandler)
         urllib2.install_opener(opener)
+
 
 def search(searchstring):
     """
