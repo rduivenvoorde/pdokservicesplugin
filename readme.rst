@@ -28,5 +28,5 @@ Alle services zijn epsg:28992
 
 QGIS versie 1.8 kan alleen de WMS en WFS services van PDOK laden
 
-QGIS ontwikkel versie (master) kan WMS, WMTS en WFS services laden
+QGIS 2.0 en hoger kan WMS, WMTS en WFS services laden
 
