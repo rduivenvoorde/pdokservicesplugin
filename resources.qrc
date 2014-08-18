@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/plugins/pdokservicesplugin">
+    <file>eraser.png</file>
     <file>ogg.gif</file>
     <file>pdok.png</file>
     <file>help.png</file>

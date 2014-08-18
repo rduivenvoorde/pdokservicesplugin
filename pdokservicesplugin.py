@@ -82,6 +82,7 @@ class PdokServicesPlugin:
         self.currentLayer = None
         self.SETTINGS_SECTION = '/pdokservicesplugin/'
         self.pointer = None
+        self.geocoderSourceModel = None
 
     def getSettingsValue(self, key, default=''):
         if QSettings().contains(self.SETTINGS_SECTION + key):
@@ -103,16 +104,17 @@ class PdokServicesPlugin:
 
     def initGui(self):
         # Create action that will start plugin configuration
-        self.action = QAction(QIcon(":/plugins/pdokservicesplugin/icon.png"), \
+        self.run_action = QAction(QIcon(":/plugins/pdokservicesplugin/icon.png"), \
             u"Pdok Services Plugin", self.iface.mainWindow())
+
         self.servicesLoaded = False
         # connect the action to the run method
         if "True" == self.docked or "true" == self.docked or  True == self.docked:
-            QObject.connect(self.action, SIGNAL("triggered()"), self.showAndRaise)
+            QObject.connect(self.run_action, SIGNAL("triggered()"), self.showAndRaise)
             self.dlg.radioDocked.setChecked(True)
             # docked the dialog is immidiately visible, so should run NOW
         else:
-            QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+            QObject.connect(self.run_action, SIGNAL("triggered()"), self.run)
             self.dlg.radioDocked.setChecked(False)
 
         # Add toolbar button and menu item
@@ -120,15 +122,20 @@ class PdokServicesPlugin:
 
         self.toolbar = self.iface.addToolBar("PDOK services plugin")
         self.toolbar.setObjectName("PDOK services plugin")
-        self.toolbar.addAction(self.action)
+        self.toolbar.addAction(self.run_action)
         self.toolbarSearch = QLineEdit()
         self.toolbarSearch.setMaximumWidth(200)
         self.toolbarSearch.setAlignment(Qt.AlignLeft)
         self.toolbarSearch.setPlaceholderText("PDOK Geocoder zoek")
         self.toolbar.addWidget(self.toolbarSearch)
         self.toolbarSearch.returnPressed.connect(self.searchAddressFromToolbar)
+        # address/point cleanup
+        self.clean_action = QAction(QIcon(":/plugins/pdokservicesplugin/eraser.png"), \
+            u"Cleanup", self.eraseAddress())
+        self.toolbar.addAction(self.clean_action)
+        QObject.connect(self.clean_action, SIGNAL("triggered()"), self.eraseAddress)
 
-        self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.action)
+        self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.run_action)
 
         # about
         self.aboutAction = QAction(QIcon(":/plugins/pdokservicesplugin/help.png"), \
@@ -209,7 +216,7 @@ class PdokServicesPlugin:
     def unload(self):
         self.removePointer()
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(u"&Pdok Services Plugin",self.action)
+        self.iface.removePluginMenu(u"&Pdok Services Plugin",self.run_action)
         del self.toolbarSearch
 
     def showService(self, selectedIndexes):
@@ -341,6 +348,18 @@ class PdokServicesPlugin:
         #print "search geocoder for: %s" % self.dlg.geocoderSearch.text()
         self.geocoderSourceModel.clear()
         self.geocode(self.dlg.geocoderSearch.text())
+
+    def eraseAddress(self):
+        """
+        clean the input and remove the pointer
+        """
+        self.removePointer()
+        if self.geocoderSourceModel is not None:
+            self.geocoderSourceModel.clear()
+        if self.dlg.geocoderSearch is not None:
+            self.dlg.geocoderSearch.clear()
+        if self.toolbarSearch is not None:
+            self.toolbarSearch.clear()
 
     def filterLayers(self, string):
         # remove selection if one row is selected
