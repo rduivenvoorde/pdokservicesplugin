@@ -72,7 +72,7 @@ def handleWCS(wcscapsurl):
             if not firstOne:
                 comma = ','
             # some extract have strange chars, we decode to utf8
-            s = unicode('%s{"type":"wcs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
+            s = unicode('\n%s{"type":"wcs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
             # the comma behind the print makes print NOT add a \n newline behind it
             # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
             print s,
@@ -110,7 +110,7 @@ def handleWFS(wfscapsurl):
             if not firstOne:
                 comma = ','
             # some extract have strange chars, we decode to utf8
-            s = unicode('%s{"type":"wfs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
+            s = unicode('\n%s{"type":"wfs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
             # the comma behind the print makes print NOT add a \n newline behind it
             # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
             print s,
@@ -145,7 +145,7 @@ def handleWMTS(wmtscapsurl):
             if not firstOne:
                 comma = ','
             # some extract have strange chars, we decode to utf8
-            s = unicode('%s{"type":"wmts","title":"%s","abstract":"%s","url":"%s","layers":"%s","imgformats":"%s","tilematrixsets":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, imgformats, tilematrixsets, servicetitle)).encode('utf8')
+            s = unicode('\n%s{"type":"wmts","title":"%s","abstract":"%s","url":"%s","layers":"%s","imgformats":"%s","tilematrixsets":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, imgformats, tilematrixsets, servicetitle)).encode('utf8')
             # the comma behind the print makes print NOT add a \n newline behind it
             # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
             print s,
@@ -190,7 +190,7 @@ def handleWMS(wmscapsurl):
                 if not firstOne:
                     comma = ','
                 # some extract have strange chars, we decode to utf8
-                s = unicode('%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
+                s = unicode('\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
                 # the comma behind the print makes print NOT add a \n newline behind it
                 # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
                 print s,
@@ -211,6 +211,12 @@ services = [
 #('wmts', 'Basisregistratie Grootschalige Topografie - Lijngericht (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
 #('wmts', 'Basisregistratie Grootschalige Topografie - Omtrekgericht (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
 #('wmts', 'Basisregistratie Grootschalige Topografie - Standaard (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
+
+# LET OP LET OP: de volgende lagen zitten in de wmts capabilities maar moeten eruit:
+# brkpilot
+# brkgeo
+# gbkn
+# kadastralekaart_intern
 
 # GESLOTEN
 #('wms', 'Asbest scholenkaart (WMS | PDOK Basis)', 'http://geodata.nationaalgeoregister.nl/asbestscholenkaart/wms?SERVICE=WMS&request=GetCapabilities'),
@@ -325,8 +331,9 @@ services = [
 ('wfs','NOK 2013 (WFS | Open)','http://geodata.nationaalgeoregister.nl/nok2013/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms','Noordzee Kabels en Leidingen (WMS | Open)','http://geodata.nationaalgeoregister.nl/noordzeekabelsenleidingen/wms?service=wms&version=1.0.0&request=GetCapabilities'),
 ('wfs','Noordzee Kabels en Leidingen (WFS | Open) ','http://geodata.nationaalgeoregister.nl/noordzeekabelsenleidingen/wfs?version=1.0.0&request=GetCapabilities'),
-('wms','Noordzee Maritieme grenzen (WMS | Open)','http://geodata.nationaalgeoregister.nl/maritiemegrenzen/wms?service=wms&version=1.0.0&request=getcapabilities'),
-('wfs','Noordzee Maritieme grenzen (WFS | Open) ','http://geodata.nationaalgeoregister.nl/maritiemegrenzen/wfs?version=1.0.0&request=GetCapabilities'),
+# weg??
+#('wms','Noordzee Maritieme grenzen (WMS | Open)','http://geodata.nationaalgeoregister.nl/maritiemegrenzen/wms?service=wms&version=1.0.0&request=getcapabilities'),
+#('wfs','Noordzee Maritieme grenzen (WFS | Open) ','http://geodata.nationaalgeoregister.nl/maritiemegrenzen/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms','Noordzee Vaarwegmarkeringen (WMS | Open)','http://geodata.nationaalgeoregister.nl/noordzeevaarwegmarkeringenrd/wms?service=wms&version=1.0.0&request=getcapabilities'),
 ('wfs','Noordzee Vaarwegmarkeringen (WFS | Open) ','http://geodata.nationaalgeoregister.nl/noordzeevaarwegmarkeringenrd/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms','Noordzee Wingebieden (WMS | Open)' , 'http://geodata.nationaalgeoregister.nl/noordzeewingebieden/wms?service=wms&version=1.0.0&request=GetCapabilities'),
