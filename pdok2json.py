@@ -36,8 +36,9 @@
  ***************************************************************************/
 """
 
-from xml.dom.minidom import parse
+from xml.dom.minidom import parse, parseString
 import urllib
+import re
 
 def childNodeValue(node, childName):
     nodes = node.getElementsByTagName(childName)
@@ -84,7 +85,19 @@ def handleWCS(wcscapsurl):
             return
 
 def handleWFS(wfscapsurl):
-    dom = parse(urllib.urlopen(wfscapsurl))
+    #dom = parse(urllib.urlopen(wmscapsurl))
+    #  ^^ that is not working for some wicked cbs caps with coördinaat in it...
+    # hack: read string and find replace coördinaat with coordinaat
+    response = urllib.urlopen(wfscapsurl)
+    #response = urllib.urlopen('problem.xml')
+    string = response.read()
+    # cbs vierkanten
+    string = re.sub(r"co.{1,2}rdin","coordin", string)
+    # rdinfo
+    string = re.sub(r"<WFS_Capabilities","\n<WFS_Capabilities", string)
+    #print string
+    #return
+    dom = parseString(string)
     #dom = parse(urllib.urlopen('http://geodata.nationaalgeoregister.nl/ahn25m/wfs?version=1.0.0&request=GetCapabilities'))
     #dom = parse(urllib.urlopen('http://geodata.nationaalgeoregister.nl/bagviewer/wfs?request=getcapabilities'))
     global firstOne
@@ -161,7 +174,14 @@ def handleWMS(wmscapsurl):
     #dom = parse("wms_cbs.xml")
     #dom = parse("problem.xml")
     #dom = parse(urllib.urlopen('http://geodata.nationaalgeoregister.nl/cbsvierkanten100m/wms?request=GetCapabilities'))
-    dom = parse(urllib.urlopen(wmscapsurl))
+    #dom = parse(urllib.urlopen(wmscapsurl))
+    #  ^^ that is not working for some wicked cbs caps with coördinaat in it...
+    # hack: read string and find replace coördinaat with coordinaat
+    response = urllib.urlopen(wmscapsurl)
+    string = response.read()
+    string = re.sub(r"co.+rdin","coordin", string)
+    dom = parseString(string)
+
     cap = dom.getElementsByTagName('Capability')
     getmap = cap[0].getElementsByTagName('GetMap');
     url = getmap[0].getElementsByTagName('OnlineResource')[0].getAttribute('xlink:href')
@@ -170,41 +190,49 @@ def handleWMS(wmscapsurl):
     global firstOne
     root = dom.getElementsByTagName('Layer')[0]
     for layer in root.getElementsByTagName('Layer'):
-        title = childNodeValue(layer, 'Title')
-        layername = childNodeValue(layer, 'Name')
-        abstract = childNodeValue(layer, 'Abstract')
-        maxscale = childNodeValue(layer, 'MaxScaleDenominator')
-        minscale = childNodeValue(layer, 'MinScaleDenominator')
-        #meta = layer.getElementsByTagName('MetadataURL')
-        #if meta != None:
-        #    print "URL%s"%meta[0].getElementsByTagName('OnlineResource')[0].getAttribute('xlink:href')
-        # abstract can have newlines in it, which create havoc in json
-        # because we only use abstract in html, we make <br/> of them
-        abstract = abstract.replace('\r', '')
-        abstract = abstract.replace('\t', ' ')
-        abstract = abstract.replace('\n', '<br/>')
-        comma = ''
-        for style in layer.getElementsByTagName('Style'):
-            styleName = childNodeValue(style, 'Name')
-            try:
-                if not firstOne:
-                    comma = ','
-                # some extract have strange chars, we decode to utf8
-                s = unicode('\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
-                # the comma behind the print makes print NOT add a \n newline behind it
-                # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
-                print s,
-                firstOne=False
-            except Exception, e:
-                #pass
-                print "\n\nFout!! In laag: %s" % layername
-                print e
-                return
+        # xtra check, if this is again a grouping layer, skip it
+        # actually needed for habitatrichtlijn layers
+        if len(layer.getElementsByTagName('Layer'))>1:
+            pass
+        else:
+            title = childNodeValue(layer, 'Title')
+            #print '|'
+            #print title
+            layername = childNodeValue(layer, 'Name')
+            abstract = childNodeValue(layer, 'Abstract')
+            maxscale = childNodeValue(layer, 'MaxScaleDenominator')
+            minscale = childNodeValue(layer, 'MinScaleDenominator')
+            #meta = layer.getElementsByTagName('MetadataURL')
+            #if meta != None:
+            #    print "URL%s"%meta[0].getElementsByTagName('OnlineResource')[0].getAttribute('xlink:href')
+            # abstract can have newlines in it, which create havoc in json
+            # because we only use abstract in html, we make <br/> of them
+            abstract = abstract.replace('\r', '')
+            abstract = abstract.replace('\t', ' ')
+            abstract = abstract.replace('\n', '<br/>')
+            comma = ''
+            for style in layer.getElementsByTagName('Style'):
+                styleName = childNodeValue(style, 'Name')
+                try:
+                    if not firstOne:
+                        comma = ','
+                    # some extract have strange chars, we decode to utf8
+                    s = unicode('\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
+                    # the comma behind the print makes print NOT add a \n newline behind it
+                    # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
+                    print s,
+                    firstOne=False
+                except Exception, e:
+                    #pass
+                    print "\n\nFout!! In laag: %s" % layername
+                    print e
+                    return
 
 # services zoals genoemd in https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/
 services = [
-# alle wmts lagen (behalve luchtfoto) zitten in 1 service
 ('wmts', 'PDOK luchtfoto', 'http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml'),
+# alle wmts lagen (behalve luchtfoto) zitten in 1 service
+# het heeft dus geen zin om de individuele wmts-url's uit het overzicht te gebruiken omdat die allemaal onderstaande caps teruggeven:
 ('wmts', 'PDOK overige services', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
 
 #('wmts', 'Basisregistratie Grootschalige Topografie - Achtergrond (WMTS | Open)', 'http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
@@ -258,6 +286,8 @@ services = [
 ('wfs', 'CBS Bevolkingskernen 2011 (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/bevolkingskernen2011/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wms', 'CBS Provincies (WMS | Open)' , 'http://geodata.nationaalgeoregister.nl/cbsprovincies/wms?request=GetCapabilities') ,
 ('wfs', 'CBS Provincies (WFS | Open)' , 'http://geodata.nationaalgeoregister.nl/cbsprovincies/wfs?request=GetCapabilities') ,
+('wms', 'CBS Gebiedsindelingen (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/cbsgebiedsindelingen/wms?request=GetCapabilities'),
+('wfs', 'CBS Gebiedsindelingen (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/cbsgebiedsindelingen/wfs?request=GetCapabilities'),
 ('wms', 'CBS Vierkantstatistieken 100m (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten100m/wms?request=GetCapabilities') ,
 ('wfs', 'CBS Vierkantstatistieken 100m (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten100m/wfs?request=GetCapabilities') ,
 ('wms', 'CBS Vierkantstatistieken 500m (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten500m/wms?request=GetCapabilities') ,
@@ -287,6 +317,11 @@ services = [
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/g
 ('wms' , 'Geluidskaarten (WMS | Open)' , 'http://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wms?request=GetCapabilities') ,
 ('wfs' , 'Geluidskaarten (WFS | Open)' , 'http://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wfs?request=GetCapabilities') ,
+# https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/h
+('wms', 'Habitatrichtlijn verspreiding van habitattypen (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wms?request=getcapabilities'),
+('wfs', 'Habitatrichtlijn verspreiding van habitattypen (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wfs?request=getcapabilities'),
+('wms', 'Habitatrichtlijn verspreiding van soorten (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidingsoorten/wms?request=GetCapabilities'),
+('wfs', 'Habitatrichtlijn verspreiding van soorten (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidingsoorten/wfs?request=GetCapabilities'),
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/k
 ('wms' , 'Kweldervegetatie (WMS | Open)' , 'http://geodata.nationaalgeoregister.nl/kweldervegetatie/wms?request=GetCapabilities') ,
 ('wfs' , 'Kweldervegetatie (WFS | Open)' , 'http://geodata.nationaalgeoregister.nl/kweldervegetatie/wfs?request=GetCapabilities') ,
@@ -329,6 +364,8 @@ services = [
 ('wfs','NOK 2012 (WFS | Open) ','http://geodata.nationaalgeoregister.nl/nok2012/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms','NOK 2013 (WMS | Open)','http://geodata.nationaalgeoregister.nl/nok2013/wms?request=GetCapabilities'),
 ('wfs','NOK 2013 (WFS | Open)','http://geodata.nationaalgeoregister.nl/nok2013/wfs?version=1.0.0&request=GetCapabilities'),
+('wms','NOK 2014 (WMS | Open)','http://geodata.nationaalgeoregister.nl/nok2014/wms?request=GetCapabilities'),
+('wfs','NOK 2014 (WFS | Open)','http://geodata.nationaalgeoregister.nl/nok2014/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms','Noordzee Kabels en Leidingen (WMS | Open)','http://geodata.nationaalgeoregister.nl/noordzeekabelsenleidingen/wms?service=wms&version=1.0.0&request=GetCapabilities'),
 ('wfs','Noordzee Kabels en Leidingen (WFS | Open) ','http://geodata.nationaalgeoregister.nl/noordzeekabelsenleidingen/wfs?version=1.0.0&request=GetCapabilities'),
 # weg??
@@ -348,6 +385,8 @@ services = [
 ('wms','Oppervlaktewaterlichamen (WMS | Open)','http://geodata.nationaalgeoregister.nl/rwsoppervlaktewaterlichamen/wms?request=GetCapabilities'),
 ('wfs','Oppervlaktewaterlichamen (WFS | Open)','http://geodata.nationaalgeoregister.nl/rwsoppervlaktewaterlichamen/wfs?request=GetCapabilities'),
 ('wms','Overheidsdiensten (WMS | Open)','http://geodata.nationaalgeoregister.nl/overheidsdiensten/wms?request=GetCapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/p
+('wms', 'Publiekrechtelijke Beperking (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/publiekrechtelijkebeperking/wms?request=GetCapabilities'),
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/r
 ('wms', 'RDinfo (WMS | Open) ','http://geodata.nationaalgeoregister.nl/rdinfo/wms?service=wms&request=getcapabilities'),
 ('wfs', 'RDinfo (WFS | Open) ','http://geodata.nationaalgeoregister.nl/rdinfo/wfs?version=1.0.0&request=GetCapabilities'),
@@ -355,6 +394,10 @@ services = [
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/s
 ('wms', 'Schelpdierenpercelen (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/schelpdierenpercelen/wms?request=GetCapabilities'),
 ('wfs','Schelpdierenpercelen (WFS | Open)','http://geodata.nationaalgeoregister.nl/schelpdierenpercelen/wfs?request=GetCapabilities'),
+('wms', 'Schelpdierwater (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/schelpdierwater/wms?request=getcapabilities'),
+('wfs', 'Schelpdierwater (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/schelpdierwater/wfs?request=getcapabilities'),
+('wms', 'Spoorwegen (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/spoorwegen/wms?request=GetCapabilities'),
+('wfs', 'Spoorwegen (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/spoorwegen/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms','Stort- en loswallen (WMS | Open)','http://geodata.nationaalgeoregister.nl/stortenloswallen/wms?request=GetCapabilities'),
 ('wfs','Stort- en loswallen (WFS | Open)','http://geodata.nationaalgeoregister.nl/stortenloswallen/wfs?request=GetCapabilities'),
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/t
@@ -374,14 +417,17 @@ services = [
 # geen TMS: TOP50vector (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/top50vector@EPSG:28992@png8
 ('wms', 'TOP50vector (WMS | Open) ','http://geodata.nationaalgeoregister.nl/top50vector/wms?&Request=getcapabilities'),
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/v
+('wms', 'Verkeersscheidingsstelsel (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/verkeersscheidingsstelsel/wms?request=getcapabilities'),
+('wfs', 'Verkeersscheidingsstelsel (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/verkeersscheidingsstelsel/wfs?request=getcapabilities'),
 ('wms', 'ViN (WMS | Open) ','http://geodata.nationaalgeoregister.nl/vin/wms?SERVICE=WMS&request=GetCapabilities'),
 ('wfs', 'ViN (WFS | Open) ','http://geodata.nationaalgeoregister.nl/vin/wfs?version=1.0.0&request=GetCapabilities '),
+('wms', 'Vogelrichtlijn verspreiding van soorten (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wms?request=GetCapabilities'),
+('wfs', 'Vogelrichtlijn verspreiding van soorten (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wfs?request=GetCapabilities'),
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/w
 ('wms', 'Weggeg (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/weggeg/wms?SERVICE=WMS&request=GetCapabilities'),
 ('wfs', 'Weggeg (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/weggeg/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms', 'Wetlands (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/wetlands/ows?service=wms&request=getcapabilities'),
 ('wfs', 'Wetlands (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/wetlands/wfs?version=1.0.0&request=GetCapabilities'),
-('wms', 'WKPB (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/wkpb/wms?request=GetCapabilities'),
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/z
 ('wms', 'Zeegraskartering (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/zeegraskartering/wms?request=GetCapabilities'),
 ('wfs', 'Zeegraskartering (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/zeegraskartering/wfs?request=GetCapabilities'),
@@ -391,10 +437,19 @@ services = [
 #services = [ ('wcs', 'ff', 'ff') ]
 
 sservices = [
-('wms', 'CBS Bestand Bodemgebruik 2008 (BBG 2008) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wms?request=getcapabilities') ,
-('wfs', 'CBS Bestand Bodemgebruik 2008 (BBG 2008) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wfs?version=1.0.0&request=GetCapabilities') ,
-('wms', 'CBS Bestand Bodemgebruik 2010 (BBG 2010) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2010/wms?service=wms&request=getcapabilities') ,
-('wfs', 'CBS Bestand Bodemgebruik 2010 (BBG 2010) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2010/wfs?version=1.0.0&request=GetCapabilities') ,
+#('wms', 'CBS Provincies (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/cbsprovincies/wms?request=GetCapabilities'),
+#('wms', '', ''),
+#('wfs', '', ''),
+('wms', 'RDinfo (WMS | Open) ','http://geodata.nationaalgeoregister.nl/rdinfo/wms?service=wms&request=getcapabilities'),
+('wfs', 'RDinfo (WFS | Open) ','http://geodata.nationaalgeoregister.nl/rdinfo/wfs?version=1.0.0&request=GetCapabilities'),
+#('wms', 'Habitatrichtlijn verspreiding van habitattypen (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wms?request=getcapabilities'),
+#('wfs', 'Habitatrichtlijn verspreiding van habitattypen (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wfs?request=getcapabilities'),
+#('wms', 'Habitatrichtlijn verspreiding van soorten (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidingsoorten/wms?request=GetCapabilities'),
+#('wfs', 'Habitatrichtlijn verspreiding van soorten (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidingsoorten/wfs?request=GetCapabilities'),
+#('wms', 'CBS Vierkantstatistieken 100m (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten100m/wms?request=GetCapabilities') ,
+#('wfs', 'CBS Vierkantstatistieken 100m (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten100m/wfs?request=GetCapabilities') ,
+#('wms', 'CBS Vierkantstatistieken 500m (WMS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten500m/wms?request=GetCapabilities') ,
+#('wfs', 'CBS Vierkantstatistieken 500m (WFS | Open) ', 'http://geodata.nationaalgeoregister.nl/cbsvierkanten500m/wfs?request=GetCapabilities') ,
 ]
 
 #services = [ 
