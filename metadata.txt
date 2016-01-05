@@ -13,7 +13,7 @@ name=PDOK services plugin
 qgisMinimumVersion=1.8
 qgisMaximumVersion=2.99
 description=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-version=0.9
+version=0.10
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
@@ -24,6 +24,7 @@ email=richard@zuidt.nl
 # Uncomment the following line and add your changelog entries:
 
 changelog:
+    0.10    (01-2016) new services + all to https
     0.9     (09-2014) removing some not working wmts services from pdok.json
     0.8     (08-2014) proxy fix (thanks Bart Baas), new icons (thanks Raymond Nijssen), geocoder is now zooming to pdok scale, new button to clean result, now also searching in stylenames, disable double click on headers (was confusing)
     0.7     (05-2014) new services, styles of wms's are working, extra settings for docked/dialog, retrieve pdok.json over network
