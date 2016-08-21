@@ -267,8 +267,8 @@ services = [
 ('wms', 'Adressen (INSPIRE geharmoniseerd) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/inspire/ad/wms?request=GetCapabilities') ,
 ('wfs', 'Adressen (INSPIRE geharmoniseerd) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/inspire/ad/wfs?request=GetCapabilities'),
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/b
-('wfs', 'BAG (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/bagviewer/wfs?request=getcapabilities') ,
-('wms', 'BAG (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/bagviewer/wms?request=getcapabilities') ,
+('wfs', 'BAG (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/bag/wfs?request=GetCapabilities') ,
+('wms', 'BAG (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/bag/wms?request=GetCapabilities') ,
 # BGG niet meer in productenlijst, maar is er ngo wel
 ('wfs', 'BBG 2008 (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wfs?version=1.0.0&request=GetCapabilities') ,
 ('wms', 'BBG 2008 (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/bestandbodemgebruik2008/wms?request=getcapabilities') ,
@@ -310,19 +310,25 @@ services = [
 ('wfs', 'CBS Wijken en Buurten 2013 (WFS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2013/wfs?version=1.0.0&request=getcapabilities') ,
 ('wms', 'CBS Wijken en Buurten 2014 (WMS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2014/wms?request=getcapabilities') ,
 ('wfs', 'CBS Wijken en Buurten 2014 (WFS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2014/wfs?version=1.0.0&request=getcapabilities'),
+('wms', 'CBS Wijken en Buurten 2015 (WMS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2015/wms?request=getcapabilities') ,
+('wfs', 'CBS Wijken en Buurten 2015 (WFS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2015/wfs?version=1.0.0&request=getcapabilities'),
 ('wms', 'CultGIS (WMS | Open) ', 'https://geodata.nationaalgeoregister.nl/cultgis/wms?SERVICE=WMS&request=GetCapabilities') ,
 ('wfs', 'CultGIS (WFS | Open) ', 'https://geodata.nationaalgeoregister.nl/cultgis/wfs?version=1.0.0&request=GetCapabilities') ,
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/d
 ('wms', 'DTB (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/digitaaltopografischbestand/wms?SERVICE=WMS&request=GetCapabilities'),
 ('wfs', 'DTB (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/digitaaltopografischbestand/wfs?version=1.0.0&request=GetCapabilities'),
+('wms', 'Drone no-fly zone (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/dronenoflyzones/wms?request=GetCapabilities'),
+('wfs', 'Drone no-fly zone (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/dronenoflyzones/wfs?request=GetCapabilities'),
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/e
 ('wms', 'Ecotopen (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/ecotopen/wms?request=GetCapabilities') ,
-('wfs', 'Ecotopen (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/kweldervegetatie/wfs?request=GetCapabilities') ,
+('wfs', 'Ecotopen (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/ecotopen/wfs?request=GetCapabilities') ,
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/f
 ('wms', 'Fietsknooppunten (WMS | Open)','https://geodata.nationaalgeoregister.nl/fietsknooppuntennetwerk/wms?request=GetCapabilities'),
 ('wms', 'Fysisch Geografische Regio’s (WMS | Open)','https://geodata.nationaalgeoregister.nl/fysischgeografischeregios/wms?request=GetCapabilities'),
 ('wfs', 'Fysisch Geografische Regio’s (WFS | Open)','https://geodata.nationaalgeoregister.nl/fysischgeografischeregios/wfs?request=GetCapabilities'),
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/g
+('wms' , 'Gebouwen (INSPIRE geharmoniseerd) (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/inspire/bu/wms?request=GetCapabilities') ,
+('wfs' , 'Gebouwen (INSPIRE geharmoniseerd) (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/inspire/bu/wfs?request=GetCapabilities') ,
 ('wms' , 'Geluidskaarten (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wms?request=GetCapabilities') ,
 ('wfs' , 'Geluidskaarten (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wfs?request=GetCapabilities') ,
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/h
@@ -334,6 +340,8 @@ services = [
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/k
 ('wms' , 'Kadastrale Kaart (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/kadastralekaartv2/wms?request=GetCapabilities') ,
 ('wfs' , 'Kadastrale Kaart (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/kadastralekaartv2/wfs?request=GetCapabilities'),
+('wms' , 'Kadastrale Percelen (INSPIRE geharmoniseerd) (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/inspire/cp/wms?request=GetCapabilities') ,
+('wfs' , 'Kadastrale Percelen (INSPIRE geharmoniseerd) (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/inspire/cp/wfs?request=GetCapabilities'),
 ('wms' , 'Kweldervegetatie (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/kweldervegetatie/wms?request=GetCapabilities') ,
 ('wfs' , 'Kweldervegetatie (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/kweldervegetatie/wfs?request=GetCapabilities') ,
 # GESLOTEN alleen na aanmelding: 
@@ -369,7 +377,7 @@ services = [
 # geen TMS: Natura 2000 (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/natura2000@EPSG:28992@png8
 ('wms','NHI  (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nhi/ows?service=wms&request=getcapabilities'),
 ('wfs','NHI  (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nhi/wfs?version=1.0.0&request=GetCapabilities'),
-('wms','NOK 2007 (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nok2007/wms?service=wms&request=getcapabilities'),
+('wms','Nulmeting op Kaart 2007 (NOK2007) (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nok2007/wms?service=wms&request=getcapabilities'),
 ('wms','NOK 2010 (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nok2010/wms?service=wms&request=getcapabilities'),
 ('wfs','NOK 2011 (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nok2011/wfs?version=1.0.0&request=GetCapabilities'),
 # zit in algememe wmts caps: NOK 2011 (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/nok2011?VERSION=1.0.0&request=GetCapabilities
@@ -403,6 +411,7 @@ services = [
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/p
 ('wms', 'Potentiekaart omgevingswarmte (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/omgevingswarmte/wms?request=GetCapabilities'),
 ('wfs', 'Potentiekaart omgevingswarmte (WFS | Open))', 'https://geodata.nationaalgeoregister.nl/omgevingswarmte/wfs?request=GetCapabilities'),
+
 ('wms', 'Potentiekaart reststromen (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/reststromen/wms?request=GetCapabilities'),
 ('wfs', 'Potentiekaart reststromen (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/reststromen/wfs?request=GetCapabilities'),
 ('wms', 'Potentiekaart restwarmte (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/restwarmte/wms?request=GetCapabilities'),
@@ -422,6 +431,7 @@ services = [
 ('wms', 'Stort- en loswallen (WMS | Open)','https://geodata.nationaalgeoregister.nl/stortenloswallen/wms?request=GetCapabilities'),
 ('wfs', 'Stort- en loswallen (WFS | Open)','https://geodata.nationaalgeoregister.nl/stortenloswallen/wfs?request=GetCapabilities'),
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/t
+('wms','TOP100raster (WMS | Open)','https://geodata.nationaalgeoregister.nl/top100raster/wms?request=GetCapabilities'),
 # zit in algememe wmts caps: TOP10NL (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/top10nl?VERSION=1.0.0&request=GetCapabilities
 # geen TMS: TOP10NL (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/top10nl@EPSG:28992@png8
 ('wms','TOP10NL (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top10nlv2/wms?request=GetCapabilities'),
@@ -446,8 +456,8 @@ services = [
 ('wms', 'Vogelrichtlijn verspreiding van soorten (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wms?request=GetCapabilities'),
 ('wfs', 'Vogelrichtlijn verspreiding van soorten (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wfs?request=GetCapabilities'),
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/w
-('wms', 'Weggeg (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wms?SERVICE=WMS&request=GetCapabilities'),
-('wfs', 'Weggeg (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wfs?version=1.0.0&request=GetCapabilities'),
+('wms', 'Weggegevens (Weggeg) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wms?SERVICE=WMS&request=GetCapabilities'),
+('wfs', 'Weggegevens (Weggeg) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms', 'Wetlands (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wetlands/ows?service=wms&request=getcapabilities'),
 ('wfs', 'Wetlands (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/wetlands/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms', 'Windsnelheden 100m hoogte (WMS | Open)','https://geodata.nationaalgeoregister.nl/windkaart/wms?request=GetCapabilities'),
@@ -460,9 +470,61 @@ services = [
 # testing
 #services = [ ('wcs', 'ff', 'ff') ]
 
-sservices = [
+services = [
 
-
+('wms', 'Potentiekaart reststromen (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/reststromen/wms?request=GetCapabilities'),
+('wfs', 'Potentiekaart reststromen (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/reststromen/wfs?request=GetCapabilities'),
+('wms', 'Potentiekaart restwarmte (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/restwarmte/wms?request=GetCapabilities'),
+('wfs', 'Potentiekaart restwarmte (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/restwarmte/wfs?request=GetCapabilities'),
+('wms', 'Publiekrechtelijke Beperking (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/publiekrechtelijkebeperking/wms?request=GetCapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/r
+('wms', 'RDinfo (WMS | Open) ','https://geodata.nationaalgeoregister.nl/rdinfo/wms?service=wms&request=getcapabilities'),
+('wfs', 'RDinfo (WFS | Open) ','https://geodata.nationaalgeoregister.nl/rdinfo/wfs?version=1.0.0&request=GetCapabilities'),
+('wms', 'Ruimtelijke plannen (WMS | Open) ','https://geodata.nationaalgeoregister.nl/plu/wms?service=wms&request=getcapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/s
+('wms', 'Schelpdierenpercelen (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/schelpdierenpercelen/wms?request=GetCapabilities'),
+('wfs', 'Schelpdierenpercelen (WFS | Open)','https://geodata.nationaalgeoregister.nl/schelpdierenpercelen/wfs?request=GetCapabilities'),
+('wms', 'Schelpdierwater (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/schelpdierwater/wms?request=getcapabilities'),
+('wfs', 'Schelpdierwater (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/schelpdierwater/wfs?request=getcapabilities'),
+('wms', 'Spoorwegen (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/spoorwegen/wms?request=GetCapabilities'),
+('wfs', 'Spoorwegen (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/spoorwegen/wfs?version=1.0.0&request=GetCapabilities'),
+('wms', 'Stort- en loswallen (WMS | Open)','https://geodata.nationaalgeoregister.nl/stortenloswallen/wms?request=GetCapabilities'),
+('wfs', 'Stort- en loswallen (WFS | Open)','https://geodata.nationaalgeoregister.nl/stortenloswallen/wfs?request=GetCapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/t
+('wms','TOP100raster (WMS | Open)','https://geodata.nationaalgeoregister.nl/top100raster/wms?request=GetCapabilities'),
+# zit in algememe wmts caps: TOP10NL (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/top10nl?VERSION=1.0.0&request=GetCapabilities
+# geen TMS: TOP10NL (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/top10nl@EPSG:28992@png8
+('wms','TOP10NL (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top10nlv2/wms?request=GetCapabilities'),
+#zit in algemene wmts caps: Top25raster (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/top25raster?VERSION=1.0.0&request=GetCapabilities
+('wms','TOP25raster (WMS | Open)','https://geodata.nationaalgeoregister.nl/top25raster/wms?request=GetCapabilities'),
+# zit in algememe wmts caps: TOP250raster (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/top250raster?VERSION=1.0.0&request=GetCapabilities
+# geen TMS: TOP250raster (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/top250raster@EPSG:28992@png8
+('wms', 'TOP250raster (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top250raster/wms?&Request=getcapabilities'),
+# zit in algememe wmts caps: TOP50raster (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/top50raster?VERSION=1.0.0&request=GetCapabilities
+# geen TMS: TOP50raster (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/top50raster@EPSG:28992@png8
+('wms', 'TOP50raster (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top50raster/wms?&Request=getcapabilities'),
+# zit in algememe wmts caps: TOP50vector (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/top50vector?VERSION=1.0.0&request=GetCapabilities
+# geen TMS: TOP50vector (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/top50vector@EPSG:28992@png8
+('wms', 'TOP50vector (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top50vector/wms?&Request=getcapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/v
+('wms', 'ViN (WMS | Open) ','https://geodata.nationaalgeoregister.nl/vin/wms?SERVICE=WMS&request=GetCapabilities'),
+('wfs', 'ViN (WFS | Open) ','https://geodata.nationaalgeoregister.nl/vin/wfs?version=1.0.0&request=GetCapabilities '),
+('wms', 'Verkeersscheidingsstelsel (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/verkeersscheidingsstelsel/wms?request=getcapabilities'),
+('wfs', 'Verkeersscheidingsstelsel (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/verkeersscheidingsstelsel/wfs?request=getcapabilities'),
+('wms', 'Verspreidingsgebied habitattypen (WMS | Open)','https://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wms?request=GetCapabilities'),
+('wfs', 'Verspreidingsgebied habitattypen (WFS | Open)','https://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wfs?request=GetCapabilities'),
+('wms', 'Vogelrichtlijn verspreiding van soorten (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wms?request=GetCapabilities'),
+('wfs', 'Vogelrichtlijn verspreiding van soorten (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wfs?request=GetCapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/w
+('wms', 'Weggegevens (Weggeg) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wms?SERVICE=WMS&request=GetCapabilities'),
+('wfs', 'Weggegevens (Weggeg) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wfs?version=1.0.0&request=GetCapabilities'),
+('wms', 'Wetlands (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wetlands/ows?service=wms&request=getcapabilities'),
+('wfs', 'Wetlands (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/wetlands/wfs?version=1.0.0&request=GetCapabilities'),
+('wms', 'Windsnelheden 100m hoogte (WMS | Open)','https://geodata.nationaalgeoregister.nl/windkaart/wms?request=GetCapabilities'),
+('wfs', 'Windsnelheden 100m hoogte (WFS | Open)','https://geodata.nationaalgeoregister.nl/windkaart/wfs?request=GetCapabilities'),
+# https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/z
+('wms', 'Zeegraskartering (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/zeegraskartering/wms?request=GetCapabilities'),
+('wfs', 'Zeegraskartering (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/zeegraskartering/wfs?request=GetCapabilities'),
 ]
 
 

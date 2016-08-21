@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindialog.ui'
 #
-# Created: Fri Aug 15 16:45:30 2014
-#      by: PyQt4 UI code generator 4.11.1
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +25,7 @@ except AttributeError:
 class Ui_PdokServicesPlugin(object):
     def setupUi(self, PdokServicesPlugin):
         PdokServicesPlugin.setObjectName(_fromUtf8("PdokServicesPlugin"))
-        PdokServicesPlugin.resize(787, 728)
+        PdokServicesPlugin.resize(829, 775)
         self.verticalLayout = QtGui.QVBoxLayout(PdokServicesPlugin)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.tabWidget = QtGui.QTabWidget(PdokServicesPlugin)
@@ -126,8 +125,7 @@ class Ui_PdokServicesPlugin(object):
         self.tab.setObjectName(_fromUtf8("tab"))
         self.gridLayout_3 = QtGui.QGridLayout(self.tab)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
-        self.webView = QtWebKit.QWebView(self.tab)
-        self.webView.setUrl(QtCore.QUrl(_fromUtf8("qrc:/plugins/pdokservicesplugin/infotab.html")))
+        self.webView = QtGui.QTextBrowser(self.tab)
         self.webView.setObjectName(_fromUtf8("webView"))
         self.gridLayout_3.addWidget(self.webView, 0, 0, 1, 1)
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
@@ -159,7 +157,18 @@ class Ui_PdokServicesPlugin(object):
         self.radio_dialog.setText(_translate("PdokServicesPlugin", "Losse dialoog", None))
         self.radio_docked_widget.setText(_translate("PdokServicesPlugin", "Docked widget", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("PdokServicesPlugin", "Extra", None))
+        self.webView.setHtml(_translate("PdokServicesPlugin", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Cantarell\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:xx-large; font-weight:600; color:#444444;\">QGIS plugin voor PDOK services</span><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">Deze plugin wordt gemaakt door Richard Duivenvoorde (</span><a href=\"http://www.zuidt.nl\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Zuidt</span></a><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">).<br />De code van deze plugin is te vinden op </span><a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Github</span></a><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">. Bugs kunt u daar melden. </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/plugins/pdokservicesplugin/pdok.png\" /></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"http://www.pdok.nl\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">PDOK</span></a><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf, particulier) kosteloos te gebruiken. </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">Service url\'s voor alle in de plugin aanwezige lagen zijn afkomstig van deze pagina:<br /></span><a href=\"https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls</span></a><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">. </span></p>\n"
+"<p style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:x-large; font-weight:600; color:#444444;\">OpenGeoGroep. Anders denken, Anders doen...</span></p>\n"
+"<p style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">De </span><a href=\"http://www.opengeogroep.nl\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">OpenGeoGroep</span></a><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> is een commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.</span></p>\n"
+"<p style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Helvetica Neue,Helvetica,Arial,sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> </span><img src=\":/plugins/pdokservicesplugin/ogg.gif\" /></p></body></html>", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PdokServicesPlugin", "OpenGeoGroep en PDOK", None))
 
-from PyQt4 import QtWebKit
 import resources_rc
