@@ -14,7 +14,7 @@ qgisMinimumVersion=1.8
 qgisMaximumVersion=2.99
 description=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
 about=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-version=0.11
+version=0.12
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
@@ -25,6 +25,7 @@ email=richard@zuidt.nl
 # Uncomment the following line and add your changelog entries:
 
 changelog:
+    0.12    (10-2016) new service: lufolabels, fix WCS bug (thanks Raymond Nijssen)
     0.11    (08-2016) remove of QtWebkit, new services: bag, cbs2015 wijkenbuurt, Opentopo, drone nofly zone, Kadastrale Percelen
     0.10    (01-2016) new services + all to https
     0.9     (09-2014) removing some not working wmts services from pdok.json
