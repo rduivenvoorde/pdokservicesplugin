@@ -31,10 +31,11 @@ http://pdokviewer.pdok.nl/
  ***************************************************************************/
 """
 # Import the PyQt and QGIS libraries
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
+from PyQt4.QtCore import QSettings, QVariant, QFileInfo, QObject, SIGNAL, Qt
+from PyQt4.QtGui import QAction, QIcon, QLineEdit, QStandardItemModel, QSortFilterProxyModel, QAbstractItemView, QStandardItem, QMessageBox, QColor
+from qgis.core import QgsApplication, QGis, QgsPoint,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
+from qgis.gui import QgsVertexMarker
+
 import json
 import os
 import urllib
