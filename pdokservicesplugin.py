@@ -317,7 +317,7 @@ class PdokServicesPlugin:
             uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
             # adding a bbox paramater forces QGIS to NOT cache features but retrieve new features all the time
             # QGIS will update the BBOX to the right value
-            uri += "&BBOX=0,300000,300000,600000"
+            uri += "&BBOX=-10000,310000,290000,650000"
             self.iface.addVectorLayer(uri, title, "WFS")
         elif servicetype=="wcs":
             # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
@@ -326,7 +326,7 @@ class PdokServicesPlugin:
             # cache=PreferNetwork 
             # cache=AlwaysNetwork
             # cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
-            uri = "cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs"
+            uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier="+layers+"&url="+url
             self.iface.addRasterLayer(uri, title, "wcs")
         else:
             QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
