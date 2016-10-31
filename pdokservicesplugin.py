@@ -30,24 +30,31 @@ http://pdokviewer.pdok.nl/
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 # Import the PyQt and QGIS libraries
-from PyQt4.QtCore import QSettings, QVariant, QFileInfo, QObject, SIGNAL, Qt
-from PyQt4.QtGui import QAction, QIcon, QLineEdit, QStandardItemModel, QSortFilterProxyModel, QAbstractItemView, QStandardItem, QMessageBox, QColor
-from qgis.core import QgsApplication, QGis, QgsPoint,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
+from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, QObject, Qt
+from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox
+from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
+from qgis.PyQt.QtCore import QSortFilterProxyModel
+from qgis.core import QgsApplication, Qgis, QgsPoint,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
 from qgis.gui import QgsVertexMarker
 
 import json
 import os
-import urllib
+import urllib.request, urllib.parse, urllib.error
 # Initialize Qt resources from file resources.py
-import resources_rc
+from . import resources_rc
 # Import the code for the dialog
-from pdokservicesplugindialog import PdokServicesPluginDialog
-from pdokservicesplugindialog import PdokServicesPluginDockWidget
+from .pdokservicesplugindialog import PdokServicesPluginDialog
+from .pdokservicesplugindialog import PdokServicesPluginDockWidget
 from xml.dom.minidom import parse
-import pdokgeocoder
+from . import pdokgeocoder
 
-class PdokServicesPlugin:
+class PdokServicesPlugin(object):
 
     def __init__(self, iface):
         # Save reference to the QGIS interface
@@ -88,15 +95,15 @@ class PdokServicesPlugin:
     def getSettingsValue(self, key, default=''):
         if QSettings().contains(self.SETTINGS_SECTION + key):
             key = self.SETTINGS_SECTION + key
-            if QGis.QGIS_VERSION_INT < 10900: # qgis <= 1.8
-                return unicode(QSettings().value(key).toString())
+            if Qgis.QGIS_VERSION_INT < 10900: # qgis <= 1.8
+                return str(QSettings().value(key).toString())
             else:
-                return unicode(QSettings().value(key))
+                return str(QSettings().value(key))
         else:
             return default
     def setSettingsValue(self, key, value):
         key = self.SETTINGS_SECTION + key
-        if QGis.QGIS_VERSION_INT < 10900:
+        if Qgis.QGIS_VERSION_INT < 10900:
             # qgis <= 1.8
             QSettings().setValue(key, QVariant(value))
         else:
@@ -111,11 +118,11 @@ class PdokServicesPlugin:
         self.servicesLoaded = False
         # connect the action to the run method
         if "True" == self.docked or "true" == self.docked or  True == self.docked:
-            QObject.connect(self.run_action, SIGNAL("triggered()"), self.showAndRaise)
+            self.run_action.triggered.connect(self.showAndRaise)
             self.dlg.radioDocked.setChecked(True)
             # docked the dialog is immidiately visible, so should run NOW
         else:
-            QObject.connect(self.run_action, SIGNAL("triggered()"), self.run)
+            self.run_action.triggered.connect(self.run)
             self.dlg.radioDocked.setChecked(False)
 
         # Add toolbar button and menu item
@@ -134,7 +141,7 @@ class PdokServicesPlugin:
         self.clean_action = QAction(QIcon(":/plugins/pdokservicesplugin/eraser.png"), \
             u"Cleanup", self.eraseAddress())
         self.toolbar.addAction(self.clean_action)
-        QObject.connect(self.clean_action, SIGNAL("triggered()"), self.eraseAddress)
+        self.clean_action.triggered.connect(self.eraseAddress)
 
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.run_action)
 
@@ -144,8 +151,8 @@ class PdokServicesPlugin:
         self.aboutAction.setWhatsThis("Pdok Services Plugin About")
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.aboutAction)
 
-        QObject.connect(self.aboutAction, SIGNAL("activated()"), self.about)
-        QObject.connect(self.dlg.ui.btnLoadLayer, SIGNAL("clicked()"), self.loadService)
+        self.aboutAction.triggered.connect(self.about)
+        self.dlg.ui.btnLoadLayer.clicked.connect(self.loadService)
 
         self.dlg.geocoderSearchBtn.clicked.connect(self.searchAddress)
         self.dlg.geocoderSearch.returnPressed.connect(self.searchAddress)
@@ -170,11 +177,13 @@ class PdokServicesPlugin:
         msgtxt = ''
         msglvl = 0  # QgsMessageBar.INFO
         try:
-            pdokversion = json.load(urllib.urlopen('http://www.qgis.nl/pdok.version'))
-            #pdokversion = json.load(urllib.urlopen('http://localhost/pdok.version'))
+            response = urllib.request.urlopen('http://www.qgis.nl/pdok.version')
+            str_response = response.read().decode('utf-8')
+            pdokversion = json.loads(str_response)
             if pdokversion > int(myversion):
-                pdokjson = json.load(urllib.urlopen('http://www.qgis.nl/pdok.json'))
-                #pdokjson = json.load(urllib.urlopen('http://localhost/pdok.json'))
+                response = urllib.request.urlopen('http://www.qgis.nl/pdok.json')
+                str_response = response.read().decode('utf-8')
+                pdokjson = json.loads(str_response)
                 with open(self.plugin_dir +'/pdok.json', 'w') as outfile:
                     json.dump(pdokjson, outfile)
                 msgtxt = "De laatste versie is opgehaald en zal worden gebruikt " + \
@@ -184,7 +193,7 @@ class PdokServicesPlugin:
                 self.setSettingsValue('pdokversion', pdokversion)
             else:
                 msgtxt = "Geen nieuwere versie beschikbaar dan " + str(pdokversion)
-        except Exception, e:
+        except Exception as e:
             #print e
             msgtxt = "Fout bij ophalen van service info. Netwerk probleem?"
             msglvl = 2 # QgsMessageBar.CRITICAL
@@ -196,7 +205,7 @@ class PdokServicesPlugin:
 
     def set_docked(self, foo):
         self.setSettingsValue('docked', self.dlg.radioDocked.isChecked())
-        #if QGis.QGIS_VERSION_INT < 10900:
+        #if Qgis.QGIS_VERSION_INT < 10900:
         #    # qgis <= 1.8
         #    QSettings().setValue("/pdokservicesplugin/docked", QVariant(self.dlg.radioDocked.isChecked()))
         #else:
@@ -233,14 +242,14 @@ class PdokServicesPlugin:
             self.currentLayer = self.currentLayer.toMap()
             # QGIS 1.8: QVariants
             currentLayer = {}
-            for key in self.currentLayer.keys():
+            for key in list(self.currentLayer.keys()):
                 val = self.currentLayer[key]
-                currentLayer[unicode(key)]=unicode(val.toString())
+                currentLayer[str(key)]=str(val.toString())
             self.currentLayer = currentLayer
         url = self.currentLayer['url']
         title = self.currentLayer['title']
         style = ''
-        if self.currentLayer.has_key('style'):
+        if 'style' in self.currentLayer:
             style = self.currentLayer['style']
             title = title + ' [' + style + ']'
         servicetitle = self.currentLayer['servicetitle']
@@ -248,10 +257,10 @@ class PdokServicesPlugin:
         abstract = self.currentLayer['abstract']
         stype = self.currentLayer['type'].upper()
         minscale =''
-        if self.currentLayer.has_key('minscale') and self.currentLayer['minscale'] != None and self.currentLayer['minscale'] != '':
+        if 'minscale' in self.currentLayer and self.currentLayer['minscale'] != None and self.currentLayer['minscale'] != '':
             minscale = "min. schaal 1:"+self.currentLayer['minscale']
         maxscale = ''
-        if self.currentLayer.has_key('maxscale') and self.currentLayer['maxscale'] != None and self.currentLayer['maxscale'] != '':
+        if 'maxscale' in self.currentLayer and self.currentLayer['maxscale'] != None and self.currentLayer['maxscale'] != '':
             maxscale = "max. schaal 1:"+self.currentLayer['maxscale']
         self.dlg.ui.layerInfo.setText('')
         self.dlg.ui.btnLoadLayer.setEnabled(True)
@@ -263,12 +272,12 @@ class PdokServicesPlugin:
         servicetype = self.currentLayer['type']
         url = self.currentLayer['url']
         # some services have an url with query parameters in it, we have to urlencode those:
-        location,query = urllib.splitquery(url)
+        location,query = urllib.parse.splitquery(url)
         url = location
         if query != None and query != '':
-            url +=('?'+urllib.quote_plus(query))
+            url +=('?'+urllib.parse.quote_plus(query))
         title = self.currentLayer['title']
-        if self.currentLayer.has_key('style'):
+        if 'style' in self.currentLayer:
             style = self.currentLayer['style']
             title = title + ' [' + style + ']'
         else:
@@ -277,7 +286,7 @@ class PdokServicesPlugin:
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
         if servicetype=="wms":
             imgformat = self.currentLayer['imgformats'].split(',')[0]
-            if QGis.QGIS_VERSION_INT < 10900:
+            if Qgis.QGIS_VERSION_INT < 10900:
                 # qgis <= 1.8
                 uri = url
                 self.iface.addRasterLayer(
@@ -293,7 +302,7 @@ class PdokServicesPlugin:
                 uri = "crs=EPSG:28992&layers="+layers+"&styles="+style+"&format="+imgformat+"&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
         elif servicetype=="wmts":
-            if QGis.QGIS_VERSION_INT < 10900:
+            if Qgis.QGIS_VERSION_INT < 10900:
                 QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
                 return
             # tilematrixsets and imgformat can be more then one, split on comma and take first one
@@ -314,7 +323,7 @@ class PdokServicesPlugin:
             #print uri
             self.iface.addRasterLayer(uri, title, "wms")
         elif servicetype=="wfs":
-            location,query = urllib.splitquery(url)
+            location,query = urllib.parse.splitquery(url)
             uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
             # adding a bbox paramater forces QGIS to NOT cache features but retrieve new features all the time
             # QGIS will update the BBOX to the right value
@@ -381,7 +390,7 @@ class PdokServicesPlugin:
         itemType.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
-        if serviceLayer.has_key('style'):
+        if 'style' in serviceLayer:
             itemLayername = QStandardItem("%s [%s]" % (serviceLayer["title"], serviceLayer["style"]) )
             layername = "%s [%s]" % (serviceLayer["title"], serviceLayer["style"])
         else:
@@ -397,7 +406,7 @@ class PdokServicesPlugin:
     def run(self, hiddenDialog=False):
         # last viewed/selected tab
         if QSettings().contains("/pdokservicesplugin/currenttab"):
-            if QGis.QGIS_VERSION_INT < 10900:
+            if Qgis.QGIS_VERSION_INT < 10900:
                 # qgis <= 1.8
                 self.dlg.tabs.widget(QSettings().value("/pdokservicesplugin/currenttab").toInt()[0])
             else:
@@ -431,7 +440,7 @@ class PdokServicesPlugin:
             # 
             for service in self.pdok["services"]:
                 # service[layer] was an array
-                if isinstance(service["layers"], str) or isinstance(service["layers"], unicode):
+                if isinstance(service["layers"], str) or isinstance(service["layers"], str):
                     self.addSourceRow(service)
 
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
@@ -440,8 +449,8 @@ class PdokServicesPlugin:
             self.dlg.servicesView.doubleClicked.connect(self.loadService)
             # actually I want to load a service when doubleclicked on header
             # but as I cannot get this to work, let's disable clicking it then
-            self.dlg.servicesView.verticalHeader().setClickable(False)
-            self.dlg.servicesView.horizontalHeader().setClickable(False)
+            self.dlg.servicesView.verticalHeader().setSectionsClickable(False)
+            self.dlg.servicesView.horizontalHeader().setSectionsClickable(False)
 
             self.dlg.geocoderResultView.doubleClicked.connect(self.zoomToAddress)
 
@@ -464,7 +473,7 @@ class PdokServicesPlugin:
             self.dlg.show()
         # Run the dialog event loop
         #result = self.dlg.exec_()
-        if QGis.QGIS_VERSION_INT < 10900:
+        if Qgis.QGIS_VERSION_INT < 10900:
             # qgis <= 1.8
             QSettings().setValue("/pdokservicesplugin/currenttab", QVariant(self.dlg.tabs.currentIndex()))
         else:
@@ -526,11 +535,7 @@ class PdokServicesPlugin:
             point = QgsPoint( data['x'], data['y'])
             adrestekst = data['adrestekst']
         # just always transform from 28992 to mapcanvas crs
-        if hasattr(self.iface.mapCanvas().mapRenderer(), "destinationSrs"):
-            # QGIS < 2.0
-            crs = self.iface.mapCanvas().mapRenderer().destinationSrs()
-        else:
-            crs = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         crs28992 = QgsCoordinateReferenceSystem()
         crs28992.createFromId(28992)
         crsTransform = QgsCoordinateTransform(crs28992, crs)

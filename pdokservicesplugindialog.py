@@ -20,16 +20,17 @@
  ***************************************************************************/
 """
 
-from PyQt4 import QtCore, QtGui
+from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtWidgets import QDockWidget, QDialog
 from qgis.core import *
-from ui_pdokservicesplugindialog import Ui_PdokServicesPlugin
-from ui_pdokservicesplugindockwidget import Ui_PDOKservices
+from .ui_pdokservicesplugindialog import Ui_PdokServicesPlugin
+from .ui_pdokservicesplugindockwidget import Ui_PDOKservices
 
 # create the dialog for zoom to point
-class PdokServicesPluginDockWidget(QtGui.QDockWidget):
+class PdokServicesPluginDockWidget(QDockWidget):
 
     def __init__(self):
-        QtGui.QDockWidget.__init__(self)
+        QDockWidget.__init__(self)
         # Set up the user interface from Designer.
         self.ui = Ui_PDOKservices()
         self.ui.setupUi(self)
@@ -52,10 +53,10 @@ class PdokServicesPluginDockWidget(QtGui.QDockWidget):
         self.btnCheckPdokJson = self.ui.btn_check_pdokjson
 
 
-class PdokServicesPluginDialog(QtGui.QDialog):
+class PdokServicesPluginDialog(QDialog):
 
     def __init__(self):
-        QtGui.QDialog.__init__(self)
+        QDialog.__init__(self)
         # Set up the user interface from Designer.
         self.ui = Ui_PdokServicesPlugin()
         self.ui.setupUi(self)
@@ -74,9 +75,6 @@ class PdokServicesPluginDialog(QtGui.QDialog):
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
         self.geocoderSearchBtn = self.ui.geocoderSearchBtn
         self.tabs = self.ui.tabWidget
-        self.buttonBox = self.ui.buttonBox
-        #QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
-        #QtCore.QObject.disconnect(self.ui.buttonBox, QtCore.SIGNAL("accepted()"), self.accept)
-        QtCore.QObject.connect(self.ui.buttonBox, QtCore.SIGNAL("rejected()"), self.reject)
+        self.ui.buttonBox.rejected.connect(self.reject)
         self.radioDocked = self.ui.radio_docked_widget
         self.btnCheckPdokJson = self.ui.btn_check_pdokjson

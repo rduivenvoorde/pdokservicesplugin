@@ -35,9 +35,13 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 
 from xml.dom.minidom import parse, parseString
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import re
 
 def childNodeValue(node, childName):
@@ -55,7 +59,7 @@ def childNodeValue(node, childName):
     return ""
 
 def handleWCS(wcscapsurl):
-    dom = parse(urllib.urlopen(wcscapsurl))
+    dom = parse(urllib.request.urlopen(wcscapsurl))
     #dom = parse(urllib.urlopen('http://geodata.nationaalgeoregister.nl/ahn25m/wcs?request=getcapabilities'))
     contents = dom.getElementsByTagName('wcs:Contents')[0]
     url = ''
@@ -73,22 +77,25 @@ def handleWCS(wcscapsurl):
             if not firstOne:
                 comma = ','
             # some extract have strange chars, we decode to utf8
-            s = unicode('\n%s{"type":"wcs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
+            s = str('\n%s{"type":"wcs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
             # the comma behind the print makes print NOT add a \n newline behind it
             # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
-            print s,
+            # fix_print_with_import
+            print(s, end=' ')
             firstOne=False
-        except Exception, e:
+        except Exception as e:
             #pass
-            print "\n\nFout!! In laag: %s" % layername
-            print e
+            # fix_print_with_import
+            print("\n\nFout!! In laag: %s" % layername)
+            # fix_print_with_import
+            print(e)
             return
 
 def handleWFS(wfscapsurl):
     #dom = parse(urllib.urlopen(wmscapsurl))
     #  ^^ that is not working for some wicked cbs caps with coördinaat in it...
     # hack: read string and find replace coördinaat with coordinaat
-    response = urllib.urlopen(wfscapsurl)
+    response = urllib.request.urlopen(wfscapsurl)
     #response = urllib.urlopen('problem.xml')
     string = response.read()
     # cbs vierkanten
@@ -123,21 +130,24 @@ def handleWFS(wfscapsurl):
             if not firstOne:
                 comma = ','
             # some extract have strange chars, we decode to utf8
-            s = unicode('\n%s{"type":"wfs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
+            s = str('\n%s{"type":"wfs","title":"%s","abstract":"%s","url":"%s","layers":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, servicetitle)).encode('utf8')
             # the comma behind the print makes print NOT add a \n newline behind it
             # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
-            print s,
+            # fix_print_with_import
+            print(s, end=' ')
             firstOne=False
-        except Exception, e:
+        except Exception as e:
             #pass
-            print "\n\nFout!! In laag: %s" % layername
-            print e
+            # fix_print_with_import
+            print("\n\nFout!! In laag: %s" % layername)
+            # fix_print_with_import
+            print(e)
             return
 
 
 def handleWMTS(wmtscapsurl):
     #dom = parse("wmts-getcapabilities_1.0.0.xml")
-    dom = parse(urllib.urlopen(wmtscapsurl))
+    dom = parse(urllib.request.urlopen(wmtscapsurl))
     #dom = parse(urllib.urlopen('http://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'))
     #dom = parse(urllib.urlopen('http://geodata1.nationaalgeoregister.nl/luchtfoto/wmts/1.0.0/WMTSCapabilities.xml'))
     #url = dom.getElementsByTagName('ows:ProviderSite')[0].getAttribute('xlink:href')
@@ -158,15 +168,18 @@ def handleWMTS(wmtscapsurl):
             if not firstOne:
                 comma = ','
             # some extract have strange chars, we decode to utf8
-            s = unicode('\n%s{"type":"wmts","title":"%s","abstract":"%s","url":"%s","layers":"%s","imgformats":"%s","tilematrixsets":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, imgformats, tilematrixsets, servicetitle)).encode('utf8')
+            s = str('\n%s{"type":"wmts","title":"%s","abstract":"%s","url":"%s","layers":"%s","imgformats":"%s","tilematrixsets":"%s","servicetitle":"%s"}' % (comma, title, abstract, url, layername, imgformats, tilematrixsets, servicetitle)).encode('utf8')
             # the comma behind the print makes print NOT add a \n newline behind it
             # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
-            print s,
+            # fix_print_with_import
+            print(s, end=' ')
             firstOne=False
-        except Exception, e:
+        except Exception as e:
             #pass
-            print "\n\nFout!! In laag: %s" % layername
-            print e
+            # fix_print_with_import
+            print("\n\nFout!! In laag: %s" % layername)
+            # fix_print_with_import
+            print(e)
             return
 
 def handleWMS(wmscapsurl):
@@ -177,7 +190,7 @@ def handleWMS(wmscapsurl):
     #dom = parse(urllib.urlopen(wmscapsurl))
     #  ^^ that is not working for some wicked cbs caps with coördinaat in it...
     # hack: read string and find replace coördinaat with coordinaat
-    response = urllib.urlopen(wmscapsurl)
+    response = urllib.request.urlopen(wmscapsurl)
     string = response.read()
     string = re.sub(r"co.+rdin","coordin", string)
     dom = parseString(string)
@@ -217,15 +230,18 @@ def handleWMS(wmscapsurl):
                     if not firstOne:
                         comma = ','
                     # some extract have strange chars, we decode to utf8
-                    s = unicode('\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
+                    s = str('\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
                     # the comma behind the print makes print NOT add a \n newline behind it
                     # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
-                    print s,
+                    # fix_print_with_import
+                    print(s, end=' ')
                     firstOne=False
-                except Exception, e:
+                except Exception as e:
                     #pass
-                    print "\n\nFout!! In laag: %s" % layername
-                    print e
+                    # fix_print_with_import
+                    print("\n\nFout!! In laag: %s" % layername)
+                    # fix_print_with_import
+                    print(e)
                     return
 
 # services zoals genoemd in https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/
@@ -474,7 +490,8 @@ _services = [
 
 
 firstOne = True
-print '{"services":[',
+# fix_print_with_import
+print('{"services":[', end=' ')
 
 for (stype, title, url) in services:
     #print '\n --> %s'%url
@@ -487,4 +504,5 @@ for (stype, title, url) in services:
     elif stype == 'wcs':
         handleWCS(url)
 
-print ']}'
+# fix_print_with_import
+print(']}')

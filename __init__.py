@@ -20,21 +20,9 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
-def name():
-    return "PDOK services plugin"
-def description():
-    return "Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services."
-def version():
-    return "Version 0.12"
-def icon():
-    return "icon.png"
-def qgisMinimumVersion():
-    return "1.8"
-def author(): 
-    return "Richard Duivenvoorde"
-def email():
-    return "richard@zuidt.nl"
+from __future__ import absolute_import
+
 def classFactory(iface):
     # load PdokServicesPlugin class from file PdokServicesPlugin
-    from pdokservicesplugin import PdokServicesPlugin
+    from .pdokservicesplugin import PdokServicesPlugin
     return PdokServicesPlugin(iface)

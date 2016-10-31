@@ -1,30 +1,14 @@
-# This file contains metadata for your plugin. Beginning
-# with version 1.8 this is the preferred way to supply information about a
-# plugin. The current method of embedding metadata in __init__.py will
-# be supported until version 2.0
-
-# This file should be included when you package your plugin.
-
-# Mandatory items:
-
-
 [general]
 name=PDOK services plugin
-qgisMinimumVersion=1.8
-qgisMaximumVersion=2.99
+qgisMinimumVersion=2.99
+qgisMaximumVersion=3.99
 description=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-about=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-version=0.12
+version=3.0
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
-# end of mandatory metadata
-
-# Optional items:
-
-# Uncomment the following line and add your changelog entries:
-
-changelog:
+changelog=
+    3.0     (11-2016) bump to 3, update to work (only) with QGIS 3.0 / Python3 / Qt5
     0.12    (10-2016) new service: lufolabels, fix WCS bug (thanks Raymond Nijssen)
     0.11    (08-2016) remove of QtWebkit, new services: bag, cbs2015 wijkenbuurt, Opentopo, drone nofly zone, Kadastrale Percelen
     0.10    (01-2016) new services + all to https
@@ -36,19 +20,14 @@ changelog:
     0.4     (11-2012) updated for new pdok services
     0.3     (10-2012) initial version
 
-# tags are comma separated with spaces allowed
 tags=Nederland, PDOK, ows, services
 
-homepage=http://www.qgis.nl
 tracker=https://github.com/rduivenvoorde/pdokservicesplugin/issues
+homepage=http://www.qgis.nl
 repository=https://github.com/rduivenvoorde/pdokservicesplugin
+
+experimental=False
+
+about=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
+
 icon=icon.png
-# experimental flag
-#experimental=True
-
-# deprecated flag (applies to the whole plugin, not just a single version
-deprecated=False
-
-# Author contact information
-author=Richard Duivenvoorde
-email=richard@zuidt.nl

@@ -1,9 +1,13 @@
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 import json
 import os
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 from xml.dom.minidom import parse
-from PyQt4 import QtCore
+from qgis.PyQt.QtCore import QSettings
 
 searchstring = 'riouwstaat, haarlem'
 #searchstring = 'kenaustraat 12, haarlem'
@@ -23,26 +27,26 @@ searchstring = 'riouwstraat 23'
 # Set Proxy from QGIS-Settings
 def setup_urllib2():
     # TODO: test with different proxy settings
-    settings = QtCore.QSettings()
+    settings = QSettings()
 
     if settings.value( "proxy/proxyEnabled", 'false' ) == 'false':
         # no action needed
         pass
     else:
         # set up for using the actual proxy
-        proxyHost = str(settings.value("proxy/proxyHost", unicode()))
-        proxyPassword = str(settings.value("proxy/proxyPassword", unicode()))
-        proxyPort = str(settings.value("proxy/proxyPort", unicode()))
-        proxyType = str(settings.value("proxy/proxyType", unicode()))
+        proxyHost = str(settings.value("proxy/proxyHost", str()))
+        proxyPassword = str(settings.value("proxy/proxyPassword", str()))
+        proxyPort = str(settings.value("proxy/proxyPort", str()))
+        proxyType = str(settings.value("proxy/proxyType", str()))
         proxyTypes = { 'DefaultProxy' : 'http', 'HttpProxy' : 'http', 'Socks5Proxy' : 'socks', 'HttpCachingProxy' : 'http', 'FtpCachingProxy' : 'ftp' }
         if proxyType in proxyTypes: 
             proxyType = proxyTypes[proxyType]
-        proxyUser = str(settings.value("proxy/proxyUser", unicode()))
+        proxyUser = str(settings.value("proxy/proxyUser", str()))
         proxyString = 'http://' + proxyUser + ':' + proxyPassword + '@' + proxyHost + ':' + proxyPort
-        proxy = urllib2.ProxyHandler({proxyType : proxyString})
-        auth = urllib2.HTTPBasicAuthHandler()
-        opener = urllib2.build_opener(proxy, auth, urllib2.HTTPHandler)
-        urllib2.install_opener(opener)
+        proxy = urllib.request.ProxyHandler({proxyType : proxyString})
+        auth = urllib.request.HTTPBasicAuthHandler()
+        opener = urllib.request.build_opener(proxy, auth, urllib.request.HTTPHandler)
+        urllib.request.install_opener(opener)
 
 
 def search(searchstring):
@@ -52,15 +56,16 @@ def search(searchstring):
     """
     # be carefull NO spaces in it: urllib2 will think these are two urls and choke
     # in QGIS 1.8 searchstring will be a QString, that is why we cast to string
-    url = "http://geodata.nationaalgeoregister.nl/geocoder/Geocoder?zoekterm=" + urllib.quote_plus(unicode(searchstring))
+    url = "http://geodata.nationaalgeoregister.nl/geocoder/Geocoder?zoekterm=" + urllib.parse.quote_plus(str(searchstring))
     #url = "http://www.geocoders.nl/places?format=xml&address=" + urllib.quote_plus(searchstring)
     #print url
     addressesarray = []
     try:
         setup_urllib2()
-        response = urllib2.urlopen(url)
+        response = urllib.request.urlopen(url)
         if response.code != 200:
-            print 'ERROR %s' % response.code
+            # fix_print_with_import
+            print('ERROR %s' % response.code)
             exit()
         doc = parse(response)
 
@@ -127,7 +132,7 @@ def search(searchstring):
             elif len(prov)>0:
                 adres = 'provincie: ' + prov
             #print adres.strip().replace('  ',' ') + ' ('+str(x) + ", " + str(y)+')'
-            if isinstance(adres, str) or isinstance(adres, unicode):
+            if isinstance(adres, str) or isinstance(adres, str):
                 adres = adres.strip().replace('  ',' ')
             else:
                 # QGIS 1.8
@@ -145,8 +150,9 @@ def search(searchstring):
                 'adrestekst': adres
             }
             addressesarray.append(addressdict)
-    except Exception, e:
-        print e
+    except Exception as e:
+        # fix_print_with_import
+        print(e)
     return addressesarray
 
 if __name__ == "__main__":
