@@ -49,7 +49,3 @@ icon=icon.png
 
 # deprecated flag (applies to the whole plugin, not just a single version
 deprecated=False
-
-# Author contact information
-author=Richard Duivenvoorde
-email=richard@zuidt.nl
