@@ -71,7 +71,7 @@ class PdokServicesPlugin(object):
         else:
             self.dlg = PdokServicesPluginDialog()
         # initialize plugin directory
-        self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/pdokservicesplugin"
+        self.plugin_dir = QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path() + "/python/plugins/pdokservicesplugin"
         # initialize locale
         localePath = ""
         if isinstance(QSettings().value("locale/userLocale"), QVariant):
