@@ -55,8 +55,8 @@ class PdokServicesPluginDockWidget(QDockWidget):
 
 class PdokServicesPluginDialog(QDialog):
 
-    def __init__(self):
-        QDialog.__init__(self)
+    def __init__(self, parent=None):
+        QDialog.__init__(self, parent)
         # Set up the user interface from Designer.
         self.ui = Ui_PdokServicesPlugin()
         self.ui.setupUi(self)

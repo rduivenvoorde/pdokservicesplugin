@@ -69,7 +69,7 @@ class PdokServicesPlugin(object):
             self.dlg = PdokServicesPluginDockWidget()
             self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dlg)
         else:
-            self.dlg = PdokServicesPluginDialog()
+            self.dlg = PdokServicesPluginDialog(parent=self.iface.mainWindow())
         # initialize plugin directory
         self.plugin_dir = QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path() + "/python/plugins/pdokservicesplugin"
         # initialize locale
