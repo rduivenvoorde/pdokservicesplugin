@@ -318,7 +318,7 @@ class PdokServicesPlugin(object):
             #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url
             #else:
             #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
-            uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
+            uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
             #print "############ PDOK URI #################"
             #print uri
             self.iface.addRasterLayer(uri, title, "wms")
