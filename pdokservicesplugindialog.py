@@ -54,10 +54,10 @@ class PdokServicesPluginDockWidget(QtGui.QDockWidget):
 
 class PdokServicesPluginDialog(QtGui.QDialog):
 
-    def __init__(self):
-        QtGui.QDialog.__init__(self, parent=None)
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
         # Set up the user interface from Designer.
-        self.ui = Ui_PdokServicesPlugin(parent)
+        self.ui = Ui_PdokServicesPlugin()
         self.ui.setupUi(self)
         self.servicesView = self.ui.servicesView
         # only select one row at a time:
