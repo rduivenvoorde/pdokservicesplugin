@@ -40,7 +40,7 @@ from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, QObject, Qt
 from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
 from qgis.PyQt.QtCore import QSortFilterProxyModel
-from qgis.core import QgsApplication, Qgis, QgsPoint,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
+from qgis.core import QgsApplication, Qgis, QgsPointXY ,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
 from qgis.gui import QgsVertexMarker
 
 import json
@@ -529,10 +529,10 @@ class PdokServicesPlugin(object):
         # 1.8
         if isinstance(data, QVariant):
             data = data.toMap()
-            point = QgsPoint( data[QString(u'x')].toInt()[0], data[QString(u'y')].toInt()[0] )
+            pointxy = QgsPointXY( data[QString(u'x')].toInt()[0], data[QString(u'y')].toInt()[0] )
             adrestekst = uniunicodee(data[QString(u'adrestekst')])
         else:
-            point = QgsPoint( data['x'], data['y'])
+            pointxy = QgsPointXY( data['x'], data['y'])
             adrestekst = data['adrestekst']
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
@@ -554,7 +554,7 @@ class PdokServicesPlugin(object):
         elif adrestekst.startswith('provincie'):
             z = 812750
 
-        geom = QgsGeometry.fromPoint(point)
+        geom = QgsGeometry.fromPoint(pointxy)
         geom.transform(crsTransform)
         center = geom.asPoint()
         self.setPointer(center)
@@ -567,7 +567,7 @@ class PdokServicesPlugin(object):
     def setPointer(self, point):
         self.removePointer()
         self.pointer = QgsVertexMarker(self.iface.mapCanvas())
-        self.pointer.setColor(QColor(255,255,0))
+        self.pointer.setColor(QColor(255, 255, 0))
         self.pointer.setIconSize(10)
         self.pointer.setPenWidth(5)
         self.pointer.setCenter(point)
