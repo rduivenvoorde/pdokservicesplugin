@@ -31,7 +31,7 @@ TRANSLATIONS =
 
 PLUGINNAME = pdokservicesplugin
 
-PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py
+PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py networkaccessmanager.py
 
 EXTRAS = icon.png help.png pdok.json metadata.txt pdok.version
 

@@ -45,7 +45,7 @@ import resources_rc
 from pdokservicesplugindialog import PdokServicesPluginDialog
 from pdokservicesplugindialog import PdokServicesPluginDockWidget
 from xml.dom.minidom import parse
-import pdokgeocoder
+from pdokgeocoder import PDOKGeoLocator
 
 class PdokServicesPlugin:
 
@@ -83,6 +83,7 @@ class PdokServicesPlugin:
         self.currentLayer = None
         self.SETTINGS_SECTION = '/pdokservicesplugin/'
         self.pointer = None
+        self.pdokgeocoder = PDOKGeoLocator(self.iface)
         self.geocoderSourceModel = None
 
     def getSettingsValue(self, key, default=''):
@@ -472,7 +473,9 @@ class PdokServicesPlugin:
         self.removePointer()
 
     def geocode(self, string):
-        addresses = pdokgeocoder.search(string)
+
+        addresses = self.pdokgeocoder.search(string)
+
         if len(addresses) == 0:
             QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ( \
                 "Niets gevonden. Probeer een andere spelling of alleen postcode/huisnummer."
@@ -520,10 +523,12 @@ class PdokServicesPlugin:
         # 1.8
         if isinstance(data, QVariant):
             data = data.toMap()
-            point = QgsPoint( data[QString(u'x')].toInt()[0], data[QString(u'y')].toInt()[0] )
+            #point = QgsPoint( data[QString(u'x')].toInt()[0], data[QString(u'y')].toInt()[0] )
+            point = QgsGeometry.fromWkt(data['centroide_rd']).asPoint()
             adrestekst = uniunicodee(data[QString(u'adrestekst')])
         else:
-            point = QgsPoint( data['x'], data['y'])
+            #point = QgsPoint( data['x'], data['y'])
+            point = QgsGeometry.fromWkt(data['centroide_rd']).asPoint()
             adrestekst = data['adrestekst']
         # just always transform from 28992 to mapcanvas crs
         if hasattr(self.iface.mapCanvas().mapRenderer(), "destinationSrs"):
