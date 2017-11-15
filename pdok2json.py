@@ -114,10 +114,18 @@ def handleWFS(wfscapsurl):
         servicetitle = childNodeValue(dom.getElementsByTagName('Service')[0], 'Title')
     elif len(dom.getElementsByTagName('ows:ServiceIdentification'))>0:
         servicetitle = childNodeValue(dom.getElementsByTagName('ows:ServiceIdentification')[0], 'ows:Title')
+    # servicetitle can have newlines in it sometimes, which create havoc in json
+    servicetitle = servicetitle.replace('\r', '')
+    servicetitle = servicetitle.replace('\t', ' ')
+    servicetitle = servicetitle.replace('\n', ' ')
     featuretypes = dom.getElementsByTagName('FeatureType')
     for featuretype in featuretypes:
         layername = childNodeValue(featuretype, 'Name')
         title = childNodeValue(featuretype, 'Title')
+        # title can have newlines in it sometimes, which create havoc in json
+        title = title.replace('\r', '')
+        title = title.replace('\t', ' ')
+        title = title.replace('\n', ' ')
         abstract = childNodeValue(featuretype, 'Abstract')
         # abstract can have newlines in it, which create havoc in json
         # because we only use abstract in html, we make <br/> of them
@@ -205,14 +213,20 @@ def handleWMS(wmscapsurl):
     global firstOne
     root = dom.getElementsByTagName('Layer')[0]
     for layer in root.getElementsByTagName('Layer'):
+        #print(layer)
         # xtra check, if this is again a grouping layer, skip it
         # actually needed for habitatrichtlijn layers
         if len(layer.getElementsByTagName('Layer'))>1:
+            #print('PASSING?')
             pass
         else:
             title = childNodeValue(layer, 'Title')
+            # title can have newlines in it sometimes, which create havoc in json
+            title = title.replace('\r', '')
+            title = title.replace('\t', ' ')
+            title = title.replace('\n', ' ')
             #print '|'
-            #print title
+            #print(title)
             layername = childNodeValue(layer, 'Name')
             abstract = childNodeValue(layer, 'Abstract')
             maxscale = childNodeValue(layer, 'MaxScaleDenominator')
@@ -226,6 +240,7 @@ def handleWMS(wmscapsurl):
             abstract = abstract.replace('\t', ' ')
             abstract = abstract.replace('\n', '<br/>')
             comma = ''
+            handled = False
             for style in layer.getElementsByTagName('Style'):
                 styleName = childNodeValue(style, 'Name')
                 try:
@@ -238,6 +253,7 @@ def handleWMS(wmscapsurl):
                     # fix_print_with_import
                     print(s.decode('utf-8'), end=' ')
                     firstOne = False
+                    handled = True
                 except Exception as e:
                     #pass
                     # fix_print_with_import
@@ -245,6 +261,16 @@ def handleWMS(wmscapsurl):
                     # fix_print_with_import
                     print(e)
                     return
+            if not handled:
+                # ouch, apparently no styles??? (eg luchtfoto wms's)
+                comma = ','
+                s = str(
+                    '\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (
+                    comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, '')).encode('utf8')
+                # the comma behind the print makes print NOT add a \n newline behind it
+                # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
+                # fix_print_with_import
+                print(s.decode('utf-8'), end=' ')
 
 # services zoals genoemd in https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/
 services = [
@@ -271,6 +297,24 @@ services = [
 # en opentopo omhoog geplaatst bij de WMTS'en naast brt (JW) EN de image/jpeg eruit (die heeft PDOK bug!)
 # en 2016_ortho25 en 2016_ortho25IR er uit
 
+
+# 7570 lagen
+# 8645 lagen!!
+#
+# WMS en WFS:
+# Administratieve Eenheden (INSPIRE geharmoniseerd)
+# BAG Terugmeldingen
+# CBS Wijken en Buurten 2017
+# Geluidskaarten Schiphol
+# Geluidskaarten spoorwegen
+# Geografische Namen (INSPIRE geharmoniseerd)
+# Geomorfologischekaart 1:50.000
+# Transport Netwerken - Kabelbanen (INSPIRE geharmoniseerd)
+# Vervoersnetwerken - Waterwegen (INSPIRE geharmoniseerd)
+
+
+
+
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/a
 ('wms', 'AHN1 (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn1/wms?service=wms&request=getcapabilities'),
 ('wfs', 'AHN1 (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn1/wfs?version=1.0.0&request=GetCapabilities'),
@@ -281,6 +325,8 @@ services = [
 ('wms', 'AHN3 (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn3/wms?request=GetCapabilities'),
 ('wfs', 'AHN3 (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn3/wfs?request=GetCapabilities'),
 ('wcs', 'AHN3 (WCS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn3/wcs?request=GetCapabilities&SERVICE=WCS&VERSION=1.1.1'),
+('wms', 'Administratieve Eenheden (INSPIRE geharmoniseerd) (WMS | Open)','https://geodata.nationaalgeoregister.nl/inspire/au/wms?&request=GetCapabilities&service=WMS'),
+('wfs', 'Administratieve Eenheden (INSPIRE geharmoniseerd) (WFS | Open)','https://geodata.nationaalgeoregister.nl/inspire/au/wfs?&request=GetCapabilities&service=WFS'),
 ('wms', 'Adressen (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/inspireadressen/wms?SERVICE=WMS&request=GetCapabilities'),
 ('wfs', 'Adressen (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/inspireadressen/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms', 'Adressen (INSPIRE geharmoniseerd) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/inspire/ad/wms?request=GetCapabilities'),
@@ -293,6 +339,8 @@ services = [
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/b
 ('wfs', 'BAG (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/bag/wfs?request=GetCapabilities'),
 ('wms', 'BAG (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/bag/wms?request=GetCapabilities'),
+('wms', 'BAG Terugmeldingen (WMS | Open)','https://geodata.nationaalgeoregister.nl/bagterugmeldingen/wms?request=GetCapabilities'),
+('wfs', 'BAG Terugmeldingen (WFS | Open)','https://geodata.nationaalgeoregister.nl/bagterugmeldingen/wfs?request=GetCapabilities'),
 ('wms', 'Basisregistratie Gewaspercelen (BRP) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/brpgewaspercelen/wms?request=GetCapabilities'),
 ('wfs', 'Basisregistratie Gewaspercelen (BRP) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/brpgewaspercelen/wfs?version=1.0.0&request=GetCapabilities'),
 ('wfs', 'Bekendmakingen (WFS | Open)', 'http://geozet.koop.overheid.nl/wfs?version=1.0.0&request=GetCapabilities'),
@@ -349,6 +397,8 @@ services = [
 ('wfs', 'CBS Wijken en Buurten 2015 (WFS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2015/wfs?version=1.0.0&request=getcapabilities'),
 ('wms', 'CBS Wijken en Buurten 2016 (WMS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2016/wms?request=getcapabilities') ,
 ('wfs', 'CBS Wijken en Buurten 2016 (WFS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2016/wfs?version=1.0.0&request=getcapabilities'),
+('wms', 'CBS Wijken en Buurten 2017 (WMS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2017/wms?request=GetCapabilities') ,
+('wfs', 'CBS Wijken en Buurten 2017 (WFS | Open) ', 'https://geodata.nationaalgeoregister.nl/wijkenbuurten2017/wfs?request=GetCapabilities'),
 ('wms', 'Cultuurhistorisch GIS (CultGIS) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/cultgis/wms?SERVICE=WMS&request=GetCapabilities') ,
 ('wfs', 'Cultuurhistorisch GIS (CultGIS) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/cultgis/wfs?version=1.0.0&request=GetCapabilities') ,
 
@@ -370,8 +420,16 @@ services = [
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/g
 ('wms' , 'Gebouwen (INSPIRE geharmoniseerd) (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/inspire/bu/wms?request=GetCapabilities') ,
 ('wfs' , 'Gebouwen (INSPIRE geharmoniseerd) (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/inspire/bu/wfs?request=GetCapabilities') ,
-('wms' , 'Geluidskaarten (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wms?request=GetCapabilities') ,
-('wfs' , 'Geluidskaarten (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wfs?request=GetCapabilities') ,
+('wms' , 'Geluidskaarten Rijkswegen (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wms?request=GetCapabilities') ,
+('wfs' , 'Geluidskaarten Rijkswegen (WFS | Open)' , 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wfs?request=GetCapabilities') ,
+('wms', 'Geluidskaarten Schiphol WMS (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/geluidskaartenschiphol/wms?request=GetCapabilities') ,
+('wfs', 'Geluidskaarten Schiphol WFS (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/geluidskaartenschiphol/wfs?request=GetCapabilities'),
+('wms', 'Geluidskaarten spoorwegen WMS (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/geluidskaartenspoorwegen/wms?request=GetCapabilities') ,
+('wfs', 'Geluidskaarten spoorwegen WFS (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/geluidskaartenspoorwegen/wfs?request=GetCapabilities'),
+('wms', 'Geografische Namen (INSPIRE geharmoniseerd) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/inspire/gn/wms?&request=GetCapabilities'),
+('wfs', 'Geografische Namen (INSPIRE geharmoniseerd) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/inspire/gn/wfs?&request=GetCapabilities'),
+('wms', 'Geomorfologischekaart 1:50.000 (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/geomorfologischekaart50000/wms?request=GetCapabilities'),
+('wfs', 'Geomorfologischekaart 1:50.000 (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/geomorfologischekaart50000/wfs?request=GetCapabilities'),
 
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/h
 ('wms', 'Habitatrichtlijn verspreiding van habitattypen (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wms?request=getcapabilities'),
@@ -398,8 +456,8 @@ services = [
 ('wms', 'Landelijke fietsroutes (WMS | Open) ','https://geodata.nationaalgeoregister.nl/lfroutes/wms?request=GetCapabilities'),
 ('wms', 'Lange afstandswandelroutes (WMS | Open) ','https://geodata.nationaalgeoregister.nl/lawroutes/wms?request=GetCapabilities'),
 # luchtfoto WMTS'en zitten in aparte services !!! niet in de algemene
-('wms', 'Luchtfoto Beeldmateriaal / PDOK 25 cm Infrarood (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfotoinfrarood/wms?&request=GetCapabilities') ,
-('wms', 'Luchtfoto Beeldmateriaal / PDOK 25 cm RGB (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfoto/wms?request=GetCapabilities') ,
+('wms', 'Luchtfoto Beeldmateriaal / PDOK 25 cm Infrarood (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfoto/infrarood/wms?&request=GetCapabilities'),
+('wms', 'Luchtfoto Beeldmateriaal / PDOK 25 cm RGB (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?&request=GetCapabilities'),
 
 # overige luchtfoto's ("Gesloten" maar niet toegevoegd...)
 
@@ -494,7 +552,9 @@ services = [
 ('wms', 'TOP50raster (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top50raster/wms?&Request=getcapabilities'),
 # zit in algememe wmts caps: TOP50vector (WMTS | Open) http://geodata.nationaalgeoregister.nl/wmts/top50vector?VERSION=1.0.0&request=GetCapabilities
 # geen TMS: TOP50vector (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/top50vector@EPSG:28992@png8
-('wms', 'TOP50vector (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top50vector/wms?&Request=getcapabilities'),
+#('wms', 'TOP50vector (WMS | Open) ','https://geodata.nationaalgeoregister.nl/top50vector/wms?&Request=getcapabilities'),
+('wms', 'Transport Netwerken - Kabelbanen (INSPIRE geharmoniseerd) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/inspire/tn-c/wms?&request=GetCapabilities'),
+('wfs', 'Transport Netwerken - Kabelbanen (INSPIRE geharmoniseerd) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/inspire/tn-c/wfs?&request=GetCapabilities'),
 
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/v
 ('wms', 'Vaarweg Informatie Nederland (VIN) (WMS | Open) ','https://geodata.nationaalgeoregister.nl/vin/wms?SERVICE=WMS&request=GetCapabilities'),
@@ -503,6 +563,8 @@ services = [
 ('wfs', 'Verkeersscheidingsstelsel (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/verkeersscheidingsstelsel/wfs?request=getcapabilities'),
 ('wms', 'Verspreidingsgebied habitattypen (WMS | Open)','https://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wms?request=GetCapabilities'),
 ('wfs', 'Verspreidingsgebied habitattypen (WFS | Open)','https://geodata.nationaalgeoregister.nl/habitatrichtlijnverspreidinghabitattypen/wfs?request=GetCapabilities'),
+('wms', 'Vervoersnetwerken - Waterwegen (INSPIRE geharmoniseerd) (WMS | Open)', 'http://geodata.nationaalgeoregister.nl/inspire/tn-w/wms?&request=GetCapabilities'),
+('wfs', 'Vervoersnetwerken - Waterwegen (INSPIRE geharmoniseerd) (WFS | Open)', 'http://geodata.nationaalgeoregister.nl/inspire/tn-w/wfs?&request=GetCapabilities'),
 ('wms', 'Vogelrichtlijn verspreiding van soorten (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wms?request=GetCapabilities'),
 ('wfs', 'Vogelrichtlijn verspreiding van soorten (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wfs?request=GetCapabilities'),
 
@@ -528,10 +590,7 @@ services = [
 # testing
 _services = [
 
-('wmts', 'Luchtfoto Beeldmateriaal / PDOK 25 cm RGB (WMTS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts?request=GetCapabilities&service=WMTS'),
-('wmts', 'Luchtfoto Beeldmateriaal / PDOK 25 cm Infrarood (WMTS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfoto/infrarood/wmts?request=GetCapabilities&service=WMTS'),
-
-('wmts', 'PDOK overige services', 'https://geodata.nationaalgeoregister.nl/wmts?VERSION=1.0.0&request=GetCapabilities'),
+('wfs', 'Administratieve Eenheden (INSPIRE geharmoniseerd) (WFS | Open)','https://geodata.nationaalgeoregister.nl/inspire/au/wfs?&request=GetCapabilities&service=WFS'),
 
 ]
 

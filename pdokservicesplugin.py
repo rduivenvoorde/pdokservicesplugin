@@ -526,14 +526,8 @@ class PdokServicesPlugin(object):
         # get x,y from data of record
         self.removePointer()
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
-        # 1.8
-        if isinstance(data, QVariant):
-            data = data.toMap()
-            pointxy = QgsPointXY( data[QString(u'x')].toInt()[0], data[QString(u'y')].toInt()[0] )
-            adrestekst = uniunicodee(data[QString(u'adrestekst')])
-        else:
-            pointxy = QgsPointXY( data['x'], data['y'])
-            adrestekst = data['adrestekst']
+        pointxy = QgsPointXY( data['x'], data['y'])
+        adrestekst = data['adrestekst']
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         crs28992 = QgsCoordinateReferenceSystem()
@@ -554,7 +548,7 @@ class PdokServicesPlugin(object):
         elif adrestekst.startswith('provincie'):
             z = 812750
 
-        geom = QgsGeometry.fromPoint(pointxy)
+        geom = QgsGeometry.fromPointXY(pointxy)
         geom.transform(crsTransform)
         center = geom.asPoint()
         self.setPointer(center)

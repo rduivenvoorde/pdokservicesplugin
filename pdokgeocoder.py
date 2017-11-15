@@ -39,7 +39,7 @@ def setup_urllib2():
         proxyPort = str(settings.value("proxy/proxyPort", str()))
         proxyType = str(settings.value("proxy/proxyType", str()))
         proxyTypes = { 'DefaultProxy' : 'http', 'HttpProxy' : 'http', 'Socks5Proxy' : 'socks', 'HttpCachingProxy' : 'http', 'FtpCachingProxy' : 'ftp' }
-        if proxyType in proxyTypes: 
+        if proxyType in proxyTypes:
             proxyType = proxyTypes[proxyType]
         proxyUser = str(settings.value("proxy/proxyUser", str()))
         proxyString = 'http://' + proxyUser + ':' + proxyPassword + '@' + proxyHost + ':' + proxyPort
