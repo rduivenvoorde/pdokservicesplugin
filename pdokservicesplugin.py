@@ -52,7 +52,7 @@ from . import resources_rc
 from .pdokservicesplugindialog import PdokServicesPluginDialog
 from .pdokservicesplugindialog import PdokServicesPluginDockWidget
 from xml.dom.minidom import parse
-from . import pdokgeocoder
+from .pdokgeocoder import PDOKGeoLocator
 
 class PdokServicesPlugin(object):
 
@@ -90,6 +90,7 @@ class PdokServicesPlugin(object):
         self.currentLayer = None
         self.SETTINGS_SECTION = '/pdokservicesplugin/'
         self.pointer = None
+        self.pdokgeocoder = PDOKGeoLocator(self.iface)
         self.geocoderSourceModel = None
 
     def getSettingsValue(self, key, default=''):
@@ -481,7 +482,9 @@ class PdokServicesPlugin(object):
         self.removePointer()
 
     def geocode(self, string):
-        addresses = pdokgeocoder.search(string)
+
+        addresses = self.pdokgeocoder.search(string)
+
         if len(addresses) == 0:
             QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ( \
                 "Niets gevonden. Probeer een andere spelling of alleen postcode/huisnummer."
@@ -526,7 +529,9 @@ class PdokServicesPlugin(object):
         # get x,y from data of record
         self.removePointer()
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
-        pointxy = QgsPointXY( data['x'], data['y'])
+        #pointxy = QgsPointXY( data['x'], data['y'])
+        geom = QgsGeometry.fromWkt(data['centroide_rd'])
+
         adrestekst = data['adrestekst']
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
@@ -548,7 +553,7 @@ class PdokServicesPlugin(object):
         elif adrestekst.startswith('provincie'):
             z = 812750
 
-        geom = QgsGeometry.fromPointXY(pointxy)
+        #geom = QgsGeometry.fromPointXY(pointxy)
         geom.transform(crsTransform)
         center = geom.asPoint()
         self.setPointer(center)
