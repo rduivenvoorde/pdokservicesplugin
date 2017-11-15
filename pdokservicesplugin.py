@@ -524,11 +524,11 @@ class PdokServicesPlugin:
         if isinstance(data, QVariant):
             data = data.toMap()
             #point = QgsPoint( data[QString(u'x')].toInt()[0], data[QString(u'y')].toInt()[0] )
-            point = QgsGeometry.fromWkt(data['centroide_rd']).asPoint()
+            geom = QgsGeometry.fromWkt(data['centroide_rd'])
             adrestekst = uniunicodee(data[QString(u'adrestekst')])
         else:
             #point = QgsPoint( data['x'], data['y'])
-            point = QgsGeometry.fromWkt(data['centroide_rd']).asPoint()
+            geom = QgsGeometry.fromWkt(data['centroide_rd'])
             adrestekst = data['adrestekst']
         # just always transform from 28992 to mapcanvas crs
         if hasattr(self.iface.mapCanvas().mapRenderer(), "destinationSrs"):
@@ -554,7 +554,7 @@ class PdokServicesPlugin:
         elif adrestekst.startswith('provincie'):
             z = 812750
 
-        geom = QgsGeometry.fromPoint(point)
+        #geom = QgsGeometry.fromPoint(point)
         geom.transform(crsTransform)
         center = geom.asPoint()
         self.setPointer(center)

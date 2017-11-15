@@ -90,5 +90,6 @@ class PDOKGeoLocator:
             # Handle exception
             #errno, strerror = RequestsException.args
             #print('!!!!!!!!!!! EXCEPTION !!!!!!!!!!!!!: \n{}\n{}'. format(errno, strerror))
+            pass
 
         return addressesarray

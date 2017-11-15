@@ -29,20 +29,6 @@ __date__ = 'August 2016'
 import re
 import urllib.request, urllib.error, urllib.parse
 
-from qgis.PyQt.QtCore import pyqtSlot, QUrl, QEventLoop, QTimer, QCoreApplication
-from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
-
-from qgis.core import QgsNetworkAccessManager, QgsAuthManager, QgsMessageLog
-
-# # FIXME: ignored
-# DEFAULT_MAX_REDIRECTS = 4
-
-__author__ = 'Alessandro Pasotti'
-__date__ = 'August 2016'
-
-import re
-import urllib.request, urllib.error, urllib.parse
-
 from PyQt4.QtCore import pyqtSlot, QUrl, QEventLoop, QTimer, QCoreApplication
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
