@@ -31,7 +31,7 @@ TRANSLATIONS =
 
 PLUGINNAME = pdokservicesplugin
 
-PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py networkaccessmanager.py
+PY_FILES = future pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py networkaccessmanager.py
 
 EXTRAS = icon.png help.png pdok.json metadata.txt pdok.version
 
@@ -60,7 +60,7 @@ compile: $(UI_FILES) $(RESOURCE_FILES)
 #deploy: compile
 deploy: compile
 	mkdir -p $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)
-	cp -vf $(PY_FILES) $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)
+	cp -vfr $(PY_FILES) $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)
 	cp -vf $(UI_FILES) $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)
 	cp -vf $(RESOURCE_FILES) $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)
 	cp -vf $(EXTRAS) $(HOME)/.qgis2/python/plugins/$(PLUGINNAME)

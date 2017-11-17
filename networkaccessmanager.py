@@ -18,10 +18,16 @@
 *                                                                         *
 ***************************************************************************
 """
+
+
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from builtins import object
+#from builtins import str
+#from builtins import object
 
 __author__ = 'Alessandro Pasotti'
 __date__ = 'August 2016'
@@ -32,7 +38,7 @@ import urllib.request, urllib.error, urllib.parse
 from PyQt4.QtCore import pyqtSlot, QUrl, QEventLoop, QTimer, QCoreApplication
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 
-from qgis.core import QgsNetworkAccessManager, QgsAuthManager, QgsMessageLog
+from qgis.core import QgsNetworkAccessManager, QgsMessageLog
 
 # FIXME: ignored
 DEFAULT_MAX_REDIRECTS = 4
@@ -191,9 +197,9 @@ class NetworkAccessManager(object):
             for k, v in list(headers.items()):
                 self.msg_log("Setting header %s to %s" % (k, v))
                 req.setRawHeader(k, v)
-        if self.authid:
-            self.msg_log("Update request w/ authid: {0}".format(self.authid))
-            QgsAuthManager.instance().updateNetworkRequest(req, self.authid)
+        # if self.authid:
+        #     self.msg_log("Update request w/ authid: {0}".format(self.authid))
+        #     QgsAuthManager.instance().updateNetworkRequest(req, self.authid)
         if self.reply is not None and self.reply.isRunning():
             self.reply.close()
         if method.lower() == 'delete':
@@ -213,9 +219,9 @@ class NetworkAccessManager(object):
             self.reply = func(req, body)
         else:
             self.reply = func(req)
-        if self.authid:
-            self.msg_log("Update reply w/ authid: {0}".format(self.authid))
-            QgsAuthManager.instance().updateNetworkReply(self.reply, self.authid)
+        # if self.authid:
+        #     self.msg_log("Update reply w/ authid: {0}".format(self.authid))
+        #     QgsAuthManager.instance().updateNetworkReply(self.reply, self.authid)
 
         # necessary to trap local timout manage by QgsNetworkAccessManager
         # calling QgsNetworkAccessManager::abortRequest
