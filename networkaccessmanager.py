@@ -133,7 +133,7 @@ class NetworkAccessManager(object):
             'exception' - the exception returne dduring execution
     """
 
-    def __init__(self, authid=None, disable_ssl_certificate_validation=False, exception_class=None, debug=True):
+    def __init__(self, authid=None, disable_ssl_certificate_validation=False, exception_class=None, debug=False):
         self.disable_ssl_certificate_validation = disable_ssl_certificate_validation
         self.authid = authid
         self.reply = None
