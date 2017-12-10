@@ -157,6 +157,8 @@ class PdokServicesPlugin(object):
 
         self.dlg.geocoderSearchBtn.clicked.connect(self.searchAddress)
         self.dlg.geocoderSearch.returnPressed.connect(self.searchAddress)
+
+        self.dlg.geocoderSearch.textEdited.connect(self.searchAddress)
         self.dlg.geocoderSearch.setPlaceholderText("PDOK Geocoder zoek, bv postcode of postcode huisnummer")
 
         self.dlg.geocoderResultSearch.textChanged.connect(self.filterGeocoderResult)
@@ -358,7 +360,8 @@ class PdokServicesPlugin(object):
         self.removePointer()
         #print "search geocoder for: %s" % self.dlg.geocoderSearch.text()
         self.geocoderSourceModel.clear()
-        self.geocode(self.dlg.geocoderSearch.text())
+        #self.geocode(self.dlg.geocoderSearch.text())
+        self.suggest(self.dlg.geocoderSearch.text())
 
     def eraseAddress(self):
         """
@@ -481,10 +484,41 @@ class PdokServicesPlugin(object):
             QSettings().setValue("/pdokservicesplugin/currenttab", self.dlg.tabs.currentIndex())
         self.removePointer()
 
-    def geocode(self, string):
+    def suggest(self, search_text):
+        if len(search_text) <= 1:
+            # QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ( \
+            #     "meer input aub: {}".format(search_text)
+            #     ), QMessageBox.Ok, QMessageBox.Ok)
+            return
+        # QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ( \
+        #     "zoeken: {}".format(search_text)
+        # ), QMessageBox.Ok, QMessageBox.Ok)
+        results = self.pdokgeocoder.suggest(search_text)
+        if len(results) == 0:
+            # ignore, as we are suggesting, maybe more characters will reveal something...
+            return
+        for result in results:
+            #print address
+            adrestekst = QStandardItem("%s" % (result["adrestekst"]))
+            adrestekst.setData(result, Qt.UserRole)
+            type = QStandardItem("%s" % (result["type"]))
+            id = QStandardItem("%s" % (result["id"]))
+            score = QStandardItem("%s" % (result["score"]))
+            adrestekst.setData(result, Qt.UserRole)
+            self.geocoderSourceModel.appendRow([adrestekst, type, id, score])
 
-        addresses = self.pdokgeocoder.search(string)
+        self.dlg.geocoderResultView.selectRow(0)
+    #    self.zoomToAddress()
+        self.geocoderSourceModel.setHeaderData(0, Qt.Horizontal, "Resultaat")
+        self.geocoderSourceModel.setHeaderData(1, Qt.Horizontal, "Type")
+        self.geocoderSourceModel.setHeaderData(2, Qt.Horizontal, "Id")
+        self.geocoderSourceModel.setHeaderData(3, Qt.Horizontal, "Score")
+        self.geocoderSourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
+        self.dlg.geocoderResultView.resizeColumnsToContents()
+        self.dlg.geocoderResultView.horizontalHeader().setStretchLastSection(True)
 
+    def geocode(self, search_text):
+        addresses = self.pdokgeocoder.search(search_text)
         if len(addresses) == 0:
             QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ( \
                 "Niets gevonden. Probeer een andere spelling of alleen postcode/huisnummer."
@@ -502,7 +536,6 @@ class PdokServicesPlugin(object):
             provincie = QStandardItem("%s" % (address["provincie"]))
             self.geocoderSourceModel.appendRow( [adrestekst, straat, adres, postcode, plaats, gemeente, provincie ] )
 
-        #if len(addresses)==1:
         self.dlg.geocoderResultView.selectRow(0)
         self.zoomToAddress()
 
@@ -529,10 +562,16 @@ class PdokServicesPlugin(object):
         # get x,y from data of record
         self.removePointer()
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
-        #pointxy = QgsPointXY( data['x'], data['y'])
-        geom = QgsGeometry.fromWkt(data['centroide_rd'])
+        if 'centroide_rd' in data:
+            geom = QgsGeometry.fromWkt(data['centroide_rd'])
+        else:
+            # no centroid yet, probably only object id, retrieve it via
+            id = data['id']
+            data = self.pdokgeocoder.lookup(id)
+            geom = QgsGeometry.fromWkt(data['centroide_rd'])
 
         adrestekst = data['adrestekst']
+
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         crs28992 = QgsCoordinateReferenceSystem()
