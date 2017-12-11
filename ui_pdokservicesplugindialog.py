@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.7
+# Created by: PyQt5 UI code generator 5.9
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -24,7 +24,6 @@ class Ui_PdokServicesPlugin(object):
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.tab_2)
-        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.servicesView = QtWidgets.QTableView(self.tab_2)
         self.servicesView.setMinimumSize(QtCore.QSize(0, 0))
@@ -48,29 +47,30 @@ class Ui_PdokServicesPlugin(object):
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setObjectName("tab_3")
         self.gridLayout_4 = QtWidgets.QGridLayout(self.tab_3)
-        self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_4.setObjectName("gridLayout_4")
+        self.label_2 = QtWidgets.QLabel(self.tab_3)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout_4.addWidget(self.label_2, 2, 0, 1, 1)
+        self.geocoderResultSearch = QtWidgets.QLineEdit(self.tab_3)
+        self.geocoderResultSearch.setObjectName("geocoderResultSearch")
+        self.gridLayout_4.addWidget(self.geocoderResultSearch, 2, 1, 1, 2)
         self.geocoderSearch = QtWidgets.QLineEdit(self.tab_3)
         self.geocoderSearch.setText("")
         self.geocoderSearch.setObjectName("geocoderSearch")
         self.gridLayout_4.addWidget(self.geocoderSearch, 0, 0, 1, 2)
+        self.geocoderResultView = QtWidgets.QTableView(self.tab_3)
+        self.geocoderResultView.setObjectName("geocoderResultView")
+        self.gridLayout_4.addWidget(self.geocoderResultView, 3, 0, 1, 3)
         self.geocoderSearchBtn = QtWidgets.QPushButton(self.tab_3)
         self.geocoderSearchBtn.setObjectName("geocoderSearchBtn")
         self.gridLayout_4.addWidget(self.geocoderSearchBtn, 0, 2, 1, 1)
-        self.label_2 = QtWidgets.QLabel(self.tab_3)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout_4.addWidget(self.label_2, 1, 0, 1, 1)
-        self.geocoderResultSearch = QtWidgets.QLineEdit(self.tab_3)
-        self.geocoderResultSearch.setObjectName("geocoderResultSearch")
-        self.gridLayout_4.addWidget(self.geocoderResultSearch, 1, 1, 1, 2)
-        self.geocoderResultView = QtWidgets.QTableView(self.tab_3)
-        self.geocoderResultView.setObjectName("geocoderResultView")
-        self.gridLayout_4.addWidget(self.geocoderResultView, 2, 0, 1, 3)
+        self.lookupinfo = QtWidgets.QTextEdit(self.tab_3)
+        self.lookupinfo.setObjectName("lookupinfo")
+        self.gridLayout_4.addWidget(self.lookupinfo, 4, 0, 1, 3)
         self.tabWidget.addTab(self.tab_3, "")
         self.tab_4 = QtWidgets.QWidget()
         self.tab_4.setObjectName("tab_4")
         self.gridLayout = QtWidgets.QGridLayout(self.tab_4)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
         self.groupBox = QtWidgets.QGroupBox(self.tab_4)
         self.groupBox.setObjectName("groupBox")
@@ -113,7 +113,6 @@ class Ui_PdokServicesPlugin(object):
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
         self.gridLayout_3 = QtWidgets.QGridLayout(self.tab)
-        self.gridLayout_3.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.webView = QtWidgets.QTextBrowser(self.tab)
         self.webView.setObjectName("webView")
@@ -136,8 +135,8 @@ class Ui_PdokServicesPlugin(object):
         self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Laad deze laag in QGIS (of dubbelklik op de regel)"))
         self.label.setText(_translate("PdokServicesPlugin", "Zoeken: "))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PdokServicesPlugin", "PDOK services"))
-        self.geocoderSearchBtn.setText(_translate("PdokServicesPlugin", "Zoek"))
         self.label_2.setText(_translate("PdokServicesPlugin", "Filter resultaten op:"))
+        self.geocoderSearchBtn.setText(_translate("PdokServicesPlugin", "Zoek"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PdokServicesPlugin", "PDOK geocoder"))
         self.groupBox.setTitle(_translate("PdokServicesPlugin", "PDOK services check"))
         self.label_3.setText(_translate("PdokServicesPlugin", "Er worden periodiek nieuwe services of lagen toegevoegd aan de PDOK services."))
@@ -163,3 +162,4 @@ class Ui_PdokServicesPlugin(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PdokServicesPlugin", "OpenGeoGroep en PDOK"))
 
 from . import resources_rc
+

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindockwidget.ui'
 #
-# Created by: PyQt5 UI code generator 5.7
+# Created by: PyQt5 UI code generator 5.9
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -32,7 +32,6 @@ class Ui_PDOKservices(object):
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.tab_2)
-        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.servicesView = QtWidgets.QTableView(self.tab_2)
         self.servicesView.setMinimumSize(QtCore.QSize(0, 0))
@@ -56,29 +55,30 @@ class Ui_PDOKservices(object):
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setObjectName("tab_3")
         self.gridLayout_4 = QtWidgets.QGridLayout(self.tab_3)
-        self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_4.setObjectName("gridLayout_4")
+        self.geocoderResultView = QtWidgets.QTableView(self.tab_3)
+        self.geocoderResultView.setObjectName("geocoderResultView")
+        self.gridLayout_4.addWidget(self.geocoderResultView, 3, 0, 1, 3)
+        self.geocoderResultSearch = QtWidgets.QLineEdit(self.tab_3)
+        self.geocoderResultSearch.setObjectName("geocoderResultSearch")
+        self.gridLayout_4.addWidget(self.geocoderResultSearch, 2, 1, 1, 2)
         self.geocoderSearch = QtWidgets.QLineEdit(self.tab_3)
         self.geocoderSearch.setText("")
         self.geocoderSearch.setObjectName("geocoderSearch")
         self.gridLayout_4.addWidget(self.geocoderSearch, 0, 0, 1, 2)
+        self.label_2 = QtWidgets.QLabel(self.tab_3)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout_4.addWidget(self.label_2, 2, 0, 1, 1)
         self.geocoderSearchBtn = QtWidgets.QPushButton(self.tab_3)
         self.geocoderSearchBtn.setObjectName("geocoderSearchBtn")
         self.gridLayout_4.addWidget(self.geocoderSearchBtn, 0, 2, 1, 1)
-        self.label_2 = QtWidgets.QLabel(self.tab_3)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout_4.addWidget(self.label_2, 1, 0, 1, 1)
-        self.geocoderResultSearch = QtWidgets.QLineEdit(self.tab_3)
-        self.geocoderResultSearch.setObjectName("geocoderResultSearch")
-        self.gridLayout_4.addWidget(self.geocoderResultSearch, 1, 1, 1, 2)
-        self.geocoderResultView = QtWidgets.QTableView(self.tab_3)
-        self.geocoderResultView.setObjectName("geocoderResultView")
-        self.gridLayout_4.addWidget(self.geocoderResultView, 2, 0, 1, 3)
+        self.lookupinfo = QtWidgets.QTextEdit(self.tab_3)
+        self.lookupinfo.setObjectName("lookupinfo")
+        self.gridLayout_4.addWidget(self.lookupinfo, 4, 0, 1, 3)
         self.tabWidget.addTab(self.tab_3, "")
         self.tab_4 = QtWidgets.QWidget()
         self.tab_4.setObjectName("tab_4")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.tab_4)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtWidgets.QGroupBox(self.tab_4)
         self.groupBox.setObjectName("groupBox")
@@ -128,7 +128,7 @@ class Ui_PDOKservices(object):
         PDOKservices.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(PDOKservices)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(PDOKservices)
 
     def retranslateUi(self, PDOKservices):
@@ -137,8 +137,8 @@ class Ui_PDOKservices(object):
         self.btnLoadLayer.setText(_translate("PDOKservices", "Laad deze laag in QGIS (of dubbelklik op de regel)"))
         self.label.setText(_translate("PDOKservices", "Zoeken: "))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PDOKservices", "PDOK services"))
-        self.geocoderSearchBtn.setText(_translate("PDOKservices", "Zoek"))
         self.label_2.setText(_translate("PDOKservices", "Filter resultaten op:"))
+        self.geocoderSearchBtn.setText(_translate("PDOKservices", "Zoek"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PDOKservices", "PDOK geocoder"))
         self.groupBox.setTitle(_translate("PDOKservices", "PDOK services check"))
         self.label_3.setText(_translate("PDOKservices", "Er worden periodiek nieuwe services of lagen toegevoegd aan de PDOK services."))
@@ -164,3 +164,4 @@ class Ui_PDOKservices(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PDOKservices", "OpenGeoGroep en PDOK"))
 
 from . import resources_rc
+

@@ -1,4 +1,5 @@
 import json
+import copy
 from .networkaccessmanager import NetworkAccessManager, RequestsException
 
 #from xml.dom.minidom import parse
@@ -44,7 +45,7 @@ class PDOKGeoLocator:
             for doc in docs:
                 #print(doc)
                 straat = ''
-                adres = ''
+                nummer = ''
                 postcode = ''
                 plaats = ''
                 gemeente = doc['gemeentenaam']
@@ -54,8 +55,9 @@ class PDOKGeoLocator:
                 centroide_rd = doc['centroide_rd']
                 if doc['type'] == 'adres':
                     adrestekst = 'adres: ' + doc['weergavenaam']
-                    adres = doc['weergavenaam']
+                    nummer = doc['huis_nlt']  # huis_nlt  = huisnummer + letter/toevoeging
                     straat = doc['straatnaam']
+                    postcode = doc['postcode']
                     plaats = doc['woonplaatsnaam']
                 elif doc['type'] == 'weg':
                     adrestekst = 'straat: ' + doc['weergavenaam']
@@ -74,7 +76,7 @@ class PDOKGeoLocator:
 
                 addressdict = {
                     'straat': straat,
-                    'adres': adres,
+                    'nummer': nummer,
                     'postcode': postcode,
                     'plaats': plaats,
                     'gemeente': gemeente,
@@ -196,10 +198,12 @@ class PDOKGeoLocator:
             centroide_rd = doc['centroide_rd']
             type = doc['type']
             adrestekst = '{}: {}'.format(doc['type'], doc['weergavenaam'])
+            data = copy.deepcopy(doc)
             result = {
                 'centroide_rd': centroide_rd,
                 'adrestekst': adrestekst,
-                'type': type
+                'type': type,
+                'data': data
             }
             result
 
