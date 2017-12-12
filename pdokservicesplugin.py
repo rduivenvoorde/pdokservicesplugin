@@ -569,15 +569,15 @@ class PdokServicesPlugin(object):
 
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
 
-        adrestekst = data['adrestekst']
-
         if 'centroide_rd' in data: # free OR lookup service
             geom = QgsGeometry.fromWkt(data['centroide_rd'])
+            adrestekst = data['adrestekst']
         else:
             # no centroid yet, probably only object id, retrieve it via lookup service
             id = data['id']
             data = self.pdokgeocoder.lookup(id)
             geom = QgsGeometry.fromWkt(data['centroide_rd'])
+            adrestekst = data['adrestekst']
             lookup_data= data['data']
             lis = ''
             for key in lookup_data.keys():
@@ -590,7 +590,6 @@ class PdokServicesPlugin(object):
         crs28992 = QgsCoordinateReferenceSystem()
         crs28992.createFromId(28992)
         crsTransform = QgsCoordinateTransform(crs28992, crs)
-
         z = 1587
         if adrestekst.startswith('adres'):
             z = 1587

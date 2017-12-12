@@ -87,7 +87,7 @@ zip: deploy dclean
 # This requires use of git (your plugin development directory must be a 
 # git repository).
 # To use, pass a valid commit or tag as follows:
-#   make package VERSION=Version_0.3.2
+#   make package VERSION=Version_0.3.3
 package: compile
 		rm -f $(PLUGINNAME).zip
 		git archive --prefix=$(PLUGINNAME)/ -o $(PLUGINNAME).zip $(VERSION)
