@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindockwidget.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created by: PyQt4 UI code generator 4.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -34,6 +34,7 @@ class Ui_PDOKservices(object):
         self.dockWidgetContents = QtGui.QWidget()
         self.dockWidgetContents.setObjectName(_fromUtf8("dockWidgetContents"))
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.dockWidgetContents)
+        self.verticalLayout_4.setMargin(0)
         self.verticalLayout_4.setObjectName(_fromUtf8("verticalLayout_4"))
         self.tabWidget = QtGui.QTabWidget(self.dockWidgetContents)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -45,6 +46,7 @@ class Ui_PDOKservices(object):
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
         self.gridLayout_2 = QtGui.QGridLayout(self.tab_2)
+        self.gridLayout_2.setMargin(0)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.servicesView = QtGui.QTableView(self.tab_2)
         self.servicesView.setMinimumSize(QtCore.QSize(0, 0))
@@ -68,7 +70,11 @@ class Ui_PDOKservices(object):
         self.tab_3 = QtGui.QWidget()
         self.tab_3.setObjectName(_fromUtf8("tab_3"))
         self.gridLayout_4 = QtGui.QGridLayout(self.tab_3)
+        self.gridLayout_4.setMargin(0)
         self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
+        self.geocoderResultSearch = QtGui.QLineEdit(self.tab_3)
+        self.geocoderResultSearch.setObjectName(_fromUtf8("geocoderResultSearch"))
+        self.gridLayout_4.addWidget(self.geocoderResultSearch, 1, 1, 1, 2)
         self.geocoderSearch = QtGui.QLineEdit(self.tab_3)
         self.geocoderSearch.setText(_fromUtf8(""))
         self.geocoderSearch.setObjectName(_fromUtf8("geocoderSearch"))
@@ -79,16 +85,17 @@ class Ui_PDOKservices(object):
         self.label_2 = QtGui.QLabel(self.tab_3)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout_4.addWidget(self.label_2, 1, 0, 1, 1)
-        self.geocoderResultSearch = QtGui.QLineEdit(self.tab_3)
-        self.geocoderResultSearch.setObjectName(_fromUtf8("geocoderResultSearch"))
-        self.gridLayout_4.addWidget(self.geocoderResultSearch, 1, 1, 1, 2)
         self.geocoderResultView = QtGui.QTableView(self.tab_3)
         self.geocoderResultView.setObjectName(_fromUtf8("geocoderResultView"))
         self.gridLayout_4.addWidget(self.geocoderResultView, 2, 0, 1, 3)
+        self.lookupinfo = QtGui.QTextEdit(self.tab_3)
+        self.lookupinfo.setObjectName(_fromUtf8("lookupinfo"))
+        self.gridLayout_4.addWidget(self.lookupinfo, 3, 0, 1, 3)
         self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
         self.tab_4 = QtGui.QWidget()
         self.tab_4.setObjectName(_fromUtf8("tab_4"))
         self.verticalLayout = QtGui.QVBoxLayout(self.tab_4)
+        self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.groupBox = QtGui.QGroupBox(self.tab_4)
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
