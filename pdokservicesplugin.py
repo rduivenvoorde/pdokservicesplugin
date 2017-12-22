@@ -40,7 +40,7 @@ from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, QObject, Qt
 from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
 from qgis.PyQt.QtCore import QSortFilterProxyModel
-from qgis.core import QgsApplication, Qgis, QgsPointXY ,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
+from qgis.core import QgsApplication, Qgis, QgsProject ,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
 from qgis.gui import QgsVertexMarker
 
 import json
@@ -589,7 +589,7 @@ class PdokServicesPlugin(object):
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         crs28992 = QgsCoordinateReferenceSystem()
         crs28992.createFromId(28992)
-        crsTransform = QgsCoordinateTransform(crs28992, crs)
+        crsTransform = QgsCoordinateTransform(crs28992, crs, QgsProject.instance())
         z = 1587
         if adrestekst.startswith('adres'):
             z = 1587
@@ -603,8 +603,6 @@ class PdokServicesPlugin(object):
             z = 50797
         elif adrestekst.startswith('provincie'):
             z = 812750
-
-        #geom = QgsGeometry.fromPointXY(pointxy)
         geom.transform(crsTransform)
         center = geom.asPoint()
         self.setPointer(center)
