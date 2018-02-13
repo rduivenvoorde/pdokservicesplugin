@@ -83,6 +83,13 @@ zip: deploy dclean
 	rm -f $(PLUGINNAME).zip
 	cd $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
+# Create a symlink for development in the default profile python plugins dir
+symlink:
+	ln -s `pwd` $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
+# Remove the created symlink
+desymlink:
+	rm ~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
+
 # Create a zip package of the plugin named $(PLUGINNAME).zip. 
 # This requires use of git (your plugin development directory must be a 
 # git repository).
