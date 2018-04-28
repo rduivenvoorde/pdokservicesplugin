@@ -418,7 +418,7 @@ class PdokServicesPlugin(object):
 
         if self.servicesLoaded == False:
             pdokjson = os.path.join(os.path.dirname(__file__), ".","pdok.json")
-            f = open(pdokjson,'r')
+            f = open(pdokjson, 'r', encoding='utf-8')
             self.pdok = json.load(f)
             f.close()
 
