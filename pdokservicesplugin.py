@@ -53,7 +53,7 @@ class PdokServicesPlugin:
         # Save reference to the QGIS interface
         self.iface = iface
         # docked or dialog, defaults to dialog
-        if isinstance(QSettings().value("locale/userLocale"), QVariant):
+        if isinstance(QSettings().value("/pdokservicesplugin/docked"), QVariant):
             self.docked = QSettings().value("/pdokservicesplugin/docked", QVariant(False)).toBool()
         else:
             self.docked = QSettings().value("/pdokservicesplugin/docked", False)
