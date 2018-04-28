@@ -14,7 +14,7 @@ qgisMinimumVersion=2.0
 qgisMaximumVersion=2.99
 description=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
 about=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-version=0.20
+version=0.21
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
@@ -25,6 +25,7 @@ email=richard@zuidt.nl
 # Uncomment the following line and add your changelog entries:
 
 changelog:
+    0.21    (04-2018) new services
     0.20    (12-2017) in dialog and widget use the suggest and lookup service AND show the object properties from the lookup
     0.16    (11-2107) adding future module, to keep older QGIS versions happy
     0.15    (11-2017) use of new PDOK locatieserver! Services update
