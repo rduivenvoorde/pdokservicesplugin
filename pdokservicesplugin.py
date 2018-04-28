@@ -60,12 +60,12 @@ class PdokServicesPlugin(object):
         # Save reference to the QGIS interface
         self.iface = iface
         # docked or dialog, defaults to dialog
-        if isinstance(QSettings().value("locale/userLocale"), QVariant):
-            self.docked = QSettings().value("/pdokservicesplugin/docked", QVariant(False)).toBool()
+        if isinstance(QSettings().value("/pdokservicesplugin/docked"), QVariant):
+            self.docked = QSettings().value("/pdokservicesplugin/docked", QVariant(False))
         else:
             self.docked = QSettings().value("/pdokservicesplugin/docked", False)
         # Create the dialog and keep reference
-        if "True" == self.docked or "true" == self.docked or  True == self.docked:
+        if "True" == self.docked or "true" == self.docked or True is self.docked:
             self.dlg = PdokServicesPluginDockWidget()
             self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dlg)
         else:
