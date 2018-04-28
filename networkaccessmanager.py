@@ -308,7 +308,7 @@ class NetworkAccessManager(object):
                 self.http_call_result.exception = RequestsException(msg)
 
             # overload exception to the custom exception if available
-            if self.exception_class:
+            if self.exception_class is not None:
                 self.http_call_result.exception = self.exception_class(msg)
 
         else:

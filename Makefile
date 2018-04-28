@@ -39,6 +39,9 @@ UI_FILES = ui_pdokservicesplugindialog.py ui_pdokservicesplugindockwidget.py
 
 RESOURCE_FILES = resources_rc.py
 
+QGISDIR=.local/share/QGIS/QGIS3/profiles/default
+
+
 HELP = help/build/html
 
 default: compile
@@ -85,10 +88,14 @@ zip: deploy dclean
 
 # Create a symlink for development in the default profile python plugins dir
 symlink:
-	ln -s `pwd` $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
+	mkdir -p $(HOME)/$(QGISDIR)/python/plugins
+	# in case there is a deployed version: remove it
+	rm -rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	ln -s `pwd` $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+
 # Remove the created symlink
 desymlink:
-	rm ~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
+	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 
 # Create a zip package of the plugin named $(PLUGINNAME).zip. 
 # This requires use of git (your plugin development directory must be a 
