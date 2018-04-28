@@ -30,11 +30,11 @@ http://pdokviewer.pdok.nl/
  *                                                                         *
  ***************************************************************************/
 """
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import object
+# from __future__ import absolute_import
+# from future import standard_library
+# standard_library.install_aliases()
+# from builtins import str
+# from builtins import object
 # Import the PyQt and QGIS libraries
 from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, QObject, Qt
 from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox

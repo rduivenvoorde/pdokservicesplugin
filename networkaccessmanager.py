@@ -18,10 +18,10 @@
 *                                                                         *
 ***************************************************************************
 """
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import object
+# from future import standard_library
+# standard_library.install_aliases()
+# from builtins import str
+# from builtins import object
 
 __author__ = 'Alessandro Pasotti'
 __date__ = 'August 2016'
