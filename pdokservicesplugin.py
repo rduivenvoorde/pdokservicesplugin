@@ -420,6 +420,7 @@ class PdokServicesPlugin(object):
             pdokjson = os.path.join(os.path.dirname(__file__), ".","pdok.json")
             f = open(pdokjson,'r')
             self.pdok = json.load(f)
+            f.close()
 
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
