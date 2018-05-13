@@ -236,6 +236,7 @@ class PdokServicesPlugin(object):
         if len(selectedIndexes)==0:
             self.currentLayer = None
             self.dlg.ui.layerInfo.setHtml('')
+            self.dlg.ui.comboSelectProj.clear()
             return
         # needed to scroll To the selected row incase of using the keyboard / arrows
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
@@ -268,6 +269,12 @@ class PdokServicesPlugin(object):
         self.dlg.ui.layerInfo.setText('')
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.layerInfo.setHtml('<h4>%s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li></lu>' % (servicetitle, title, abstract, stype, url, layername, style, minscale, maxscale))
+        if stype=="WMTS":
+            self.dlg.ui.comboSelectProj.clear()
+            tilematrixsets = self.currentLayer['tilematrixsets'].split(',')
+            self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
+
+
 
     def loadService(self):
         if self.currentLayer == None:
@@ -312,7 +319,8 @@ class PdokServicesPlugin(object):
             tilematrixsets = self.currentLayer['tilematrixsets'].split(',')[0]
             # hack because ...
             if tilematrixsets == '':
-                tilematrixsets = 'EPSG:28992'
+                #tilematrixsets = 'EPSG:28992'
+                tilematrixsets = 'EPSG:3857'
             imgformat = self.currentLayer['imgformats'].split(',')[0]
             # special case for luchtfoto
             #if layers=="luchtfoto":
@@ -321,7 +329,8 @@ class PdokServicesPlugin(object):
             #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url
             #else:
             #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
-            uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
+            #uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
+            uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:3857&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
             #print "############ PDOK URI #################"
             #print uri
             self.iface.addRasterLayer(uri, title, "wms")
