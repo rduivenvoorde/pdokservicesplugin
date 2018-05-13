@@ -167,7 +167,12 @@ def handleWMTS(wmtscapsurl):
         title = childNodeValue(layer, 'ows:Title')
         layername = childNodeValue(layer, 'ows:Identifier')
         imgformats = childNodeValue(layer, 'Format')
-        tilematrixsets = childNodeValue(layer, 'TileMatrixSet')
+
+        tilematrixsets=[]
+        for x in layer.getElementsByTagName('TileMatrixSet'):
+            tilematrixsets.append(x.childNodes[0].nodeValue)
+        tilematrixsets = ",".join(tilematrixsets)
+
         # wmts does not have some kind of abstract or description :-(
         abstract = ''
         # {"naam":"WMTS Agrarisch Areaal Nederland","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/aan","layers":["aan"],"type":"wmts","pngformaat":"image/png"},
