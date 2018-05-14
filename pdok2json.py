@@ -167,7 +167,12 @@ def handleWMTS(wmtscapsurl):
         title = childNodeValue(layer, 'ows:Title')
         layername = childNodeValue(layer, 'ows:Identifier')
         imgformats = childNodeValue(layer, 'Format')
-        tilematrixsets = childNodeValue(layer, 'TileMatrixSet')
+
+        tilematrixsets=[]
+        for x in layer.getElementsByTagName('TileMatrixSet'):
+            tilematrixsets.append(x.childNodes[0].nodeValue)
+        tilematrixsets = ",".join(tilematrixsets)
+
         # wmts does not have some kind of abstract or description :-(
         abstract = ''
         # {"naam":"WMTS Agrarisch Areaal Nederland","url":"http://geodata.nationaalgeoregister.nl/tiles/service/wmts/aan","layers":["aan"],"type":"wmts","pngformaat":"image/png"},
@@ -216,6 +221,12 @@ def handleWMS(wmscapsurl):
     servicetitle = childNodeValue(dom.getElementsByTagName('Service')[0], 'Title')
     global firstOne
     root = dom.getElementsByTagName('Layer')[0]
+    baseCRS = []
+    for subnode in root.childNodes:
+            if subnode.nodeType == dom.ELEMENT_NODE and subnode.tagName == 'CRS':
+                baseCRS.append(subnode.childNodes[0].nodeValue)
+    if (len(baseCRS) == 0):
+        baseCRS.append('EPSG:28992')
     for layer in root.getElementsByTagName('Layer'):
         #print(layer)
         # xtra check, if this is again a grouping layer, skip it
@@ -243,6 +254,13 @@ def handleWMS(wmscapsurl):
             abstract = abstract.replace('\r', '')
             abstract = abstract.replace('\t', ' ')
             abstract = abstract.replace('\n', '<br/>')
+            crs = list(baseCRS)
+            for subnode in layer.childNodes:
+                if subnode.nodeType == dom.ELEMENT_NODE and subnode.tagName == 'CRS':
+                    nodevalue = subnode.childNodes[0].nodeValue
+                    if nodevalue not in crs:
+                        crs.append(nodevalue)
+            crs=",".join(crs)
             comma = ''
             handled = False
             for style in layer.getElementsByTagName('Style'):
@@ -251,7 +269,7 @@ def handleWMS(wmscapsurl):
                     if not firstOne:
                         comma = ','
                     # some extract have strange chars, we decode to utf8
-                    s = str('\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName)).encode('utf8')
+                    s = str('\n%s{"type":"wms","title":"%s","abstract":"%s","url":"%s","layers":"%s","minscale":"%s","maxscale":"%s","servicetitle":"%s","imgformats":"%s", "style":"%s","crs":"%s"}' % (comma, title, abstract, url, layername, minscale, maxscale, servicetitle, imgformats, styleName, crs)).encode('utf8')
                     # the comma behind the print makes print NOT add a \n newline behind it
                     # from: http://stackoverflow.com/questions/3249524/print-in-one-line-dynamically-python
                     # fix_print_with_import

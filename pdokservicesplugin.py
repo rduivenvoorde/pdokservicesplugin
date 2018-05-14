@@ -236,6 +236,7 @@ class PdokServicesPlugin(object):
         if len(selectedIndexes)==0:
             self.currentLayer = None
             self.dlg.ui.layerInfo.setHtml('')
+            self.dlg.ui.comboSelectProj.clear()
             return
         # needed to scroll To the selected row incase of using the keyboard / arrows
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
@@ -268,6 +269,23 @@ class PdokServicesPlugin(object):
         self.dlg.ui.layerInfo.setText('')
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.layerInfo.setHtml('<h4>%s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li></lu>' % (servicetitle, title, abstract, stype, url, layername, style, minscale, maxscale))
+        self.dlg.ui.comboSelectProj.clear()
+        if stype=="WMS":
+            try:
+                crs = self.currentLayer['crs']
+            except KeyError:
+                crs = 'EPSG:28992'
+            crs = crs.split(',')
+            self.dlg.ui.comboSelectProj.addItems(crs)
+            for i in range(len(crs)):
+                if crs[i] == 'EPSG:28992':
+                    self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+        if stype=="WMTS":
+            tilematrixsets = self.currentLayer['tilematrixsets'].split(',')
+            self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
+            for i in range(len(tilematrixsets)):
+                if tilematrixsets[i].startswith('EPSG:28992'):
+                    self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
     def loadService(self):
         if self.currentLayer == None:
@@ -289,6 +307,10 @@ class PdokServicesPlugin(object):
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
         if servicetype=="wms":
             imgformat = self.currentLayer['imgformats'].split(',')[0]
+            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+                crs = 'EPSG:28992'
+            else:
+                crs = self.dlg.ui.comboSelectProj.currentText()
             if Qgis.QGIS_VERSION_INT < 10900:
                 # qgis <= 1.8
                 uri = url
@@ -299,20 +321,19 @@ class PdokServicesPlugin(object):
                     [layers], # array of layername(s) for provider (id's)
                     [""], # array of stylename(s)  NOTE: ignoring styles here!!!
                     imgformat, # image format searchstring
-                    "EPSG:28992") # crs code searchstring
+                    crs) # crs code searchstring
             else:
                 # qgis > 1.8
-                uri = "crs=EPSG:28992&layers="+layers+"&styles="+style+"&format="+imgformat+"&url="+url;
+                uri = "crs="+crs+"&layers="+layers+"&styles="+style+"&format="+imgformat+"&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
         elif servicetype=="wmts":
             if Qgis.QGIS_VERSION_INT < 10900:
                 QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
                 return
-            # tilematrixsets and imgformat can be more then one, split on comma and take first one
-            tilematrixsets = self.currentLayer['tilematrixsets'].split(',')[0]
-            # hack because ...
-            if tilematrixsets == '':
-                tilematrixsets = 'EPSG:28992'
+            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+                tilematrixset = 'EPSG:28992'
+            else:
+                tilematrixset = self.dlg.ui.comboSelectProj.currentText()
             imgformat = self.currentLayer['imgformats'].split(',')[0]
             # special case for luchtfoto
             #if layers=="luchtfoto":
@@ -321,7 +342,15 @@ class PdokServicesPlugin(object):
             #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url
             #else:
             #    uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=&format="+imgformat+"&url="+url;
-            uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
+            #uri = "tileMatrixSet="+tilematrixsets+"&crs=EPSG:28992&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
+            if tilematrixset.startswith('EPSG:'):
+                crs=tilematrixset
+                i = crs.find(':', 5)
+                if i > -1:
+                    crs=crs[:i]
+            elif tilematrixset.startswith('OGC:1.0'):
+                crs='EPSG:3857'
+            uri = "tileMatrixSet="+tilematrixset+"&crs="+crs+"&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
             #print "############ PDOK URI #################"
             #print uri
             self.iface.addRasterLayer(uri, title, "wms")
