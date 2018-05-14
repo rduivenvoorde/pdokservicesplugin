@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindockwidget.ui'
 #
-# Created by: PyQt5 UI code generator 5.9
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PDOKservices(object):
     def setupUi(self, PDOKservices):
         PDOKservices.setObjectName("PDOKservices")
-        PDOKservices.resize(565, 756)
+        PDOKservices.resize(617, 756)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -20,7 +20,6 @@ class Ui_PDOKservices(object):
         self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.dockWidgetContents)
-        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.tabWidget = QtWidgets.QTabWidget(self.dockWidgetContents)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -37,13 +36,6 @@ class Ui_PDOKservices(object):
         self.servicesView.setMinimumSize(QtCore.QSize(0, 0))
         self.servicesView.setObjectName("servicesView")
         self.gridLayout_2.addWidget(self.servicesView, 1, 0, 1, 2)
-        self.comboSelectProj = QtWidgets.QComboBox(self.tab_2)
-        self.comboSelectProj.setObjectName("comboSelectProj")
-        self.gridLayout_2.addWidget(self.comboSelectProj, 4, 0, 1, 1)
-        self.btnLoadLayer = QtWidgets.QPushButton(self.tab_2)
-        self.btnLoadLayer.setEnabled(False)
-        self.btnLoadLayer.setObjectName("btnLoadLayer")
-        self.gridLayout_2.addWidget(self.btnLoadLayer, 4, 1, 1, 1)
         self.label = QtWidgets.QLabel(self.tab_2)
         self.label.setObjectName("label")
         self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
@@ -54,6 +46,13 @@ class Ui_PDOKservices(object):
         self.layerInfo.setMaximumSize(QtCore.QSize(16777215, 200))
         self.layerInfo.setObjectName("layerInfo")
         self.gridLayout_2.addWidget(self.layerInfo, 2, 0, 1, 2)
+        self.btnLoadLayer = QtWidgets.QPushButton(self.tab_2)
+        self.btnLoadLayer.setEnabled(False)
+        self.btnLoadLayer.setObjectName("btnLoadLayer")
+        self.gridLayout_2.addWidget(self.btnLoadLayer, 4, 1, 1, 1)
+        self.comboSelectProj = QtWidgets.QComboBox(self.tab_2)
+        self.comboSelectProj.setObjectName("comboSelectProj")
+        self.gridLayout_2.addWidget(self.comboSelectProj, 4, 0, 1, 1)
         self.tabWidget.addTab(self.tab_2, "")
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setObjectName("tab_3")
@@ -131,14 +130,14 @@ class Ui_PDOKservices(object):
         PDOKservices.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(PDOKservices)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(PDOKservices)
 
     def retranslateUi(self, PDOKservices):
         _translate = QtCore.QCoreApplication.translate
         PDOKservices.setWindowTitle(_translate("PDOKservices", "PDOK services"))
+        self.label.setText(_translate("PDOKservices", "Zoeken:                                             "))
         self.btnLoadLayer.setText(_translate("PDOKservices", "Laad deze laag in QGIS (of dubbelklik op de regel)"))
-        self.label.setText(_translate("PDOKservices", "Zoeken: "))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PDOKservices", "PDOK services"))
         self.label_2.setText(_translate("PDOKservices", "Filter resultaten op:"))
         self.geocoderSearchBtn.setText(_translate("PDOKservices", "Zoek"))
@@ -167,4 +166,3 @@ class Ui_PDOKservices(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PDOKservices", "OpenGeoGroep en PDOK"))
 
 from . import resources_rc
-

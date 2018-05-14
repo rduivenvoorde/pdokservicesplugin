@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_pdokservicesplugindialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.9
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -29,13 +29,6 @@ class Ui_PdokServicesPlugin(object):
         self.servicesView.setMinimumSize(QtCore.QSize(0, 0))
         self.servicesView.setObjectName("servicesView")
         self.gridLayout_2.addWidget(self.servicesView, 1, 0, 1, 2)
-        self.comboSelectProj = QtWidgets.QComboBox(self.tab_2)
-        self.comboSelectProj.setObjectName("comboSelectProj")
-        self.gridLayout_2.addWidget(self.comboSelectProj, 4, 0, 1, 1)
-        self.btnLoadLayer = QtWidgets.QPushButton(self.tab_2)
-        self.btnLoadLayer.setEnabled(False)
-        self.btnLoadLayer.setObjectName("btnLoadLayer")
-        self.gridLayout_2.addWidget(self.btnLoadLayer, 4, 1, 1, 1)
         self.label = QtWidgets.QLabel(self.tab_2)
         self.label.setObjectName("label")
         self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
@@ -46,6 +39,13 @@ class Ui_PdokServicesPlugin(object):
         self.layerInfo.setMaximumSize(QtCore.QSize(16777215, 200))
         self.layerInfo.setObjectName("layerInfo")
         self.gridLayout_2.addWidget(self.layerInfo, 2, 0, 1, 2)
+        self.btnLoadLayer = QtWidgets.QPushButton(self.tab_2)
+        self.btnLoadLayer.setEnabled(False)
+        self.btnLoadLayer.setObjectName("btnLoadLayer")
+        self.gridLayout_2.addWidget(self.btnLoadLayer, 3, 1, 1, 1)
+        self.comboSelectProj = QtWidgets.QComboBox(self.tab_2)
+        self.comboSelectProj.setObjectName("comboSelectProj")
+        self.gridLayout_2.addWidget(self.comboSelectProj, 3, 0, 1, 1)
         self.tabWidget.addTab(self.tab_2, "")
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setObjectName("tab_3")
@@ -135,8 +135,8 @@ class Ui_PdokServicesPlugin(object):
     def retranslateUi(self, PdokServicesPlugin):
         _translate = QtCore.QCoreApplication.translate
         PdokServicesPlugin.setWindowTitle(_translate("PdokServicesPlugin", "PdokServicesPlugin"))
+        self.label.setText(_translate("PdokServicesPlugin", "Zoeken:                                             "))
         self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Laad deze laag in QGIS (of dubbelklik op de regel)"))
-        self.label.setText(_translate("PdokServicesPlugin", "Zoeken: "))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PdokServicesPlugin", "PDOK services"))
         self.label_2.setText(_translate("PdokServicesPlugin", "Filter resultaten op:"))
         self.geocoderSearchBtn.setText(_translate("PdokServicesPlugin", "Zoek"))
@@ -165,4 +165,3 @@ class Ui_PdokServicesPlugin(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PdokServicesPlugin", "OpenGeoGroep en PDOK"))
 
 from . import resources_rc
-
