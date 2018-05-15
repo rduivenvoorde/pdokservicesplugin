@@ -40,20 +40,10 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
-        <widget class="QPushButton" name="btnLoadLayer">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Laad deze laag in QGIS (of dubbelklik op de regel)</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Zoeken: </string>
+          <string>Zoeken:                                             </string>
          </property>
         </widget>
        </item>
@@ -70,6 +60,19 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="btnLoadLayer">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Laad deze laag in QGIS (of dubbelklik op de regel)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QComboBox" name="comboSelectProj"/>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_3">
@@ -77,13 +80,20 @@
        <string>PDOK geocoder</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="2" column="1" colspan="2">
-        <widget class="QLineEdit" name="geocoderResultSearch"/>
-       </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_2">
          <property name="text">
           <string>Filter resultaten op:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="2">
+        <widget class="QLineEdit" name="geocoderResultSearch"/>
+       </item>
+       <item row="0" column="0" colspan="2">
+        <widget class="QLineEdit" name="geocoderSearch">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
@@ -94,13 +104,6 @@
         <widget class="QPushButton" name="geocoderSearchBtn">
          <property name="text">
           <string>Zoek</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QLineEdit" name="geocoderSearch">
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>

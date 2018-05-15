@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>565</width>
+    <width>617</width>
     <height>756</height>
    </rect>
   </property>
@@ -47,20 +47,10 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0" colspan="2">
-         <widget class="QPushButton" name="btnLoadLayer">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Laad deze laag in QGIS (of dubbelklik op de regel)</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
-           <string>Zoeken: </string>
+           <string>Zoeken:                                             </string>
           </property>
          </widget>
         </item>
@@ -77,6 +67,19 @@
           </property>
          </widget>
         </item>
+        <item row="4" column="1">
+         <widget class="QPushButton" name="btnLoadLayer">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Laad deze laag in QGIS (of dubbelklik op de regel)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QComboBox" name="comboSelectProj"/>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tab_3">
@@ -84,13 +87,23 @@
         <string>PDOK geocoder</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="1" column="1" colspan="2">
+        <item row="3" column="0" colspan="3">
+         <widget class="QTableView" name="geocoderResultView"/>
+        </item>
+        <item row="2" column="1" colspan="2">
          <widget class="QLineEdit" name="geocoderResultSearch"/>
         </item>
         <item row="0" column="0" colspan="2">
          <widget class="QLineEdit" name="geocoderSearch">
           <property name="text">
            <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Filter resultaten op:</string>
           </property>
          </widget>
         </item>
@@ -101,17 +114,7 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Filter resultaten op:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="3">
-         <widget class="QTableView" name="geocoderResultView"/>
-        </item>
-        <item row="3" column="0" colspan="3">
+        <item row="4" column="0" colspan="3">
          <widget class="QTextEdit" name="lookupinfo"/>
         </item>
        </layout>
