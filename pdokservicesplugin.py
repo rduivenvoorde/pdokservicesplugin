@@ -437,6 +437,11 @@ class PdokServicesPlugin(object):
 
     # run method that performs all the real work
     def run(self, hiddenDialog=False):
+
+        # enable possible remote pycharm debugging
+        #import pydevd
+        #pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True)
+
         # last viewed/selected tab
         if QSettings().contains("/pdokservicesplugin/currenttab"):
             if Qgis.QGIS_VERSION_INT < 10900:
@@ -446,7 +451,7 @@ class PdokServicesPlugin(object):
                 self.dlg.tabs.widget(int(QSettings().value("/pdokservicesplugin/currenttab")))
 
         if self.servicesLoaded == False:
-            pdokjson = os.path.join(os.path.dirname(__file__), ".","pdok.json")
+            pdokjson = os.path.join(os.path.dirname(__file__), ".", "pdok.json")
             f = open(pdokjson, 'r', encoding='utf-8')
             self.pdok = json.load(f)
             f.close()

@@ -62,7 +62,10 @@ class PDOKGeoLocator:
                 elif doc['type'] == 'weg':
                     adrestekst = 'straat: ' + doc['weergavenaam']
                     straat = doc['straatnaam']
-                    plaats = doc['woonplaatsnaam']
+                    if 'woonplaatsnaam' in doc:
+                        plaats = doc['woonplaatsnaam']
+                    if 'gemeentenaam' in doc:
+                        plaats = doc['gemeentenaam']
                 elif doc['type'] == 'postcode':
                     adrestekst = 'postcode: ' + doc['weergavenaam']
                     postcode = doc['postcode']
@@ -205,7 +208,6 @@ class PDOKGeoLocator:
                 'type': type,
                 'data': data
             }
-            result
 
         except RequestsException:
             # Handle exception
