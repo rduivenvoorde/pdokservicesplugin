@@ -85,7 +85,8 @@ derase:
 # content. You can then upload the zip file on http://plugins.qgis.org
 zip: deploy dclean
 	rm -f $(PLUGINNAME).zip
-	cd $(HOME)/.qgis2/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip $(PLUGINNAME)
+	mv $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip repo
 
 # Create a symlink for development in the default profile python plugins dir
 symlink:
