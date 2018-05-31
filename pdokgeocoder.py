@@ -1,6 +1,7 @@
 import json
 import copy
-from networkaccessmanager import NetworkAccessManager, RequestsException
+from .networkaccessmanager import NetworkAccessManager, RequestsException
+from qgis.core import QgsMessageLog
 
 #from xml.dom.minidom import parse
 #from qgis.PyQt import QtCore
@@ -23,14 +24,17 @@ searchstring = 'riouwstraat 23'
 
 class PDOKGeoLocator:
 
+    LOCATIESERVER_BASE_URL = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3'
+
     def __init__(self, iface):
         self.nam = NetworkAccessManager()
         #self.canvas = iface.mapCanvas()
 
 
-    def search(self, searchstring):
+    def search(self, searchstring, fq=''):
         # https://github.com/PDOK/locatieserver/wiki/API-Locatieserver
-        url = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3/free?q={}'.format(searchstring)
+        url = '{}/free?q={}&rows=20{}'.format(self.LOCATIESERVER_BASE_URL, searchstring, fq)
+        self.info(url)
         addressesarray = []
         try:
             # TODO: Provide a valid HTTP Referer or User-Agent identifying the application (QGIS geocoder)
@@ -44,32 +48,36 @@ class PDOKGeoLocator:
             docs = obj['response']['docs']
             for doc in docs:
                 #print(doc)
-                straat = u''
-                nummer = u''
-                postcode = u''
-                plaats = u''
+                straat = ''
+                nummer = ''
+                postcode = ''
+                plaats = ''
                 gemeente = doc['gemeentenaam']
                 provincie = doc['provincienaam']
-                x = u''
-                y = u''
+                x = ''
+                y = ''
                 centroide_rd = doc['centroide_rd']
                 if doc['type'] == 'adres':
                     adrestekst = 'adres: ' + doc['weergavenaam']
                     nummer = doc['huis_nlt']  # huis_nlt  = huisnummer + letter/toevoeging
                     straat = doc['straatnaam']
-                    postcode = doc['postcode']
+                    if 'postcode' in doc:  # optional ?
+                        postcode = doc['postcode']
                     plaats = doc['woonplaatsnaam']
                 elif doc['type'] == 'weg':
                     adrestekst = 'straat: ' + doc['weergavenaam']
                     straat = doc['straatnaam']
-                    plaats = doc['woonplaatsnaam']
+                    if 'woonplaatsnaam' in doc:
+                        plaats = doc['woonplaatsnaam']
+                    if 'gemeentenaam' in doc:
+                        plaats = doc['gemeentenaam']
                 elif doc['type'] == 'postcode':
                     adrestekst = 'postcode: ' + doc['weergavenaam']
                     postcode = doc['postcode']
                     straat = doc['straatnaam']
                     plaats = doc['woonplaatsnaam']
                 elif doc['type'] == 'woonplaats':
-                    adrestekst = 'woonplaats: ' + doc['woonplaatsnaam']
+                    adrestekst = 'plaats: ' + doc['woonplaatsnaam']
                     plaats = doc['woonplaatsnaam']
                 elif doc['type'] == 'gemeente':
                     adrestekst = 'gemeente: ' + doc['gemeentenaam']
@@ -96,8 +104,12 @@ class PDOKGeoLocator:
 
         return addressesarray
 
-    def suggest(self, searchstring):
-        url = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3/suggest?q={}'.format(searchstring)
+    def info(self, msg=""):
+        QgsMessageLog.logMessage('{}'.format(msg), 'PDOK-services Plugin', QgsMessageLog.INFO)
+
+    def suggest(self, searchstring, fq=''):
+        url = '{}/suggest?q={}&rows=20{}'.format(self.LOCATIESERVER_BASE_URL, searchstring, fq)
+        self.info(url)
         # {"response": {
         #   "numFound": 21,
         #   "start": 0,
@@ -147,8 +159,8 @@ class PDOKGeoLocator:
         return resultsarray
 
     def lookup(self, idstring):
-        url = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?id={}'.format(idstring)
-
+        url = '{}/lookup?id={}'.format(self.LOCATIESERVER_BASE_URL, idstring)
+        self.info(url)
         # https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?id=adr-521e3fb0b4343d92b2e47f869071ed5e
 
         # {"response": {
@@ -196,15 +208,16 @@ class PDOKGeoLocator:
             doc = obj['response']['docs'][0]
             # print(doc)
             centroide_rd = doc['centroide_rd']
-            obj_type = doc['type']
-            adrestekst = '{}: {}'.format(obj_type, doc['weergavenaam'])
+            type = doc['type']
+            adrestekst = '{}: {}'.format(doc['type'], doc['weergavenaam'])
             data = copy.deepcopy(doc)
             result = {
                 'centroide_rd': centroide_rd,
                 'adrestekst': adrestekst,
-                'type': obj_type,
+                'type': type,
                 'data': data
             }
+
         except RequestsException:
             # Handle exception
             # errno, strerror = RequestsException.args

@@ -31,6 +31,10 @@ TRANSLATIONS =
 
 PLUGINNAME = pdokservicesplugin
 
+VERSION=$(shell cat metadata.txt | grep version= | sed -e 's,version=,,')
+
+QGISDIR=.qgis2
+
 PY_FILES = future pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py networkaccessmanager.py
 
 EXTRAS = icon.png help.png pdok.json metadata.txt pdok.version
@@ -82,6 +86,17 @@ derase:
 zip: deploy dclean
 	rm -f $(PLUGINNAME).zip
 	cd $(HOME)/.qgis2/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+
+# Create a symlink for development in the default profile python plugins dir
+symlink:
+	mkdir -p $(HOME)/$(QGISDIR)/python/plugins
+	# in case there is a deployed version: remove it
+	rm -rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	ln -s `pwd` $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+
+# Remove the created symlink
+desymlink:
+	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 
 # Create a zip package of the plugin named $(PLUGINNAME).zip. 
 # This requires use of git (your plugin development directory must be a 
