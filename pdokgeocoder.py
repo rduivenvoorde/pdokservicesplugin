@@ -23,6 +23,8 @@ searchstring = 'riouwstraat 23'
 
 class PDOKGeoLocator:
 
+    LOCATIESERVER_BASE_URL = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3'
+
     def __init__(self, iface):
         self.nam = NetworkAccessManager()
         #self.canvas = iface.mapCanvas()
@@ -30,7 +32,7 @@ class PDOKGeoLocator:
 
     def search(self, searchstring):
         # https://github.com/PDOK/locatieserver/wiki/API-Locatieserver
-        url = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3/free?q={}'.format(searchstring)
+        url = '{}/free?q={}'.format(self.LOCATIESERVER_BASE_URL, searchstring)
         addressesarray = []
         try:
             # TODO: Provide a valid HTTP Referer or User-Agent identifying the application (QGIS geocoder)
@@ -57,7 +59,8 @@ class PDOKGeoLocator:
                     adrestekst = 'adres: ' + doc['weergavenaam']
                     nummer = doc['huis_nlt']  # huis_nlt  = huisnummer + letter/toevoeging
                     straat = doc['straatnaam']
-                    postcode = doc['postcode']
+                    if 'postcode' in doc:  # optional ?
+                        postcode = doc['postcode']
                     plaats = doc['woonplaatsnaam']
                 elif doc['type'] == 'weg':
                     adrestekst = 'straat: ' + doc['weergavenaam']
@@ -100,7 +103,7 @@ class PDOKGeoLocator:
         return addressesarray
 
     def suggest(self, searchstring):
-        url = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3/suggest?q={}'.format(searchstring)
+        url = '{}/suggest?q={}'.format(self.LOCATIESERVER_BASE_URL, searchstring)
         # {"response": {
         #   "numFound": 21,
         #   "start": 0,
@@ -150,7 +153,7 @@ class PDOKGeoLocator:
         return resultsarray
 
     def lookup(self, idstring):
-        url = 'https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?id={}'.format(idstring)
+        url = '{}lookup?id={}'.format(self.LOCATIESERVER_BASE_URL, idstring)
 
         # https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?id=adr-521e3fb0b4343d92b2e47f869071ed5e
 
