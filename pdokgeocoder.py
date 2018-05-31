@@ -1,6 +1,7 @@
 import json
 import copy
 from .networkaccessmanager import NetworkAccessManager, RequestsException
+from qgis.core import QgsMessageLog, Qgis
 
 #from xml.dom.minidom import parse
 #from qgis.PyQt import QtCore
@@ -30,9 +31,10 @@ class PDOKGeoLocator:
         #self.canvas = iface.mapCanvas()
 
 
-    def search(self, searchstring):
+    def search(self, searchstring, fq=''):
         # https://github.com/PDOK/locatieserver/wiki/API-Locatieserver
-        url = '{}/free?q={}'.format(self.LOCATIESERVER_BASE_URL, searchstring)
+        url = '{}/free?q={}&rows=20{}'.format(self.LOCATIESERVER_BASE_URL, searchstring, fq)
+        self.info(url)
         addressesarray = []
         try:
             # TODO: Provide a valid HTTP Referer or User-Agent identifying the application (QGIS geocoder)
@@ -102,8 +104,12 @@ class PDOKGeoLocator:
 
         return addressesarray
 
-    def suggest(self, searchstring):
-        url = '{}/suggest?q={}'.format(self.LOCATIESERVER_BASE_URL, searchstring)
+    def info(self, msg=""):
+        QgsMessageLog.logMessage('{}'.format(msg), 'PDOK-services Plugin', Qgis.Info)
+
+    def suggest(self, searchstring, fq=''):
+        url = '{}/suggest?q={}&rows=20{}'.format(self.LOCATIESERVER_BASE_URL, searchstring, fq)
+        self.info(url)
         # {"response": {
         #   "numFound": 21,
         #   "start": 0,
@@ -153,8 +159,8 @@ class PDOKGeoLocator:
         return resultsarray
 
     def lookup(self, idstring):
-        url = '{}lookup?id={}'.format(self.LOCATIESERVER_BASE_URL, idstring)
-
+        url = '{}/lookup?id={}'.format(self.LOCATIESERVER_BASE_URL, idstring)
+        self.info(url)
         # https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?id=adr-521e3fb0b4343d92b2e47f869071ed5e
 
         # {"response": {

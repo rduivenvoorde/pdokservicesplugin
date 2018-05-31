@@ -47,7 +47,6 @@ class PdokServicesPluginDockWidget(QDockWidget):
         self.geocoderResultView.setSelectionMode(self.geocoderResultView.SingleSelection)
         # select whole row if an item is clicked
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
-        self.geocoderSearchBtn = self.ui.geocoderSearchBtn
         self.tabs = self.ui.tabWidget
         self.radioDocked = self.ui.radio_docked_widget
         self.btnCheckPdokJson = self.ui.btn_check_pdokjson
@@ -73,7 +72,6 @@ class PdokServicesPluginDialog(QDialog):
         self.geocoderResultView.setSelectionMode(self.geocoderResultView.SingleSelection)
         # select whole row if an item is clicked
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
-        self.geocoderSearchBtn = self.ui.geocoderSearchBtn
         self.tabs = self.ui.tabWidget
         self.ui.buttonBox.rejected.connect(self.reject)
         self.radioDocked = self.ui.radio_docked_widget
