@@ -31,6 +31,8 @@ TRANSLATIONS =
 
 PLUGINNAME = pdokservicesplugin
 
+VERSION=$(shell cat metadata.txt | grep version= | sed -e 's,version=,,')
+
 PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py  networkaccessmanager.py
 
 EXTRAS = icon.png help.png pdok.json metadata.txt pdok.version
@@ -84,7 +86,9 @@ derase:
 # content. You can then upload the zip file on http://plugins.qgis.org
 zip: deploy dclean
 	rm -f $(PLUGINNAME).zip
-	cd $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip $(PLUGINNAME)
+	mv $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip repo
+
 
 # Create a symlink for development in the default profile python plugins dir
 symlink:
