@@ -77,7 +77,7 @@
      </widget>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
-       <string>PDOK geocoder</string>
+       <string>PDOK Locatieserver</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="1" colspan="2">

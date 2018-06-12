@@ -204,7 +204,7 @@ class Ui_PdokServicesPlugin(object):
         self.cbx_adr.setText(_translate("PdokServicesPlugin", "Adres", None))
         self.label_6.setText(_translate("PdokServicesPlugin", "Zoek (ook voor snelzoektoolbar):", None))
         self.label_2.setText(_translate("PdokServicesPlugin", "Filter resultaten hieronder op:", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PdokServicesPlugin", "PDOK geocoder", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PdokServicesPlugin", "PDOK Locatieserver", None))
         self.groupBox.setTitle(_translate("PdokServicesPlugin", "PDOK services check", None))
         self.label_3.setText(_translate("PdokServicesPlugin", "Er worden periodiek nieuwe services of lagen toegevoegd aan de PDOK services.", None))
         self.label_4.setText(_translate("PdokServicesPlugin", "Klik op de Check services button om te kijken of er op qgis.nl een nieuw configuratie bestand beschikbaar is.", None))
