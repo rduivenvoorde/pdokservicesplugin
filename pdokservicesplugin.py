@@ -567,7 +567,7 @@ class PdokServicesPlugin:
 
     def suggest(self):
         self.dlg.ui.lookupinfo.setHtml('')
-        search_text = self.dlg.geocoderSearch.text()
+        search_text = unicode(self.dlg.geocoderSearch.text())
         if len(search_text) <= 1:
             # QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ( \
             #     "meer input aub: {}".format(search_text)
@@ -599,7 +599,7 @@ class PdokServicesPlugin:
         self.dlg.geocoderResultView.horizontalHeader().setStretchLastSection(True)
 
     def geocode(self):
-        self.dlg.geocoderSearch.setText(self.toolbarSearch.text())
+        self.dlg.geocoderSearch.setText(unicode(self.toolbarSearch.text()))
         self.suggest()
         if self.dlg.geocoderResultView.model().rowCount()>0:
             self.dlg.geocoderResultView.selectRow(0)

@@ -105,10 +105,10 @@ class PDOKGeoLocator:
         return addressesarray
 
     def info(self, msg=""):
-        QgsMessageLog.logMessage('{}'.format(msg), 'PDOK-services Plugin', QgsMessageLog.INFO)
+        QgsMessageLog.logMessage(unicode('{}').format(msg), 'PDOK-services Plugin', QgsMessageLog.INFO)
 
     def suggest(self, searchstring, fq=''):
-        url = '{}/suggest?q={}&rows=20{}'.format(self.LOCATIESERVER_BASE_URL, searchstring, fq)
+        url = unicode('{}/suggest?q={}&rows=20{}').format(self.LOCATIESERVER_BASE_URL, searchstring, fq)
         self.info(url)
         # {"response": {
         #   "numFound": 21,
