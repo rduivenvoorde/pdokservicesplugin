@@ -14,7 +14,7 @@ qgisMinimumVersion=2.0
 qgisMaximumVersion=2.99
 description=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
 about=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-version=0.30
+version=0.31
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
@@ -25,6 +25,7 @@ email=richard@zuidt.nl
 # Uncomment the following line and add your changelog entries:
 
 changelog:
+    0.31    (06-2018)
     0.30    (06-2018) Add fq filters (perceel, hectometerpaal), deprecating dock, deprecating use of '/free'-api, fix some data exceptions (NWB now in service)
     0.23    (05-2018) backport PR17: possibility to choose crs of service and fixes (thanks Anne Blankert)
     0.22    (05-2018) update pdok.json
