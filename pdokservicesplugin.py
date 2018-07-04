@@ -321,7 +321,7 @@ class PdokServicesPlugin(object):
             style = '' # == default for this service
         layers = self.currentLayer['layers']
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
-        if servicetype=="wms":
+        if servicetype == "wms":
             imgformat = self.currentLayer['imgformats'].split(',')[0]
             if self.dlg.ui.comboSelectProj.currentIndex() == -1:
                 crs = 'EPSG:28992'
@@ -342,7 +342,7 @@ class PdokServicesPlugin(object):
                 # qgis > 1.8
                 uri = "crs="+crs+"&layers="+layers+"&styles="+style+"&format="+imgformat+"&url="+url;
                 self.iface.addRasterLayer(uri, title, "wms")
-        elif servicetype=="wmts":
+        elif servicetype == "wmts":
             if Qgis.QGIS_VERSION_INT < 10900:
                 QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
                 return
@@ -370,14 +370,15 @@ class PdokServicesPlugin(object):
             #print "############ PDOK URI #################"
             #print uri
             self.iface.addRasterLayer(uri, title, "wms")
-        elif servicetype=="wfs":
-            location,query = urllib.parse.splitquery(url)
-            uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
+        elif servicetype == "wfs":
+            location, query = urllib.parse.splitquery(url)
+            #uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
+            uri = location + "?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=" + layers + "&SRSNAME=EPSG:28992"
             # adding a bbox paramater forces QGIS to NOT cache features but retrieve new features all the time
             # QGIS will update the BBOX to the right value
             uri += "&BBOX=-10000,310000,290000,650000"
             self.iface.addVectorLayer(uri, title, "WFS")
-        elif servicetype=="wcs":
+        elif servicetype == "wcs":
             # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
             uri = ''
             # cache=AlwaysCache

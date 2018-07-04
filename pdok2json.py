@@ -557,9 +557,9 @@ services = [
 #('wfs','NWB-Spoorwegen (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nwbspoorwegen/wfs?version=1.0.0&request=GetCapabilities'),
 #('wms','NWB-Spoorwegen (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nwbspoorwegen/wms?SERVICE=WMS&request=GetCapabilities'),
 #
-('wfs','NWB-Vaarwegen (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nwbvaarwegen/wfs?version=1.0.0&request=GetCapabilities'),
+('wfs','NWB-Vaarwegen (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nwbvaarwegen/wfs?&request=GetCapabilities'),
 ('wms','NWB-Vaarwegen (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nwbvaarwegen/wms?SERVICE=WMS&request=GetCapabilities'),
-('wfs','NWB-Wegen (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nwbwegen/wfs?version=1.0.0&request=GetCapabilities'),
+('wfs','NWB-Wegen (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nwbwegen/wfs?request=GetCapabilities'),
 ('wms','NWB-Wegen (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nwbwegen/wms?SERVICE=WMS&request=GetCapabilities'),
 
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/o
