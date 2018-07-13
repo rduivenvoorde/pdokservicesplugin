@@ -31,9 +31,9 @@ http://pdokviewer.pdok.nl/
  ***************************************************************************/
 """
 # Import the PyQt and QGIS libraries
-from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, QObject, SIGNAL, Qt
+from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, Qt
 from qgis.PyQt.QtGui import QAction, QIcon, QLineEdit, QStandardItemModel, QSortFilterProxyModel, QAbstractItemView, QStandardItem, QMessageBox, QColor
-from qgis.core import QgsApplication, QGis, QgsPoint,QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle
+from qgis.core import QgsApplication, QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry, QgsRectangle, QgsMessageLog
 from qgis.gui import QgsVertexMarker
 
 import json
@@ -441,6 +441,13 @@ class PdokServicesPlugin:
 
     # run method that performs all the real work
     def run(self, hiddenDialog=False):
+
+        # pycharm debugging
+        # COMMENT OUT BEFORE PACKAGING !!!
+        #import pydevd
+        #cd
+        # pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True)
+
         # last viewed/selected tab
         if QSettings().contains("/pdokservicesplugin/currenttab"):
             if QGis.QGIS_VERSION_INT < 10900:
@@ -666,13 +673,14 @@ class PdokServicesPlugin:
             id = data['id']
             data = self.pdokgeocoder.lookup(id)
             geom = QgsGeometry.fromWkt(data['centroide_rd'])
-            adrestekst = data['adrestekst']
+            adrestekst = unicode(data['adrestekst'])
             lookup_data= data['data']
-            lis = ''
+            #self.info(lookup_data)
+            lis = u''
             for key in lookup_data.keys():
-                lis = lis + '<li>{}: {}</li>'.format(key, lookup_data[key])
+                lis = lis + u'<li>{}: {}</li>'.format(key, lookup_data[key])
             self.dlg.ui.lookupinfo.setHtml(
-                '<h4>{}</h4><lu>{}</lu>'.format(adrestekst, lis))
+                u'<h4>{}</h4><lu>{}</lu>'.format(adrestekst, lis))
 
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
@@ -717,3 +725,6 @@ class PdokServicesPlugin:
     def removePointer(self):
         if self.pointer is not None:
             self.iface.mapCanvas().scene().removeItem(self.pointer)
+
+    def info(self, msg=""):
+        QgsMessageLog.logMessage(unicode('{}').format(msg), 'PDOK-services Plugin', QgsMessageLog.INFO)
