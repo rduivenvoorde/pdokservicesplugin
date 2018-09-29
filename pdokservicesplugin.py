@@ -81,7 +81,7 @@ class PdokServicesPlugin(object):
         # initialize locale
         localePath = ""
         if isinstance(QSettings().value("locale/userLocale"), QVariant):
-            locale = QSettings().value("locale/userLocale").toString()[0:2]
+            locale = QSettings().value("locale/userLocale").value()[0:2]
         else:
             locale = QSettings().value("locale/userLocale")[0:2]
 
