@@ -1,3 +1,6 @@
+
+#!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
@@ -61,7 +64,10 @@ def childNodeValue(node, childName):
 def handleWCS(wcscapsurl):
     dom = parse(urllib.request.urlopen(wcscapsurl))
     #dom = parse(urllib.urlopen('http://geodata.nationaalgeoregister.nl/ahn25m/wcs?request=getcapabilities'))
-    contents = dom.getElementsByTagName('wcs:Contents')[0]
+    if len(dom.getElementsByTagName('wcs:Contents'))>0:
+        contents = dom.getElementsByTagName('wcs:Contents')[0]
+    elif len(dom.getElementsByTagName('Contents'))>0:
+        contents = dom.getElementsByTagName('Contents')[0]
     url = ''
     for subelement in dom.getElementsByTagName('ows:Operation'):
         if subelement.getAttribute('name')=='GetCoverage':
@@ -92,6 +98,7 @@ def handleWCS(wcscapsurl):
             return
 
 def handleWFS(wfscapsurl):
+    #print(wfscapsurl)
     #dom = parse(urllib.urlopen(wmscapsurl))
     #  ^^ that is not working for some wicked cbs caps with coördinaat in it...
     # hack: read string and find replace coördinaat with coordinaat
@@ -263,8 +270,11 @@ def handleWMS(wmscapsurl):
             crs=",".join(crs)
             comma = ''
             handled = False
+            handled_styles = []
             for style in layer.getElementsByTagName('Style'):
                 styleName = childNodeValue(style, 'Name')
+                if styleName in handled_styles:
+                    continue
                 try:
                     if not firstOne:
                         comma = ','
@@ -276,6 +286,7 @@ def handleWMS(wmscapsurl):
                     print(s.decode('utf-8'), end=' ')
                     firstOne = False
                     handled = True
+                    handled_styles.append(styleName)
                 except Exception as e:
                     #pass
                     # fix_print_with_import
@@ -358,7 +369,7 @@ services = [
 
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/a
 ('wms', 'AHN1 (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn1/wms?service=wms&request=getcapabilities'),
-('wfs', 'AHN1 (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn1/wfs?version=1.0.0&request=GetCapabilities'),
+#('wfs', 'AHN1 (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn1/wfs?version=1.0.0&request=GetCapabilities'),
 ('wcs', 'AHN1 (WCS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn1/wcs?request=getcapabilities&SERVICE=WCS&VERSION=1.1.1'),
 ('wms', 'AHN2 (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn2/wms?service=wms&request=getcapabilities'),
 ('wfs', 'AHN2 (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/ahn2/wfs?version=1.0.0&request=GetCapabilities'),
@@ -459,8 +470,8 @@ services = [
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/d
 ('wms', 'Digitaal Topografisch Bestand (DTB) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/digitaaltopografischbestand/wms?SERVICE=WMS&request=GetCapabilities'),
 ('wfs', 'Digitaal Topografisch Bestand (DTB) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/digitaaltopografischbestand/wfs?version=1.0.0&request=GetCapabilities'),
-('wms', 'Drone no-fly zone (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/dronenoflyzones/wms?request=GetCapabilities'),
-('wfs', 'Drone no-fly zone (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/dronenoflyzones/wfs?request=GetCapabilities'),
+('wms', 'Drone no-fly zone (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/dronenoflyzones/wms?service=WMS&request=GetCapabilities'),
+('wfs', 'Drone no-fly zone (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/dronenoflyzones/wfs?service=WFS&request=GetCapabilities'),
 
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/e
 ('wms', 'Ecotopen (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/ecotopen/wms?request=GetCapabilities') ,
@@ -468,8 +479,8 @@ services = [
 
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/f
 ('wms', 'Fietsknooppunten (WMS | Open)','https://geodata.nationaalgeoregister.nl/fietsknooppuntennetwerk/wms?request=GetCapabilities'),
-('wms', 'Fysisch Geografische Regio’s (WMS | Open)','https://geodata.nationaalgeoregister.nl/fysischgeografischeregios/wms?request=GetCapabilities'),
-('wfs', 'Fysisch Geografische Regio’s (WFS | Open)','https://geodata.nationaalgeoregister.nl/fysischgeografischeregios/wfs?request=GetCapabilities'),
+('wms', 'Fysisch Geografische Regio’s (WMS | Open)','https://geodata.nationaalgeoregister.nl/fysischgeografischeregios/wms?service=WMS&request=GetCapabilities'),
+('wfs', 'Fysisch Geografische Regio’s (WFS | Open)','https://geodata.nationaalgeoregister.nl/fysischgeografischeregios/wfs?service=WFS&request=GetCapabilities'),
 
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/g
 ('wms', 'Gebouwen (INSPIRE geharmoniseerd) (WMS | Open)' , 'https://geodata.nationaalgeoregister.nl/inspire/bu/wms?request=GetCapabilities') ,
@@ -533,8 +544,8 @@ services = [
 ('wms', 'Nationale Parken (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nationaleparken/wms?SERVICE=WMS&request=GetCapabilities'),
 ('wfs', 'Nationale Parken (WFS | Open) ','https://geodata.nationaalgeoregister.nl/nationaleparken/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms', 'Nationale Streekpaden (WMS | Open) ','https://geodata.nationaalgeoregister.nl/streekpaden/wms?request=GetCapabilities'),
-('wms', 'Natura 2000 (WMS | Open) ','https://geodata.nationaalgeoregister.nl/natura2000/wms?&request=getcapabilities'),
-('wfs', 'Natura 2000 (WFS | Open) ','https://geodata.nationaalgeoregister.nl/natura2000/wfs?version=1.0.0&request=GetCapabilities'),
+('wms', 'Natura 2000 (WMS | Open) ','https://geodata.nationaalgeoregister.nl/natura2000/wms?service=WMS&request=getcapabilities'),
+('wfs', 'Natura 2000 (WFS | Open) ','https://geodata.nationaalgeoregister.nl/natura2000/wfs?service=WFS&version=1.0.0&request=GetCapabilities'),
 # zit in algememe wmts caps: Natura 2000 (WMTS | Open) http://geodata.nationaalgeoregister.nl/tiles/service/wmts/natura2000?VERSION=1.0.0&request=GetCapabilities
 # geen TMS: Natura 2000 (TMS | Open) http://geodata.nationaalgeoregister.nl/tms/1.0.0/natura2000@EPSG:28992@png8
 ('wms','Natuurmeting Op Kaart 2010 (WMS | Open) ','https://geodata.nationaalgeoregister.nl/nok2010/wms?service=wms&request=getcapabilities'),
@@ -568,8 +579,8 @@ services = [
 ('wms','Overheidsdiensten (WMS | Open)','https://geodata.nationaalgeoregister.nl/overheidsdiensten/wms?request=GetCapabilities'),
 
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/p
-('wms', 'Potentiekaart omgevingswarmte (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/omgevingswarmte/wms?request=GetCapabilities'),
-('wfs', 'Potentiekaart omgevingswarmte (WFS | Open))', 'https://geodata.nationaalgeoregister.nl/omgevingswarmte/wfs?request=GetCapabilities'),
+('wms', 'Potentiekaart omgevingswarmte (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/omgevingswarmte/wms?service=WMS&request=GetCapabilities'),
+('wfs', 'Potentiekaart omgevingswarmte (WFS | Open))', 'https://geodata.nationaalgeoregister.nl/omgevingswarmte/wfs?service=WFS&request=GetCapabilities'),
 ('wms', 'Potentiekaart reststromen (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/reststromen/wms?request=GetCapabilities'),
 ('wfs', 'Potentiekaart reststromen (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/reststromen/wfs?request=GetCapabilities'),
 ('wms', 'Potentiekaart restwarmte (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/restwarmte/wms?request=GetCapabilities'),
@@ -643,12 +654,12 @@ services = [
 ('wfs', 'Vogelrichtlijn verspreiding van soorten (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/vogelrichtlijnverspreidingsoorten/wfs?request=GetCapabilities'),
 
 # https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls/w
-('wms', 'Waterschappen Administratieve eenheden INSPIRE (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wsaeenhedeninspire/wms?request=GetCapabilities'),
-('wms', 'Waterschappen Hydrografie INSPIRE (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wshydrografieinspire/wms?request=GetCapabilities'),
-('wms', 'Waterschappen Kunstwerken IMWA (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wskunstwerkenimwa/wms?request=GetCapabilities'),
-('wms', 'Waterschappen Nuts-Overheidsdiensten INSPIRE (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wsdiensteninspire/wms?request=GetCapabilities'),
-('wms', 'Waterschappen Oppervlaktewateren IMWA (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wsaoppervlaktewaterenimwa/wms?request=GetCapabilities'),
-('wms', 'Waterschappen Waterbeheergebieden IMWA (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wswaterbeheergebiedenimwa/wms?request=GetCapabilities'),
+('wms', 'Waterschappen Administratieve eenheden INSPIRE (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wsaeenhedeninspire/wms?service=WMS&request=GetCapabilities'),
+('wms', 'Waterschappen Hydrografie INSPIRE (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wshydrografieinspire/wms?service=WMS&request=GetCapabilities'),
+('wms', 'Waterschappen Kunstwerken IMWA (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wskunstwerkenimwa/wms?service=WMS&request=GetCapabilities'),
+('wms', 'Waterschappen Nuts-Overheidsdiensten INSPIRE (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wsdiensteninspire/wms?service=WMS&request=GetCapabilities'),
+('wms', 'Waterschappen Oppervlaktewateren IMWA (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wsaoppervlaktewaterenimwa/wms?service=WMS&request=GetCapabilities'),
+('wms', 'Waterschappen Waterbeheergebieden IMWA (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wswaterbeheergebiedenimwa/wms?service=WMS&request=GetCapabilities'),
 ('wms', 'Weggegevens (Weggeg) (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wms?SERVICE=WMS&request=GetCapabilities'),
 ('wfs', 'Weggegevens (Weggeg) (WFS | Open)', 'https://geodata.nationaalgeoregister.nl/weggeg/wfs?version=1.0.0&request=GetCapabilities'),
 ('wms', 'Wetlands (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/wetlands/ows?service=wms&request=getcapabilities'),
@@ -664,17 +675,17 @@ services = [
 # testing
 _services = [
 
-('wmts', 'Luchtfoto Beeldmateriaal / PDOK 25 cm RGB (WMTS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts?request=GetCapabilities&service=WMTS'),
+#('wmts', 'Luchtfoto Beeldmateriaal / PDOK 25 cm RGB (WMTS | Open)', 'https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts?request=GetCapabilities&service=WMTS'),
+('wms', 'Verkeersscheidingsstelsel (WMS | Open)', 'https://geodata.nationaalgeoregister.nl/verkeersscheidingsstelsel/wms?request=getcapabilities'),
 
 ]
 
 
 firstOne = True
-# fix_print_with_import
 print('{"services":[', end=' ')
 
 for (stype, title, url) in services:
-    #print '\n --> %s'%url
+#    print('\n --> %s'%url)
     if stype == 'wms':
         handleWMS(url)
     elif stype == 'wmts':
@@ -684,5 +695,4 @@ for (stype, title, url) in services:
     elif stype == 'wcs':
         handleWCS(url)
 
-# fix_print_with_import
 print(']}')
