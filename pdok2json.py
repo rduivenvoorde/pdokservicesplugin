@@ -68,6 +68,8 @@ def handleWCS(wcscapsurl):
         contents = dom.getElementsByTagName('wcs:Contents')[0]
     elif len(dom.getElementsByTagName('Contents'))>0:
         contents = dom.getElementsByTagName('Contents')[0]
+    elif len(dom.getElementsByTagName('ows:Contents'))>0:
+        contents = dom.getElementsByTagName('ows:Contents')[0]
     url = ''
     for subelement in dom.getElementsByTagName('ows:Operation'):
         if subelement.getAttribute('name')=='GetCoverage':
@@ -75,9 +77,9 @@ def handleWCS(wcscapsurl):
     global firstOne
     comma = ''
     servicetitle = childNodeValue(dom.getElementsByTagName('ows:ServiceIdentification')[0], 'ows:Title')
-    for coverage in contents.getElementsByTagName('wcs:CoverageSummary'):
+    for coverage in contents.getElementsByTagName('CoverageSummary'):
         title = childNodeValue(coverage, 'ows:Title')
-        layername = childNodeValue(coverage, 'wcs:Identifier')
+        layername = childNodeValue(coverage, 'Identifier')
         abstract = childNodeValue(coverage, 'ows:Abstract')
         try:
             if not firstOne:
@@ -378,16 +380,16 @@ services = [
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/a
 ('wms', 'AHN1 5, 25 en 100 meter maaiveld raster (WMS)', 'https://geodata.nationaalgeoregister.nl/ahn1/wms?request=GetCapabilities&service=wms'),
 #('wfs', 'AHN1 5, 25 en 100 meter maaiveld raster (WFS)', 'https://geodata.nationaalgeoregister.nl/ahn1/wfs?request=GetCapabilities&service=wfs'),
-('wcs', 'AHN1 5, 25 en 100 meter maaiveld raster (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn1/wcs?request=GetCapabilities&service=wcs'),
+('wcs', 'AHN1 5, 25 en 100 meter maaiveld raster (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn1/wcs?request=GetCapabilities&service=wcs&version=1.1.1'),
 ('wms', 'AHN1 25 meter maaiveldraster (WMS)', 'https://geodata.nationaalgeoregister.nl/ahn25m/wms?&request=GetCapabilities&service=WMS'),
 ('wfs', 'AHN1 25 meter maaiveldraster (WFS)', 'https://geodata.nationaalgeoregister.nl/ahn25m/wfs?&request=GetCapabilities&service=WFS&version='+wfsversion),
-('wcs', 'AHN1 25 meter maaiveldraster (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn25m/wcs?request=GetCapabilities&service=wcs'),
+('wcs', 'AHN1 25 meter maaiveldraster (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn25m/wcs?request=GetCapabilities&service=wcs&version=1.1.1'),
 ('wms', 'AHN2 0,5 en 5 meter maaiveldraster (WMS)', 'https://geodata.nationaalgeoregister.nl/ahn2/wms?request=GetCapabilities&service=wms'),
 ('wfs', 'AHN2 bladindex ', 'https://geodata.nationaalgeoregister.nl/ahn2/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
-('wcs', 'AHN2 0,5 en 5 meter maaiveldraster (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn2/wcs?request=GetCapabilities&service=wcs'),
+('wcs', 'AHN2 0,5 en 5 meter maaiveldraster (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn2/wcs?request=GetCapabilities&service=wcs&version=1.1.1'),
 ('wms', 'AHN3 (WMS)', 'https://geodata.nationaalgeoregister.nl/ahn3/wms?request=GetCapabilities&service=wms'),
 ('wfs', 'AHN3 (WFS)', 'https://geodata.nationaalgeoregister.nl/ahn3/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
-('wcs', 'AHN3 (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn3/wcs?request=GetCapabilities&service=wcs'),
+('wcs', 'AHN3 (WCS)', 'https://geodata.nationaalgeoregister.nl/ahn3/wcs?request=GetCapabilities&service=wcs&version=1.1.1'),
 ('wms', 'Administratieve Eenheden (WMS)','https://geodata.nationaalgeoregister.nl/inspire/au/wms?&request=GetCapabilities&service=WMS'),
 ('wfs', 'Administratieve Eenheden (WFS)','https://geodata.nationaalgeoregister.nl/inspire/au/wfs?&request=GetCapabilities&service=WFS&version='+wfsversion),
 ('wms', 'Adressen (WMS)', 'https://geodata.nationaalgeoregister.nl/inspireadressen/wms?SERVICE=WMS&request=GetCapabilities'),
@@ -693,7 +695,7 @@ services = [
 ]
 
 # testing
-_services = [
+__services = [
 
 #('wms', 'xxxx', 'https'),
 #('wfs', 'xxxx', 'https'),
