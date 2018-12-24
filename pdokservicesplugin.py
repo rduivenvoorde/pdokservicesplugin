@@ -373,14 +373,11 @@ class PdokServicesPlugin(object):
         elif servicetype == "wfs":
             location, query = urllib.parse.splitquery(url)
             #uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
-            #uri = location+"?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES="+layers+"&SRSNAME=EPSG:28992"
-            uri = location + "?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=" + layers + "&SRSNAME=EPSG:28992"
+            #uri = location + "?SERVICE=WFS&REQUEST=GetFeature&TYPENAME=" + layers + "&SRSNAME=EPSG:28992"
             # adding a bbox paramater forces QGIS to NOT cache features but retrieve new features all the time
             # QGIS will update the BBOX to the right value
             #uri += "&BBOX=-10000,310000,290000,650000"
-            bbox = self.iface.mapCanvas().extent().toString()
-            bbox = bbox.replace(' : ', ',')
-            uri += "&BBOX="+bbox
+            uri = " pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='"+layers+"' url='"+url+"' version='2.0.0' "
             self.iface.addVectorLayer(uri, title, "WFS")
         elif servicetype == "wcs":
             # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
