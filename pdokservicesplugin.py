@@ -370,7 +370,16 @@ class PdokServicesPlugin:
             # cache=PreferNetwork 
             # cache=AlwaysNetwork
             # cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
-            uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier="+layers+"&url="+url
+            #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier="+layers+"&url="+url
+            # working for ahn1 ahn2 and ahn3: GEOTIFF_FLOAT32
+            format = 'GEOTIFF_FLOAT32'
+            # working for ahn25m is only image/tiff
+            if layers == 'ahn25m':
+                format = 'image/tiff'
+            # we handcrated some wcs layers with 2 different image formats: tiff (RGB) and tiff (float32):
+            if 'imgformats' in self.currentLayer:
+                format = self.currentLayer['imgformats'].split(',')[0]
+            uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=" + format + "&version=1.1.2&identifier=" + layers + "&url=" + url
             self.iface.addRasterLayer(uri, title, "wcs")
         else:
             QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
