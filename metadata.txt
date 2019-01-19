@@ -3,11 +3,12 @@ name=PDOK services plugin
 qgisMinimumVersion=2.99
 qgisMaximumVersion=3.99
 description=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-version=3.4.3
+version=3.4.4
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    3.4.4   (01-2019) Fixing WCS services adding them both as RGB-tiff and FLOAT32 Tiffs to make them usable as true rasters
     3.4.3   (12-2018) new services, WFS->2.0.0, remove doubles etc
     3.4.2   (09-2018) fix userLocale problem on certain Windows installs
     3.4.1   (06-2018) fix #21: default search hecto and perceel too
