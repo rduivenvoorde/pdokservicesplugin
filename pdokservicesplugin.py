@@ -11,7 +11,7 @@ http://pdokviewer.pdok.nl/config/default.xml
 and
 https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls
 
-from 
+from
 
 http://pdokviewer.pdok.nl/
 
@@ -119,8 +119,11 @@ class PdokServicesPlugin(object):
 
     def initGui(self):
         # Create action that will start plugin configuration
-        self.run_action = QAction(QIcon(":/plugins/pdokservicesplugin/icon.png"), \
-            u"Pdok Services Plugin", self.iface.mainWindow())
+        #self.run_action = QAction(QIcon(":/plugins/pdokservicesplugin/create_layout_crystal.svg"), \
+        #    u"Pdok Services Plugin", self.iface.mainWindow())
+        runIcon = QIcon(os.path.join(self.plugin_dir, 'icon.svg'))
+        self.run_action = QAction(runIcon, \
+            "Pdok Services", self.iface.mainWindow())
 
         self.servicesLoaded = False
         # connect the action to the run method
@@ -150,8 +153,9 @@ class PdokServicesPlugin(object):
         self.toolbar.addWidget(self.toolbarSearch)
         self.toolbarSearch.returnPressed.connect(self.searchAddressFromToolbar)
         # address/point cleanup
-        self.clean_action = QAction(QIcon(":/plugins/pdokservicesplugin/eraser.png"), \
-            u"Cleanup", self.eraseAddress())
+        eraserIcon = QIcon(os.path.join(self.plugin_dir, 'eraser.svg'))
+        self.clean_action = QAction(eraserIcon, \
+            "Cleanup", self.eraseAddress())
         self.toolbar.addAction(self.clean_action)
         self.clean_action.triggered.connect(self.eraseAddress)
 
@@ -383,7 +387,7 @@ class PdokServicesPlugin(object):
             # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
             uri = ''
             # cache=AlwaysCache
-            # cache=PreferNetwork 
+            # cache=PreferNetwork
             # cache=AlwaysNetwork
             # cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
             #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=image/tiff&version=1.1.1&identifier="+layers+"&url="+url
@@ -506,7 +510,7 @@ class PdokServicesPlugin(object):
             #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"},
             #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"}
             # ]}
-            # 
+            #
             for service in self.pdok["services"]:
                 # service[layer] was an array
                 if isinstance(service["layers"], str) or isinstance(service["layers"], str):
