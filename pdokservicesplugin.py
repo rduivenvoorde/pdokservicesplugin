@@ -156,6 +156,7 @@ class PdokServicesPlugin(object):
             "Cleanup", self.eraseAddress())
         self.toolbar.addAction(self.clean_action)
         self.clean_action.triggered.connect(self.eraseAddress)
+        self.clean_action.setEnabled(False)
 
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.run_action)
 
@@ -743,10 +744,12 @@ class PdokServicesPlugin(object):
         self.pointer.setIconSize(10)
         self.pointer.setPenWidth(5)
         self.pointer.setCenter(point)
+        self.clean_action.setEnabled(True)
 
     def removePointer(self):
         if self.pointer is not None:
             self.iface.mapCanvas().scene().removeItem(self.pointer)
+            self.clean_action.setEnabled(False)
 
     def info(self, msg=""):
         QgsMessageLog.logMessage('{}'.format(msg), 'PDOK-services Plugin', Qgis.Info)
