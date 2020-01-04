@@ -11,7 +11,7 @@ http://pdokviewer.pdok.nl/config/default.xml
 and
 https://www.pdok.nl/nl/producten/pdok-services/overzicht-urls
 
-from 
+from
 
 http://pdokviewer.pdok.nl/
 
@@ -245,8 +245,11 @@ class PdokServicesPlugin(object):
     def unload(self):
         self.removePointer()
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(u"&Pdok Services Plugin",self.run_action)
+        self.iface.removePluginMenu("&Pdok Services Plugin", self.run_action)
+        self.iface.removePluginMenu("&Pdok Services Plugin", self.aboutAction)
         del self.toolbarSearch
+        del self.run_action
+        del self.aboutAction
 
     def showService(self, selectedIndexes):
         if len(selectedIndexes)==0:
@@ -383,7 +386,7 @@ class PdokServicesPlugin(object):
             # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
             uri = ''
             # cache=AlwaysCache
-            # cache=PreferNetwork 
+            # cache=PreferNetwork
             # cache=AlwaysNetwork
             # cache=AlwaysNetwork&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
             #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=image/tiff&version=1.1.1&identifier="+layers+"&url="+url
@@ -506,7 +509,7 @@ class PdokServicesPlugin(object):
             #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"},
             #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"}
             # ]}
-            # 
+            #
             for service in self.pdok["services"]:
                 # service[layer] was an array
                 if isinstance(service["layers"], str) or isinstance(service["layers"], str):
