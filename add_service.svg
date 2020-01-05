@@ -13,7 +13,7 @@
    viewBox="0 0 24 24"
    height="24"
    width="24"
-   sodipodi:docname="icon.svg"
+   sodipodi:docname="add_service.svg"
    inkscape:version="0.92.3 (2405546, 2018-03-11)">
   <sodipodi:namedview
      pagecolor="#ffffff"
@@ -138,7 +138,7 @@
      inkscape:groupmode="layer"
      id="layer5"
      inkscape:label="shield"
-     style="display:none">
+     style="display:inline">
     <g
        transform="matrix(0.76923077,0,0,0.76923077,-0.61538463,-0.61538464)"
        id="g960">

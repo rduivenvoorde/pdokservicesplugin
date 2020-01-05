@@ -119,7 +119,7 @@ class PdokServicesPlugin(object):
 
     def initGui(self):
         # Create action that will start plugin configuration
-        runIcon = QIcon(os.path.join(self.plugin_dir, 'icon.svg'))
+        runIcon = QIcon(os.path.join(self.plugin_dir, 'add_service.svg'))
         self.run_action = QAction(runIcon, \
             "PDOK Services plugin", self.iface.mainWindow())
 
