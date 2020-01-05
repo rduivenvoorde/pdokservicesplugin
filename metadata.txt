@@ -43,4 +43,4 @@ experimental=False
 
 about=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
 
-icon=icon.svg
+icon=icon_pdok.svg

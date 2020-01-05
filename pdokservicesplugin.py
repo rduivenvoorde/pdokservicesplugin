@@ -119,7 +119,7 @@ class PdokServicesPlugin(object):
 
     def initGui(self):
         # Create action that will start plugin configuration
-        runIcon = QIcon(os.path.join(self.plugin_dir, 'add_service.svg'))
+        runIcon = QIcon(os.path.join(self.plugin_dir, 'icon_add_service.svg'))
         self.run_action = QAction(runIcon, \
             "PDOK Services plugin", self.iface.mainWindow())
 
@@ -151,7 +151,7 @@ class PdokServicesPlugin(object):
         self.toolbar.addWidget(self.toolbarSearch)
         self.toolbarSearch.returnPressed.connect(self.searchAddressFromToolbar)
         # address/point cleanup
-        eraserIcon = QIcon(os.path.join(self.plugin_dir, 'eraser.svg'))
+        eraserIcon = QIcon(os.path.join(self.plugin_dir, 'icon_remove_cross.svg'))
         self.clean_action = QAction(eraserIcon, \
             "Cleanup", self.eraseAddress())
         self.toolbar.addAction(self.clean_action)
@@ -161,7 +161,7 @@ class PdokServicesPlugin(object):
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.run_action)
 
         # about
-        self.aboutAction = QAction(QIcon(":/plugins/pdokservicesplugin/help.png"), \
+        self.aboutAction = QAction(QIcon(":/plugins/pdokservicesplugin/icon_help.png"), \
                             "About", self.iface.mainWindow())
         self.aboutAction.setWhatsThis("Pdok Services Plugin About")
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.aboutAction)
