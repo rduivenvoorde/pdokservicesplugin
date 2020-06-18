@@ -413,8 +413,8 @@ services = [
 ('wfs', 'Basisregistratie Grootschalige Topografie (BGT) - Beta (WFS)', 'https://geodata.nationaalgeoregister.nl/beta/bgt/wfs?request=getcapabilities&service=wfs&version='+wfsversion),
 ('wms', 'BGT Terugmeldingen (WMS)', 'https://geodata.nationaalgeoregister.nl/bgtterugmeldingen/wms?request=GetCapabilities'),
 ('wfs', 'BGT Terugmeldingen (WFS)', 'https://geodata.nationaalgeoregister.nl/bgtterugmeldingen/wfs?request=GetCapabilities&version='+wfsversion),
-('wms', 'BRK Kadastrale Kaart (WMS)' , 'https://geodata.nationaalgeoregister.nl/kadastralekaartv3/wms?request=GetCapabilities&service=wms'),
-('wfs', 'BRK Kadastrale Kaart (WFS)' , 'https://geodata.nationaalgeoregister.nl/kadastralekaartv3/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
+('wms', 'BRK Kadastrale Kaart (WMS)' , 'https://geodata.nationaalgeoregister.nl/kadastralekaart/wms/v4_0?service=WMS&version=1.3.0&request=GetCapabilities'),
+('wfs', 'BRK Kadastrale Kaart (WFS)' , 'https://geodata.nationaalgeoregister.nl/kadastralekaart/wfs/v4_0?service=WFS&request=GetCapabilities&version='+wfsversion),
 ('wms', 'BRK Kadastrale Percelen (INSPIRE geharmoniseerd) (WMS)' , 'https://geodata.nationaalgeoregister.nl/inspire/cp/wms?request=GetCapabilities&service=wms'),
 ('wfs', 'BRK Kadastrale Percelen (INSPIRE geharmoniseerd) (WFS)' , 'https://geodata.nationaalgeoregister.nl/inspire/cp/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
 ('wms', 'BRO Geotechnisch sondeeronderzoek (WMS)' , 'https://geodata.nationaalgeoregister.nl/brocpt/wms?request=GetCapabilities&service=wms'), #
