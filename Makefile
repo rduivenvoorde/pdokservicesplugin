@@ -35,7 +35,7 @@ VERSION=$(shell cat metadata.txt | grep version= | sed -e 's,version=,,')
 
 PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeocoder.py  networkaccessmanager.py
 
-EXTRAS = icon.png help.png pdok.json metadata.txt pdok.version
+EXTRAS = pdok.json metadata.txt pdok.version icon_add_service.svg icon_help.png icon_pdok.svg icon_remove_cross.svg
 
 UI_FILES = ui_pdokservicesplugindialog.py ui_pdokservicesplugindockwidget.py
 
