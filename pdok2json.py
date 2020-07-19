@@ -413,8 +413,6 @@ services = [
 ('wfs', 'Asbest scholenkaart (WFS)', 'https://geodata.nationaalgeoregister.nl/asbestscholenkaart/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
 
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/b
-('wms', 'BAG (WMS)', 'https://geodata.nationaalgeoregister.nl/bag/wms?request=GetCapabilities&service=wms'),
-('wfs', 'BAG (WFS)', 'https://geodata.nationaalgeoregister.nl/bag/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
 ('wms', 'BAGv1.1 (WMS)', 'https://geodata.nationaalgeoregister.nl/bag/wms/v1_1?request=getCapabilities&service=WMS'),
 ('wfs', 'BAGv1.1 (WFS)', 'https://geodata.nationaalgeoregister.nl/bag/wfs/v1_1?request=getCapabilities&service=WFS&version='+wfsversion),
 ('wms', 'BAG Terugmeldingen (WMS)','https://geodata.nationaalgeoregister.nl/terugmeldingen/bag/v2/wms?&request=GetCapabilities&service=WMS'),
