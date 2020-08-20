@@ -317,8 +317,9 @@ class PdokServicesPlugin(object):
         # some services have an url with query parameters in it, we have to urlencode those:
         location,query = urllib.parse.splitquery(url)
         url = location
-        if query != None and query != '':
-            url +=('?'+urllib.parse.quote_plus(query))
+        # RD: 20200820: lijkt of het quoten van de query problemen geeft bij WFS, is/was dit nodig???
+        #if query != None and query != '':
+        #    url +=('?'+urllib.parse.quote_plus(query))
         title = self.currentLayer['title']
         if 'style' in self.currentLayer:
             style = self.currentLayer['style']
