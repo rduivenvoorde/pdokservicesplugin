@@ -731,12 +731,14 @@ services = [
 ]
 
 # testing
-xxxservices = [
+services = [
 
 #('wms','Natuurmeting Op Kaart 2014 (WMS)','https://geodata.nationaalgeoregister.nl/nok2014/wms?request=GetCapabilities&service=wms'),
-#('wfs','Natuurmeting Op Kaart 2014 (WFS)','https://geodata.nationaalgeoregister.nl/nok2014/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
-('wms','Noordzee Vaarwegmarkeringen (WMS)','https://geodata.nationaalgeoregister.nl/noordzeevaarwegmarkeringenrd/wms?request=GetCapabilities&service=wms'),
+('wfs','Natuurmeting Op Kaart 2014 (WFS)','https://geodata.nationaalgeoregister.nl/nok2014/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
+#('wms','Noordzee Vaarwegmarkeringen (WMS)','https://geodata.nationaalgeoregister.nl/noordzeevaarwegmarkeringenrd/wms?request=GetCapabilities&service=wms'),
 #('wfs','Noordzee Vaarwegmarkeringen (WFS) ','https://geodata.nationaalgeoregister.nl/noordzeevaarwegmarkeringenrd/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
+
+#('wms','Nieuwegein (WMS)','https://geoserver.nieuwegein.nl/geoserver/wms?request=getcapabilities'),
 
 #('wms', 'xxxx', 'https'),
 #('wfs', 'xxxx', 'https'),
@@ -749,7 +751,7 @@ firstOne = True
 print('{"services":[', end=' ')
 
 for (stype, title, url) in services:
-    #print(f'\n --> {url}')
+    print(f'\n --> {url}')
     if stype == 'wms':
         handleWMS(url)
     elif stype == 'wmts':

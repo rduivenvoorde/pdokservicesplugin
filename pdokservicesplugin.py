@@ -751,8 +751,9 @@ class PdokServicesPlugin(object):
         self.clean_action.setEnabled(True)
 
     def removePointer(self):
-        if self.pointer is not None:
+        if self.pointer is not None and self.pointer.scene() is not None:
             self.iface.mapCanvas().scene().removeItem(self.pointer)
+            self.pointer = None
             self.clean_action.setEnabled(False)
 
     def info(self, msg=""):
