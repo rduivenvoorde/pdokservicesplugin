@@ -3,11 +3,12 @@ name=PDOK services plugin
 qgisMinimumVersion=2.99
 qgisMaximumVersion=3.99
 description=Plugin to easily load the available dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in dutch.
-version=3.5.2
+version=3.5.3
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    3.5.3   (??-2020) Fix Qt-scene warning
     3.5.2   (08-2020) Fix urlencoding issue, Remove some old NON-working services
     3.5.1   (07-2020) Remove redundant (not working) BAG url's (thanks Gerben D)
     3.5.0   (06-2020) Refresh of services, new Icons (thanks Raymond Nijssen)
