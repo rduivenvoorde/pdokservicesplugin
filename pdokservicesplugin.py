@@ -403,8 +403,8 @@ class PdokServicesPlugin(object):
             # we handcrated some wcs layers with 2 different image formats: tiff (RGB) and tiff (float32):
             if 'imgformats' in self.currentLayer:
                 format = self.currentLayer['imgformats'].split(',')[0]
-            uri = "cache=AlwaysNetwork&crs=EPSG:28992&format="+format+"&version=1.1.2&identifier=" + layers + "&url=" + url
-
+            uri = "cache=AlwaysNetwork&crs=EPSG:28992&format="+format+"&identifier=" + layers + "&url=" + url
+            #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format="+format+"&version=1.1.2&identifier=" + layers + "&url=" + url
             #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=image/tiff&version=1.1.2&identifier=" + layers + "&url=" + url
             self.iface.addRasterLayer(uri, title, "wcs")
         else:
