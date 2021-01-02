@@ -30,6 +30,7 @@ Door op een item te klikken wordt de service direkt aangeroepen een getoond.
 Alle services zijn epsg:28992
 
 Als je deze plugin handig vind, laat me dan weten via een vriendelijk briefje of email,
-OF doe een donatie via de Paypal button, dan koop ik daar een biertje voor, betaal een reisje naar een QGIS hackfest ofzo...
+betaal een biertje ( of heel avondje ;-) ) via een [ASN Betaalverzoek](https://diensten.asnbank.nl/online/betaalverzoek/#/8283591-dxjwEFYOwRc82VlDnReguftGClv2xeQ7) of een [Tikkie](https://tikkie.me/pay/l1adcj37rf5te3mn3fe2) 
+OF doe een donatie via de Paypal button, dan koop ik daar een biertje voor tijdens een reisje naar een QGIS hackfest ofzo...
 
 [![paypal](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=DZ8R5JPAW55CJ&currency_code=EUR&source=url)
