@@ -48,9 +48,9 @@ print(f'string: {string}')
 
 
 
-# url = 'https://geodata.nationaalgeoregister.nl/nok2014/wms?request=GetCapabilities&service=wms'
-# print(f'test url: {url}')
-# import urllib.request, urllib.error
-# response = urllib.request.urlopen(url)
-# string = response.read()
-# print(f'string: {string}')
+    # url = 'https://geodata.nationaalgeoregister.nl/nok2014/wms?request=GetCapabilities&service=wms'
+    # print(f'test url: {url}')
+    # import urllib.request, urllib.error
+    # response = urllib.request.urlopen(url)
+    # string = response.read()
+    # print(f'string: {string}')
