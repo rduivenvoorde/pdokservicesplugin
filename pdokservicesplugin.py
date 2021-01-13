@@ -81,13 +81,14 @@ class PdokServicesPlugin(object):
         # initialize locale
         localePath = ""
         if isinstance(QSettings().value("locale/userLocale"), QVariant):
-            if not QSettings().value("locale/userLocale").isNull():
-                locale = QSettings().value("locale/userLocale").value()[0:2]
+            locale = QSettings().value("locale/userLocale", 'en')
+            if len(locale) > 2:
+                locale = locale[:2]
         else:
-            locale = QSettings().value("locale/userLocale")[0:2]
+            locale = 'en'
 
         if QFileInfo(self.plugin_dir).exists():
-            localePath = self.plugin_dir + "/i18n/pdokservicesplugin_" + locale + ".qm"
+            localePath = os.path.join(self.plugin_dir, 'i18n', f'pdokservicesplugin_{locale}.qm')
 
         if QFileInfo(localePath).exists():
             self.translator = QTranslator()
