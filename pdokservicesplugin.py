@@ -77,7 +77,8 @@ class PdokServicesPlugin(object):
 
         self.dlg = PdokServicesPluginDialog(parent=self.iface.mainWindow())
         # initialize plugin directory
-        self.plugin_dir = QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path() + "/python/plugins/pdokservicesplugin"
+        self.plugin_dir = os.path.dirname(__file__)
+
         self.currentLayer = None
         self.SETTINGS_SECTION = '/pdokservicesplugin/'
         self.pointer = None
@@ -191,7 +192,7 @@ class PdokServicesPlugin(object):
                 response = urllib.request.urlopen('http://www.qgis.nl/pdok.json')
                 str_response = response.read().decode('utf-8')
                 pdokjson = json.loads(str_response)
-                with open(self.plugin_dir +'/pdok.json', 'w') as outfile:
+                with open(os.path.join(self.plugin_dir, 'pdok.json'), 'w') as outfile:
                     json.dump(pdokjson, outfile)
                 msgtxt = "De laatste versie is opgehaald en zal worden gebruikt " + \
                     str(pdokversion) + ' (was ' + myversion +')'
@@ -262,7 +263,7 @@ class PdokServicesPlugin(object):
         style = ''
         if 'style' in self.currentLayer:
             style = self.currentLayer['style']
-            title = title + ' [' + style + ']'
+            title += f' [{style}]'
         servicetitle = self.currentLayer['servicetitle']
         layername = self.currentLayer['layers']
         abstract = self.currentLayer['abstract']
@@ -308,7 +309,7 @@ class PdokServicesPlugin(object):
         title = self.currentLayer['title']
         if 'style' in self.currentLayer:
             style = self.currentLayer['style']
-            title = title + ' [' + style + ']'
+            title += f' [{style}]'
         else:
             style = '' # == default for this service
         layers = self.currentLayer['layers']
@@ -473,10 +474,9 @@ class PdokServicesPlugin(object):
                 self.dlg.tabs.widget(int(QSettings().value("/pdokservicesplugin/currenttab")))
 
         if self.servicesLoaded == False:
-            pdokjson = os.path.join(os.path.dirname(__file__), ".", "pdok.json")
-            f = open(pdokjson, 'r', encoding='utf-8')
-            self.pdok = json.load(f)
-            f.close()
+            pdokjson = os.path.join(self.plugin_dir, "pdok.json")
+            with open(pdokjson, 'r', encoding='utf-8') as f:
+                self.pdok = json.load(f)
 
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
@@ -501,7 +501,7 @@ class PdokServicesPlugin(object):
             #
             for service in self.pdok["services"]:
                 # service[layer] was an array
-                if isinstance(service["layers"], str) or isinstance(service["layers"], str):
+                if isinstance(service["layers"], str):
                     self.addSourceRow(service)
 
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
