@@ -78,23 +78,6 @@ class PdokServicesPlugin(object):
         self.dlg = PdokServicesPluginDialog(parent=self.iface.mainWindow())
         # initialize plugin directory
         self.plugin_dir = QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path() + "/python/plugins/pdokservicesplugin"
-        # initialize locale
-        localePath = ""
-        if isinstance(QSettings().value("locale/userLocale"), QVariant):
-            locale = QSettings().value("locale/userLocale", 'en')
-            if len(locale) > 2:
-                locale = locale[:2]
-        else:
-            locale = 'en'
-
-        if QFileInfo(self.plugin_dir).exists():
-            localePath = os.path.join(self.plugin_dir, 'i18n', f'pdokservicesplugin_{locale}.qm')
-
-        if QFileInfo(localePath).exists():
-            self.translator = QTranslator()
-            self.translator.load(localePath)
-            if qVersion() > '4.3.3':
-                QCoreApplication.installTranslator(self.translator)
         self.currentLayer = None
         self.SETTINGS_SECTION = '/pdokservicesplugin/'
         self.pointer = None
