@@ -51,7 +51,6 @@ import urllib.request, urllib.parse, urllib.error
 from . import resources_rc
 # Import the code for the dialog
 from .pdokservicesplugindialog import PdokServicesPluginDialog
-from .pdokservicesplugindialog import PdokServicesPluginDockWidget
 from xml.dom.minidom import parse
 from .pdokgeocoder import PDOKGeoLocator
 
@@ -111,17 +110,7 @@ class PdokServicesPlugin(object):
 
         self.servicesLoaded = False
         # connect the action to the run method
-        # 2018 may: RD: deprecating Docked window, as the content is getting to big anyway
-        # if "True" == self.docked or "true" == self.docked or  True == self.docked:
-        #     self.run_action.triggered.connect(self.showAndRaise)
-        #     self.dlg.radioDocked.setChecked(True)
-        #     # docked the dialog is immidiately visible, so should run NOW
-        # else:
-        #     self.run_action.triggered.connect(self.run)
-        #     self.dlg.radioDocked.setChecked(False)
-        #     self.setupfq()
         self.run_action.triggered.connect(self.run)
-        #self.dlg.radioDocked.setChecked(False)
         self.setupfq()
 
         # Add toolbar button and menu item
@@ -138,8 +127,7 @@ class PdokServicesPlugin(object):
         self.toolbarSearch.returnPressed.connect(self.searchAddressFromToolbar)
         # address/point cleanup
         eraserIcon = QIcon(os.path.join(self.plugin_dir, 'icon_remove_cross.svg'))
-        self.clean_action = QAction(eraserIcon, \
-            "Cleanup", self.eraseAddress())
+        self.clean_action = QAction(eraserIcon, "Cleanup", self.eraseAddress())
         self.toolbar.addAction(self.clean_action)
         self.clean_action.triggered.connect(self.eraseAddress)
         self.clean_action.setEnabled(False)
@@ -162,10 +150,6 @@ class PdokServicesPlugin(object):
 
         self.dlg.geocoderResultSearch.textChanged.connect(self.filterGeocoderResult)
         self.dlg.geocoderResultSearch.setPlaceholderText("een of meer zoekwoorden uit resultaat")
-
-        #self.dlg.radioDocked.toggled.connect(self.set_docked)
-
-        self.dlg.btnCheckPdokJson.clicked.connect(self.checkPdokJson)
         #self.iface.mapCanvas().renderStarting.connect(self.extentsChanged)
 
         ui = self.dlg.ui
@@ -180,6 +164,7 @@ class PdokServicesPlugin(object):
     #def extentsChanged(self):
     #    self.removePointer()
 
+    # 2021-02 hiding the check JSON: to much hassle
     def checkPdokJson(self):
         myversion = self.getSettingsValue('pdokversion', '1')
         msgtxt = ''
@@ -210,14 +195,6 @@ class PdokServicesPlugin(object):
             self.iface.messageBar().pushMessage("PDOK services update", msgtxt, level=msglvl, duration=10)
         else: # 1.8
             QMessageBox.information(self.iface.mainWindow(), "Pdok Services Plugin", msgtxt)
-
-    # def set_docked(self, foo):
-    #     self.setSettingsValue('docked', self.dlg.radioDocked.isChecked())
-    #     #if Qgis.QGIS_VERSION_INT < 10900:
-    #     #    # qgis <= 1.8
-    #     #    QSettings().setValue("/pdokservicesplugin/docked", QVariant(self.dlg.radioDocked.isChecked()))
-    #     #else:
-    #     #    QSettings().setValue("/pdokservicesplugin/docked", self.dlg.radioDocked.isChecked())
 
     def showAndRaise(self):
         self.dlg.show()

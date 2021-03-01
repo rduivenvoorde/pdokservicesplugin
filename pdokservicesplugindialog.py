@@ -21,36 +21,9 @@
 """
 
 from qgis.PyQt.QtCore import QObject
-from qgis.PyQt.QtWidgets import QDockWidget, QDialog
+from qgis.PyQt.QtWidgets import QDialog
 from qgis.core import *
 from .ui_pdokservicesplugindialog import Ui_PdokServicesPlugin
-from .ui_pdokservicesplugindockwidget import Ui_PDOKservices
-
-# create the dialog for zoom to point
-class PdokServicesPluginDockWidget(QDockWidget):
-
-    def __init__(self):
-        QDockWidget.__init__(self)
-        # Set up the user interface from Designer.
-        self.ui = Ui_PDOKservices()
-        self.ui.setupUi(self)
-        self.servicesView = self.ui.servicesView
-        # only select one row at a time:
-        self.servicesView.setSelectionMode(self.servicesView.SingleSelection)
-        # select whole row if an item is clicked
-        self.servicesView.setSelectionBehavior(self.servicesView.SelectRows)
-        self.servicesView.setAutoScroll(False)
-        self.layerSearch = self.ui.layerSearch
-        self.geocoderSearch = self.ui.geocoderSearch
-        self.geocoderResultSearch = self.ui.geocoderResultSearch
-        self.geocoderResultView = self.ui.geocoderResultView
-        self.geocoderResultView.setSelectionMode(self.geocoderResultView.SingleSelection)
-        # select whole row if an item is clicked
-        self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
-        self.tabs = self.ui.tabWidget
-        self.radioDocked = self.ui.radio_docked_widget
-        self.btnCheckPdokJson = self.ui.btn_check_pdokjson
-
 
 class PdokServicesPluginDialog(QDialog):
 
@@ -74,5 +47,3 @@ class PdokServicesPluginDialog(QDialog):
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
         self.tabs = self.ui.tabWidget
         self.ui.buttonBox.rejected.connect(self.reject)
-        self.radioDocked = self.ui.radio_docked_widget
-        self.btnCheckPdokJson = self.ui.btn_check_pdokjson
