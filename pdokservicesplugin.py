@@ -37,7 +37,7 @@ http://pdokviewer.pdok.nl/
 # from builtins import object
 # Import the PyQt and QGIS libraries
 from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, Qt, QTranslator, QCoreApplication, qVersion
-from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox
+from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox, QMenu
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
 from qgis.PyQt.QtCore import QSortFilterProxyModel
 from qgis.core import QgsApplication, Qgis, QgsProject ,QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
@@ -105,8 +105,7 @@ class PdokServicesPlugin(object):
     def initGui(self):
         # Create action that will start plugin configuration
         runIcon = QIcon(os.path.join(self.plugin_dir, 'icon_add_service.svg'))
-        self.run_action = QAction(runIcon, \
-            "PDOK Services plugin", self.iface.mainWindow())
+        self.run_action = QAction(runIcon, "PDOK Services plugin", self.iface.mainWindow())
 
         self.servicesLoaded = False
         # connect the action to the run method
@@ -119,6 +118,17 @@ class PdokServicesPlugin(object):
         self.toolbar = self.iface.addToolBar("PDOK services plugin")
         self.toolbar.setObjectName("PDOK services plugin")
         self.toolbar.addAction(self.run_action)
+
+        self.favourite_1_action = QAction('F1', self.iface.mainWindow())
+        self.favourite_1_action.triggered.connect(lambda: self.load_favourite(1))
+        self.set_favourite_tooltip(self.favourite_1_action, 1)
+        self.toolbar.addAction(self.favourite_1_action)
+
+        self.favourite_2_action = QAction('F2', self.iface.mainWindow())
+        self.favourite_2_action.triggered.connect(lambda: self.load_favourite(2))
+        self.set_favourite_tooltip(self.favourite_2_action, 2)
+        self.toolbar.addAction(self.favourite_2_action)
+
         self.toolbarSearch = QLineEdit()
         self.toolbarSearch.setMaximumWidth(200)
         self.toolbarSearch.setAlignment(Qt.AlignLeft)
@@ -189,7 +199,7 @@ class PdokServicesPlugin(object):
         except Exception as e:
             #print e
             msgtxt = "Fout bij ophalen van service info. Netwerk probleem?"
-            msglvl = 2 # QgsMessageBar.CRITICAL
+            msglvl = 2  # QgsMessageBar.CRITICAL
         # msg
         if hasattr(self.iface, 'messageBar'):
             self.iface.messageBar().pushMessage("PDOK services update", msgtxt, level=msglvl, duration=10)
@@ -218,7 +228,7 @@ class PdokServicesPlugin(object):
         del self.aboutAction
 
     def showService(self, selectedIndexes):
-        if len(selectedIndexes)==0:
+        if len(selectedIndexes) == 0:
             self.currentLayer = None
             self.dlg.ui.layerInfo.setHtml('')
             self.dlg.ui.comboSelectProj.clear()
@@ -272,13 +282,31 @@ class PdokServicesPlugin(object):
                 if tilematrixsets[i].startswith('EPSG:28992'):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
+    def set_favourite_tooltip(self, action, favourite_number):
+        if QSettings().contains(f'/pdokservicesplugin/favourite_{favourite_number}'):
+            layer = QSettings().value(f'/pdokservicesplugin/favourite_{favourite_number}', None)
+            if layer:
+                action.setToolTip(layer['title'])
+
+    def load_favourite(self, favourite_number):
+        if QSettings().contains(f'/pdokservicesplugin/favourite_{favourite_number}'):
+            layer = QSettings().value(f'/pdokservicesplugin/favourite_{favourite_number}', None)
+            if layer:
+                self.currentLayer = layer
+                self.loadService()
+        else:
+            QMessageBox.warning(self.iface.mainWindow(), "Nog geen Favoriet aanwezig...", ( \
+                "Maak een Favoriet aan door in de dialoog met services en lagen\n via het context menu (rechter muisknop) een Favoriet te kiezen..."
+                ), QMessageBox.Ok, QMessageBox.Ok)
+            self.run()
+
     def loadService(self):
         if self.currentLayer == None:
             return
         servicetype = self.currentLayer['type']
         url = self.currentLayer['url']
         # some services have an url with query parameters in it, we have to urlencode those:
-        location,query = urllib.parse.splitquery(url)
+        location, query = urllib.parse.splitquery(url)
         url = location
         # RD: 20200820: lijkt of het quoten van de query problemen geeft bij WFS, is/was dit nodig???
         #if query != None and query != '':
@@ -288,7 +316,7 @@ class PdokServicesPlugin(object):
             style = self.currentLayer['style']
             title += f' [{style}]'
         else:
-            style = '' # == default for this service
+            style = ''  # == default for this service
         layers = self.currentLayer['layers']
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
         if servicetype == "wms":
@@ -485,6 +513,10 @@ class PdokServicesPlugin(object):
             self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
             self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
             self.dlg.servicesView.doubleClicked.connect(self.loadService)
+
+            self.dlg.servicesView.setContextMenuPolicy(Qt.CustomContextMenu)
+            self.dlg.servicesView.customContextMenuRequested.connect(self.make_favourite)
+
             # actually I want to load a service when doubleclicked on header
             # but as I cannot get this to work, let's disable clicking it then
             self.dlg.servicesView.verticalHeader().setSectionsClickable(False)
@@ -518,6 +550,18 @@ class PdokServicesPlugin(object):
         else:
             QSettings().setValue("/pdokservicesplugin/currenttab", self.dlg.tabs.currentIndex())
         self.removePointer()
+
+    def make_favourite(self, position):
+        menu = QMenu()
+        create_fav1_action = menu.addAction("Maak Favoriet 1 (onder F1 knop)")
+        create_fav2_action = menu.addAction("Maak Favoriet 2 (onder F2 knop)")
+        action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
+        if action == create_fav1_action:
+            QSettings().setValue("/pdokservicesplugin/favourite_1", self.currentLayer)
+            self.set_favourite_tooltip(self.favourite_1_action, 1)
+        elif action == create_fav2_action:
+            QSettings().setValue("/pdokservicesplugin/favourite_2", self.currentLayer)
+            self.set_favourite_tooltip(self.favourite_2_action, 2)
 
     def setupfq(self):
         """

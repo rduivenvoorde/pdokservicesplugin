@@ -128,7 +128,7 @@ class Ui_PdokServicesPlugin(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(PdokServicesPlugin)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(PdokServicesPlugin)
 
     def retranslateUi(self, PdokServicesPlugin):
