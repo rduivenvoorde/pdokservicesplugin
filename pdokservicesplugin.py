@@ -37,7 +37,7 @@ http://pdokviewer.pdok.nl/
 # from builtins import object
 # Import the PyQt and QGIS libraries
 from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, Qt, QTranslator, QCoreApplication, qVersion
-from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox, QMenu
+from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox, QMenu, QToolButton
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
 from qgis.PyQt.QtCore import QSortFilterProxyModel
 from qgis.core import QgsApplication, Qgis, QgsProject ,QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
@@ -104,8 +104,14 @@ class PdokServicesPlugin(object):
 
     def initGui(self):
         # Create action that will start plugin configuration
-        runIcon = QIcon(os.path.join(self.plugin_dir, 'icon_add_service.svg'))
-        self.run_action = QAction(runIcon, "PDOK Services plugin", self.iface.mainWindow())
+        self.runIcon = QIcon(os.path.join(self.plugin_dir, 'icon_add_service.svg'))
+
+        self.run_action = QAction(self.runIcon, "PDOK Services plugin", self.iface.mainWindow())
+
+        self.run_button = QToolButton()
+        self.run_button.setMenu(QMenu())
+        self.run_button.setPopupMode(QToolButton.MenuButtonPopup)
+        self.run_button.setDefaultAction(self.run_action)
 
         self.servicesLoaded = False
         # connect the action to the run method
@@ -117,17 +123,26 @@ class PdokServicesPlugin(object):
 
         self.toolbar = self.iface.addToolBar("PDOK services plugin")
         self.toolbar.setObjectName("PDOK services plugin")
-        self.toolbar.addAction(self.run_action)
+        #self.toolbar.addAction(self.run_action)
+        self.toolbar.addWidget(self.run_button)
 
-        self.favourite_1_action = QAction('F1', self.iface.mainWindow())
+        #self.run_button.menu().addSection('Favorieten')
+
+        self.favourite_1_action = QAction('Favoriet 1', self.iface.mainWindow())
+        self.favourite_1_action.setIcon(self.runIcon)
         self.favourite_1_action.triggered.connect(lambda: self.load_favourite(1))
-        self.set_favourite_tooltip(self.favourite_1_action, 1)
-        self.toolbar.addAction(self.favourite_1_action)
+        self.set_favourite_action(self.favourite_1_action, 1)
+        self.run_button.menu().addAction(self.favourite_1_action)
 
-        self.favourite_2_action = QAction('F2', self.iface.mainWindow())
+        self.favourite_2_action = QAction('Favoriet 2', self.iface.mainWindow())
+        self.favourite_2_action.setIcon(self.runIcon)
         self.favourite_2_action.triggered.connect(lambda: self.load_favourite(2))
-        self.set_favourite_tooltip(self.favourite_2_action, 2)
-        self.toolbar.addAction(self.favourite_2_action)
+        self.set_favourite_action(self.favourite_2_action, 2)
+        self.run_button.menu().addAction(self.favourite_2_action)
+
+        # TODO :-)
+        #self.run_button.menu().addSection('Meest Recent')
+        #self.run_button.menu().addSeparator()
 
         self.toolbarSearch = QLineEdit()
         self.toolbarSearch.setMaximumWidth(200)
@@ -191,7 +206,7 @@ class PdokServicesPlugin(object):
                     json.dump(pdokjson, outfile)
                 msgtxt = "De laatste versie is opgehaald en zal worden gebruikt " + \
                     str(pdokversion) + ' (was ' + myversion +')'
-                self.servicesLoaded = False # reset reading of json
+                self.servicesLoaded = False  # reset reading of json
                 self.run()
                 self.setSettingsValue('pdokversion', pdokversion)
             else:
@@ -282,23 +297,32 @@ class PdokServicesPlugin(object):
                 if tilematrixsets[i].startswith('EPSG:28992'):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-    def set_favourite_tooltip(self, action, favourite_number):
+    def set_favourite_action(self, action, favourite_number):
         if QSettings().contains(f'/pdokservicesplugin/favourite_{favourite_number}'):
             layer = QSettings().value(f'/pdokservicesplugin/favourite_{favourite_number}', None)
             if layer:
-                action.setToolTip(layer['title'])
+                action.setToolTip(layer['title'].capitalize())
+                title = layer['title'].capitalize()
+                if 'style' in layer:
+                    style = layer['style']
+                    title += f' [{style}]'
+                if 'type' in layer:
+                    stype = layer['type'].upper()
+                    title += f' ({stype})'
+                action.setText(title)
+                action.setIcon(self.runIcon)
 
     def load_favourite(self, favourite_number):
         if QSettings().contains(f'/pdokservicesplugin/favourite_{favourite_number}'):
             layer = QSettings().value(f'/pdokservicesplugin/favourite_{favourite_number}', None)
-            if layer:
+            if layer and layer in self.pdok['services']:
                 self.currentLayer = layer
                 self.loadService()
-        else:
-            QMessageBox.warning(self.iface.mainWindow(), "Nog geen Favoriet aanwezig...", ( \
-                "Maak een Favoriet aan door in de dialoog met services en lagen\n via het context menu (rechter muisknop) een Favoriet te kiezen..."
-                ), QMessageBox.Ok, QMessageBox.Ok)
-            self.run()
+                return
+        QMessageBox.warning(self.iface.mainWindow(), "Geen Favoriet aanwezig (of verouderd)...", ( \
+            "Maak een Favoriet aan door in de dialoog met services en lagen\n via het context menu (rechter muisknop) een Favoriet te kiezen..."
+            ), QMessageBox.Ok, QMessageBox.Ok)
+        self.run()
 
     def loadService(self):
         if self.currentLayer == None:
@@ -482,6 +506,7 @@ class PdokServicesPlugin(object):
             pdokjson = os.path.join(self.plugin_dir, "pdok.json")
             with open(pdokjson, 'r', encoding='utf-8') as f:
                 self.pdok = json.load(f)
+                print(f'self.pdok type = {type(self.pdok)}')
 
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
@@ -553,15 +578,15 @@ class PdokServicesPlugin(object):
 
     def make_favourite(self, position):
         menu = QMenu()
-        create_fav1_action = menu.addAction("Maak Favoriet 1 (onder F1 knop)")
-        create_fav2_action = menu.addAction("Maak Favoriet 2 (onder F2 knop)")
+        create_fav1_action = menu.addAction("Maak Deze Laag Favoriet 1")
+        create_fav2_action = menu.addAction("Maak Deze Laag Favoriet 2")
         action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
         if action == create_fav1_action:
             QSettings().setValue("/pdokservicesplugin/favourite_1", self.currentLayer)
-            self.set_favourite_tooltip(self.favourite_1_action, 1)
+            self.set_favourite_action(self.favourite_1_action, 1)
         elif action == create_fav2_action:
             QSettings().setValue("/pdokservicesplugin/favourite_2", self.currentLayer)
-            self.set_favourite_tooltip(self.favourite_2_action, 2)
+            self.set_favourite_action(self.favourite_2_action, 2)
 
     def setupfq(self):
         """
