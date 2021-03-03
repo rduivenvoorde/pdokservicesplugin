@@ -37,7 +37,7 @@ PY_FILES = pdokservicesplugin.py pdokservicesplugindialog.py __init__.py pdokgeo
 
 EXTRAS = pdok.json metadata.txt pdok.version icon_add_service.svg icon_help.png icon_pdok.svg icon_remove_cross.svg
 
-UI_FILES = ui_pdokservicesplugindialog.py ui_pdokservicesplugindockwidget.py
+UI_FILES = ui_pdokservicesplugindialog.py
 
 RESOURCE_FILES = resources_rc.py
 
@@ -70,13 +70,14 @@ deploy: compile
 	cp -vf $(RESOURCE_FILES) $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
 	cp -vf $(EXTRAS) $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
 	#cp -vfr i18n $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
-	cp -vfr $(HELP) $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)/help
+	#cp -vfr $(HELP) $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)/help
 
 # The dclean target removes compiled python files from plugin directory
 # also delets any .svn entry
 dclean:
 	find $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
 	find $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME) -iname ".svn" -prune -exec rm -Rf {} \;
+	find $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME) -iname "__pycache__" -prune -exec rm -Rf {} \;
 
 # The derase deletes deployed plugin
 derase:
@@ -86,6 +87,7 @@ derase:
 # content. You can then upload the zip file on http://plugins.qgis.org
 zip: deploy dclean
 	rm -f $(PLUGINNAME).zip
+	rm -rf __pycache__
 	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip $(PLUGINNAME)
 	mv $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip repo
 

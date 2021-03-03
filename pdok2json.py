@@ -43,7 +43,7 @@ from xml.dom.minidom import parse, parseString
 import urllib.request, urllib.parse, urllib.error
 import re
 
-TIME_OUT = 10
+TIME_OUT = 20
 # https://stackoverflow.com/questions/36600583/python-3-urllib-ignore-ssl-certificate-verification
 import ssl
 ctx = ssl.create_default_context()
@@ -139,26 +139,26 @@ def handleWFS(wfscapsurl):
     for op in operations:
         if op.hasAttribute('name') and op.getAttribute('name').upper()=='GETFEATURE':
             get = op.getElementsByTagName('Get')
-            if len(get)==0:
+            if len(get) == 0:
                 get = op.getElementsByTagName('ows:Get')
             url = get[0].getAttribute('xlink:href')
     featuretypes = dom.getElementsByTagName('FeatureType')
-    if len(featuretypes)==0:
+    if len(featuretypes) == 0:
         # let's try wfs:FeatureType
         featuretypes = dom.getElementsByTagName('wfs:FeatureType')
     for featuretype in featuretypes:
         layername = childNodeValue(featuretype, 'Name')
-        if len(layername)==0:
+        if len(layername) == 0:
             layername = childNodeValue(featuretype, 'wfs:Name')
         title = childNodeValue(featuretype, 'Title')
-        if len(title)==0:
+        if len(title) == 0:
             title = childNodeValue(featuretype, 'wfs:Title')
         # title can have newlines in it sometimes, which create havoc in json
         title = title.replace('\r', '')
         title = title.replace('\t', ' ')
         title = title.replace('\n', ' ')
         abstract = childNodeValue(featuretype, 'Abstract')
-        if len(abstract)==0:
+        if len(abstract) == 0:
             abstract = childNodeValue(featuretype, 'wfs:Abstract')
         # abstract can have newlines in it, which create havoc in json
         # because we only use abstract in html, we make <br/> of them
@@ -483,7 +483,7 @@ services = [
 
 # https//www.pdok.nl/nl/producten/pdok-services/overzicht-urls/g
 ('wms', 'Gebouwen (INSPIRE geharmoniseerd) (WMS)', 'https://geodata.nationaalgeoregister.nl/inspire/bu/wms?request=GetCapabilities&service=wms') ,
-('wfs', 'Gebouwen (INSPIRE geharmoniseerd) (WFS)', 'https://geodata.nationaalgeoregister.nl/inspire/bu/wfs?request=GetCapabilities&service=wfs&version='+wfsversion) ,
+#('wfs', 'Gebouwen (INSPIRE geharmoniseerd) (WFS)', 'https://geodata.nationaalgeoregister.nl/inspire/bu/wfs?request=GetCapabilities&service=wfs&version='+wfsversion) ,
 ('wms', 'Geluidskaarten Rijkswegen (WMS)', 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wms?request=GetCapabilities&service=wms') ,
 ('wfs', 'Geluidskaarten Rijkswegen (WFS)', 'https://geodata.nationaalgeoregister.nl/rwsgeluidskaarten/wfs?request=GetCapabilities&service=wfs&version='+wfsversion) ,
 
@@ -614,8 +614,8 @@ services = [
 ('wfs', 'Schelpdierenpercelen (WFS)', 'https://geodata.nationaalgeoregister.nl/schelpdierenpercelen/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
 ('wms', 'Schelpdierwater (WMS)', 'https://geodata.nationaalgeoregister.nl/schelpdierwater/wms?request=GetCapabilities&service=wms'),
 ('wfs', 'Schelpdierwater (WFS)', 'https://geodata.nationaalgeoregister.nl/schelpdierwater/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
-('wms', 'Spoorwegen Prorail (WMS)', 'https://geodata.nationaalgeoregister.nl/spoorwegen/wms?request=GetCapabilities&service=wms'),
-('wfs', 'Spoorwegen Prorail (WFS)', 'https://geodata.nationaalgeoregister.nl/spoorwegen/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
+('wms', 'Spoorwegen Prorail (WMS)', 'https://service.pdok.nl/prorail/spoorwegen/wms/v1_0?service=wms&request=GetCapabilities'),
+('wfs', 'Spoorwegen Prorail (WFS)', 'https://service.pdok.nl/prorail/spoorwegen/wfs/v1_0?service=wfs&request=GetCapabilities&version='+wfsversion),
 ('wms', 'Statistical Units Grid (WMS)', 'https://geodata.nationaalgeoregister.nl/inspire/su-grid/wms?&request=GetCapabilities&service=wms'),
 ('wfs', 'Statistical Units Grid (WFS)', 'https://geodata.nationaalgeoregister.nl/inspire/su-grid/wfs?&request=GetCapabilities&service=wfs&version='+wfsversion),
 ('wms', 'Statistics Netherlands Land Use 2015 (WMS)', 'https://geodata.nationaalgeoregister.nl/inspire/elu/wms?&request=GetCapabilities&service=WMS'),
@@ -680,14 +680,10 @@ services = [
 ]
 
 # testing NOTE: ik heb rare ssl problemen met mn provider ... NIET via tmobile 4G connectie ?????
-NO_services = [
+NOservices = [
 
 ('wms', 'CBS Provincies (WMS)' , 'https://geodata.nationaalgeoregister.nl/cbsprovincies/wms?request=GetCapabilities&service=wms'),
 ('wfs', 'CBS Provincies (WFS)' , 'https://geodata.nationaalgeoregister.nl/cbsprovincies/wfs?request=GetCapabilities&service=wfs&version='+wfsversion),
-
-#('wms', 'xxxx', 'https'),
-#('wfs', 'xxxx', 'https'),
-#('wcs', 'xxxx', 'https'),
 
 ]
 
