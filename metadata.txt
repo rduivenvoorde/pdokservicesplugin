@@ -6,16 +6,16 @@ description=Plugin to easily load the available dutch PDOK (Publieke Dienstverle
 about=Nederlands:
 
         - Plugin om eenvoudiger PDOK services (WMS, WMTS, WFS en WCS) te laden in QGIS.
-        - Vindt u dit een handige plugin? Stuur eens een (klein) Tikkie: https://tikkie.me/pay/l1adcj37rf5te3mn3fe2 Zie verder de 'homepage' van deze plugin.
+        - Vindt u dit een handige plugin? Stuur eens een (klein) Tikkie of een ASN betaling. Zie verder de 'homepage' van deze plugin: https://github.com/rduivenvoorde/pdokservicesplugin
         - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://data.pdok.nl
         - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://data.pdok.nl ophalen.
 
-version=3.5.4
+version=3.6.0
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
-    3.5.4   (??-????) Remove all (i18n) translation code
+    3.6.0   (03-2021) Add 2 favourites button/menu, remove all (i18n) translation code, new services (lufo2020)
     3.5.3   (01-2021) Fix Qt-scene warning, Fix Windows Locale issue, Fix WCS ahn service, Update PDOK services. Test with Tikkie and Betaalverzoek
     3.5.2   (08-2020) Fix urlencoding issue, Remove some old NON-working services
     3.5.1   (07-2020) Remove redundant (not working) BAG url's (thanks Gerben D)

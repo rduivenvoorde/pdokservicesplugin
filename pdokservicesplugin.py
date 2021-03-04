@@ -161,7 +161,7 @@ class PdokServicesPlugin(object):
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.run_action)
 
         # about
-        self.aboutAction = QAction(QIcon(":/plugins/pdokservicesplugin/icon_help.png"), \
+        self.aboutAction = QAction(self.runIcon, \
                             "About", self.iface.mainWindow())
         self.aboutAction.setWhatsThis("Pdok Services Plugin About")
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.aboutAction)
@@ -518,8 +518,6 @@ class PdokServicesPlugin(object):
             pdokjson = os.path.join(self.plugin_dir, "pdok.json")
             with open(pdokjson, 'r', encoding='utf-8') as f:
                 self.pdok = json.load(f)
-                #print(f'self.pdok type = {type(self.pdok)}')
-
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
             self.proxyModel.setSourceModel(self.sourceModel)
