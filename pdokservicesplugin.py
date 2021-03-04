@@ -41,7 +41,7 @@ from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageB
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
 from qgis.PyQt.QtCore import QSortFilterProxyModel
 from qgis.core import QgsApplication, Qgis, QgsProject ,QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
-    QgsGeometry, QgsRectangle, QgsMessageLog
+    QgsGeometry, QgsRectangle, QgsMessageLog, QgsRasterLayer, QgsVectorLayer, QgsLayerTreeLayer
 from qgis.gui import QgsVertexMarker
 
 import json
@@ -53,6 +53,7 @@ from . import resources_rc
 from .pdokservicesplugindialog import PdokServicesPluginDialog
 from xml.dom.minidom import parse
 from .pdokgeocoder import PDOKGeoLocator
+
 
 class PdokServicesPlugin(object):
 
@@ -363,7 +364,8 @@ class PdokServicesPlugin(object):
             else:
                 # qgis > 1.8
                 uri = "crs="+crs+"&layers="+layers+"&styles="+style+"&format="+imgformat+"&url="+url;
-                self.iface.addRasterLayer(uri, title, "wms")
+                new_layer = QgsRasterLayer(uri, title, "wms")
+                self.addLayer(new_layer, -1)
         elif servicetype == "wmts":
             if Qgis.QGIS_VERSION_INT < 10900:
                 QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
@@ -391,7 +393,8 @@ class PdokServicesPlugin(object):
             uri = "tileMatrixSet="+tilematrixset+"&crs="+crs+"&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
             #print "############ PDOK URI #################"
             #print uri
-            self.iface.addRasterLayer(uri, title, "wms")
+            new_layer = QgsRasterLayer(uri, title, "wms")
+            self.addLayer(new_layer, 0)
         elif servicetype == "wfs":
             location, query = urllib.parse.splitquery(url)
             #uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
@@ -400,7 +403,8 @@ class PdokServicesPlugin(object):
             # QGIS will update the BBOX to the right value
             #uri += "&BBOX=-10000,310000,290000,650000"
             uri = " pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='"+layers+"' url='"+url+"' version='2.0.0' "
-            self.iface.addVectorLayer(uri, title, "WFS")
+            new_layer = QgsVectorLayer(uri, title, "wfs")
+            self.addLayer(new_layer, 0)
         elif servicetype == "wcs":
             # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
             uri = ''
@@ -420,10 +424,18 @@ class PdokServicesPlugin(object):
             uri = "cache=AlwaysNetwork&crs=EPSG:28992&format="+format+"&identifier=" + layers + "&url=" + url
             #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format="+format+"&version=1.1.2&identifier=" + layers + "&url=" + url
             #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=image/tiff&version=1.1.2&identifier=" + layers + "&url=" + url
-            self.iface.addRasterLayer(uri, title, "wcs")
+            new_layer = QgsRasterLayer(uri, title, "wcs")
+            self.addLayer(new_layer, 0)
         else:
             QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
             return
+
+    def addLayer(self, new_layer, z=0):
+        '''Adds a QgsLayer to the project and layer tree. z=0: top layer, z=-1: bottom layer'''
+        QgsProject.instance().addMapLayer(new_layer, False)
+        new_layer_tree_layer = QgsLayerTreeLayer(new_layer)
+        layer_tree = self.iface.layerTreeCanvasBridge().rootGroup()
+        layer_tree.insertChildNode(z, new_layer_tree_layer)
 
     def filterGeocoderResult(self, string):
         #print "filtering geocoder results: %s" % string
@@ -506,7 +518,7 @@ class PdokServicesPlugin(object):
             pdokjson = os.path.join(self.plugin_dir, "pdok.json")
             with open(pdokjson, 'r', encoding='utf-8') as f:
                 self.pdok = json.load(f)
-                print(f'self.pdok type = {type(self.pdok)}')
+                #print(f'self.pdok type = {type(self.pdok)}')
 
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
