@@ -127,6 +127,14 @@ class PdokServicesPlugin(object):
         #self.toolbar.addAction(self.run_action)
         self.toolbar.addWidget(self.run_button)
 
+        # Set default loading behaviour
+        self.default_tree_locations = {
+            "wms": 'top',
+            "wmts": 'bottom',
+            "wfs": 'top',
+            "wcs": 'top'
+        }
+
         #self.run_button.menu().addSection('Favorieten')
 
         self.favourite_1_action = QAction('Favoriet 1', self.iface.mainWindow())
@@ -167,9 +175,9 @@ class PdokServicesPlugin(object):
         self.iface.addPluginToMenu(u"&Pdok Services Plugin", self.aboutAction)
 
         self.aboutAction.triggered.connect(self.about)
-        self.dlg.ui.btnLoadLayer.clicked.connect(self.loadService)
-        self.dlg.ui.btnLoadLayerTop.clicked.connect(lambda: self.loadService(0))
-        self.dlg.ui.btnLoadLayerBottom.clicked.connect(lambda: self.loadService(-1))
+        self.dlg.ui.btnLoadLayer.clicked.connect(lambda: self.loadService('default'))
+        self.dlg.ui.btnLoadLayerTop.clicked.connect(lambda: self.loadService('top'))
+        self.dlg.ui.btnLoadLayerBottom.clicked.connect(lambda: self.loadService('bottom'))
 
         self.dlg.geocoderSearch.returnPressed.connect(self.searchAddress)
 
@@ -325,11 +333,11 @@ class PdokServicesPlugin(object):
                 self.loadService()
                 return
         QMessageBox.warning(self.iface.mainWindow(), "Geen Favoriet aanwezig (of verouderd)...", ( \
-            "Maak een Favoriet aan door in de dialoog met services en lagen\n via het context menu (rechter muisknop) een Favoriet te kiezen..."
+            "Maak een Favoriet aan door in de dialoog met services en lagen via het context menu (rechter muisknop) een Favoriet te kiezen..."
             ), QMessageBox.Ok, QMessageBox.Ok)
         self.run()
 
-    def loadService(self, z=None):
+    def loadService(self, tree_location=None):
         if self.currentLayer == None:
             return
         servicetype = self.currentLayer['type']
@@ -348,6 +356,11 @@ class PdokServicesPlugin(object):
             style = ''  # == default for this service
         layers = self.currentLayer['layers']
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
+
+        if tree_location is None:
+            tree_location = self.default_tree_locations[servicetype]
+        #print(tree_location)
+
         if servicetype == "wms":
             imgformat = self.currentLayer['imgformats'].split(',')[0]
             if self.dlg.ui.comboSelectProj.currentIndex() == -1:
@@ -369,9 +382,7 @@ class PdokServicesPlugin(object):
                 # qgis > 1.8
                 uri = "crs="+crs+"&layers="+layers+"&styles="+style+"&format="+imgformat+"&url="+url;
                 new_layer = QgsRasterLayer(uri, title, "wms")
-                if z is None:
-                    z = 0
-                self.addLayer(new_layer, z)
+                self.addLayer(new_layer, tree_location)
         elif servicetype == "wmts":
             if Qgis.QGIS_VERSION_INT < 10900:
                 QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
@@ -400,9 +411,7 @@ class PdokServicesPlugin(object):
             #print "############ PDOK URI #################"
             #print uri
             new_layer = QgsRasterLayer(uri, title, "wms")
-            if z is None:
-                z = -1
-            self.addLayer(new_layer, z)
+            self.addLayer(new_layer, tree_location)
         elif servicetype == "wfs":
             location, query = urllib.parse.splitquery(url)
             #uri = location+"?SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME="+layers+"&SRSNAME=EPSG:28992"
@@ -412,9 +421,7 @@ class PdokServicesPlugin(object):
             #uri += "&BBOX=-10000,310000,290000,650000"
             uri = " pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='"+layers+"' url='"+url+"' version='2.0.0' "
             new_layer = QgsVectorLayer(uri, title, "wfs")
-            if z is None:
-                z = 0
-            self.addLayer(new_layer, z)
+            self.addLayer(new_layer, tree_location)
         elif servicetype == "wcs":
             # cache=AlwaysCache&crs=EPSG:28992&format=GeoTIFF&identifier=ahn25m:ahn25m&url=http://geodata.nationaalgeoregister.nl/ahn25m/wcs
             uri = ''
@@ -435,20 +442,28 @@ class PdokServicesPlugin(object):
             #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format="+format+"&version=1.1.2&identifier=" + layers + "&url=" + url
             #uri = "cache=AlwaysNetwork&crs=EPSG:28992&format=image/tiff&version=1.1.2&identifier=" + layers + "&url=" + url
             new_layer = QgsRasterLayer(uri, title, "wcs")
-            if z is None:
-                z = 0
-            self.addLayer(new_layer, z)
+            self.addLayer(new_layer, tree_location)
         else:
             QMessageBox.warning(self.iface.mainWindow(), "PDOK plugin", ("Sorry, dit type layer: '"+servicetype.upper()+"' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"), QMessageBox.Ok, QMessageBox.Ok)
             return
 
-    def addLayer(self, new_layer, z=0):
-        '''Adds a QgsLayer to the project and layer tree. z=0: top layer, z=-1: bottom layer'''
-        #print('addLayer()', z)
+    def addLayer(self, new_layer, tree_location='default'):
+        '''Adds a QgsLayer to the project and layer tree.
+            tree_location can be 'default', 'top', 'bottom'
+        '''
+        if tree_location not in ['default', 'top', 'bottom']:
+            # raise error ?
+            return
+        if tree_location == 'default':
+            QgsProject.instance().addMapLayer(new_layer, True)
+            return
         QgsProject.instance().addMapLayer(new_layer, False)
         new_layer_tree_layer = QgsLayerTreeLayer(new_layer)
         layer_tree = self.iface.layerTreeCanvasBridge().rootGroup()
-        layer_tree.insertChildNode(z, new_layer_tree_layer)
+        if tree_location == 'top':
+            layer_tree.insertChildNode(0, new_layer_tree_layer)
+        if tree_location == 'bottom':
+            layer_tree.insertChildNode(-1, new_layer_tree_layer)
 
     def filterGeocoderResult(self, string):
         #print "filtering geocoder results: %s" % string
@@ -560,7 +575,7 @@ class PdokServicesPlugin(object):
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
             self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
             self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
-            self.dlg.servicesView.doubleClicked.connect(self.loadService)
+            self.dlg.servicesView.doubleClicked.connect(lambda: self.loadService(None)) # Using lambda here to prevent sending signal parameters to the loadService() function
 
             self.dlg.servicesView.setContextMenuPolicy(Qt.CustomContextMenu)
             self.dlg.servicesView.customContextMenuRequested.connect(self.make_favourite)

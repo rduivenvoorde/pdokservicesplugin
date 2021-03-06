@@ -38,7 +38,7 @@
             <bool>false</bool>
            </property>
            <property name="toolTip">
-            <string>Op standaard wijze toevoegen</string>
+            <string>Boven actieve kaartlaag toevoegen</string>
            </property>
            <property name="text">
             <string>Standaard</string>

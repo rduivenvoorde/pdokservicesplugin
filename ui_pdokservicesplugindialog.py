@@ -150,7 +150,7 @@ class Ui_PdokServicesPlugin(object):
     def retranslateUi(self, PdokServicesPlugin):
         _translate = QtCore.QCoreApplication.translate
         PdokServicesPlugin.setWindowTitle(_translate("PdokServicesPlugin", "PdokServicesPlugin"))
-        self.btnLoadLayer.setToolTip(_translate("PdokServicesPlugin", "Op standaard wijze toevoegen"))
+        self.btnLoadLayer.setToolTip(_translate("PdokServicesPlugin", "Boven actieve kaartlaag toevoegen"))
         self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Standaard"))
         self.btnLoadLayerTop.setToolTip(_translate("PdokServicesPlugin", "Als bovenste kaartlaag toevoegen"))
         self.btnLoadLayerTop.setText(_translate("PdokServicesPlugin", "Boven"))
