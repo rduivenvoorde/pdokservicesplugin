@@ -13,6 +13,7 @@ from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
 from owslib.wfs import WebFeatureService
 from owslib.wcs import WebCoverageService
+import warnings
 
 CSW_URL = "https://nationaalgeoregister.nl/geonetwork/srv/dut/csw"
 LOG_LEVEL = "INFO"
@@ -46,25 +47,27 @@ def get_csw_results(protocol, maxresults=0):
     md_ids = []
     start = 1
     maxrecord = maxresults if (maxresults < 100 and maxresults != 0) else 100
-        
+
     while True:
         csw.getrecords2(maxrecords=maxrecord, cql=query, startposition=start)
         result = [{"mdId": rec, "protocol": protocol} for rec in csw.records]
         md_ids.extend(result)
-        if maxresults!=0 and len(result) >= maxresults: # break only early when maxresults set
+        if (
+            maxresults != 0 and len(result) >= maxresults
+        ):  # break only early when maxresults set
             break
         if csw.results["nextrecord"] != 0:
             start = csw.results["nextrecord"]
             continue
         break
-    logging.info(f"Found {len(md_ids)} results for protocol {protocol}")
+    logging.info(f"Found {len(md_ids)} {protocol} services")
     return md_ids
 
 
-def get_record_by_id(mdId):
+def get_record_by_id(md_id):
     csw = CatalogueServiceWeb(CSW_URL)
-    csw.getrecordbyid(id=[mdId])
-    return csw.records[mdId]
+    csw.getrecordbyid(id=[md_id])
+    return csw.records[md_id]
 
 
 def get_service_url(result):
@@ -125,7 +128,7 @@ def get_wcs_cap(result):
     try:
         url = result["url"]
         md_id = result["mdId"]
-        logging.info(url)
+        logging.info(f"{md_id} - {url}")
         wcs = WebCoverageService(url, version="2.0.1")
         title = wcs.identification.title
         abstract = wcs.identification.abstract
@@ -142,9 +145,7 @@ def get_wcs_cap(result):
     except requests.exceptions.HTTPError as e:
         logging.error(f"mdId: {md_id} - {e}")
     except Exception:
-        message = (
-            f"exception while retrieving WCS cap for service mdId: {md_id}, url: {url}"
-        )
+        message = f"exception while retrieving WCS cap for service md-identifier: {md_id}, url: {url}"
         logging.exception(message)
     return result
 
@@ -156,7 +157,7 @@ def get_wfs_cap(result):
     try:
         url = result["url"]
         md_id = result["mdId"]
-        logging.info(url)
+        logging.info(f"{md_id} - {url}")
         wfs = WebFeatureService(url, version="2.0.0")
         title = wfs.identification.title
         abstract = wfs.identification.abstract
@@ -171,11 +172,9 @@ def get_wfs_cap(result):
         result["layers"] = list(map(convert_layer, layers))
         result["keywords"] = keywords
     except requests.exceptions.HTTPError as e:
-        logging.error(f"mdId: {md_id} - {e}")
+        logging.error(f"md-identifier: {md_id} - {e}")
     except Exception:
-        message = (
-            f"exception while retrieving WFS cap for service mdId: {md_id}, url: {url}"
-        )
+        message = f"exception while retrieving WFS cap for service md-identifier: {md_id}, url: {url}"
         logging.exception(message)
     return result
 
@@ -201,9 +200,9 @@ def get_wms_cap(result):
         url = result["url"]
         if "://secure" in url:
             # this is a secure layer not for the general public: ignore
-            return {"url": f' SECURE SERVICE {result["url"]}'}
+            return result
         md_id = result["mdId"]
-        logging.info(url)
+        logging.info(f"{md_id} - {url}")
         wms = WebMapService(url, version="1.3.0")
         title = wms.identification.title
         abstract = wms.identification.abstract
@@ -216,11 +215,9 @@ def get_wms_cap(result):
         result["layers"] = list(map(convert_layer, layers))
         result["keywords"] = keywords
     except requests.exceptions.HTTPError as e:
-        logging.error(f"mdId: {md_id} - {e}")
+        logging.error(f"md-identifier: {md_id} - {e}")
     except Exception:
-        message = (
-            f"exception while retrieving WMS cap for service mdId: {md_id}, url: {url}"
-        )
+        message = f"exception while retrieving WMS cap for service md-identifier: {md_id}, url: {url}"
         logging.exception(message)
     return result
 
@@ -237,10 +234,10 @@ def get_wmts_cap(result):
     try:
         url = result["url"]
         md_id = result["mdId"]
-        logging.info(url)
+        logging.info(f"{md_id} - {url}")
         if "://secure" in url:
             # this is a secure layer not for the general public: ignore
-            return {"url": f' SECURE SERVICE {result["url"]}'}
+            return result
         wmts = WebMapTileService(url)
         title = wmts.identification.title
         abstract = wmts.identification.abstract
@@ -251,13 +248,10 @@ def get_wmts_cap(result):
         result["layers"] = list(map(convert_layer, layers))
         result["keywords"] = keywords
     except requests.exceptions.HTTPError as e:
-        logging.error(f"mdId: {md_id} - {e}")
+        logging.error(f"md-identifier: {md_id} - {e}")
     except Exception:
-        message = (
-            f"exception while retrieving WMTS cap for service mdId: {md_id}, url: {url}"
-        )
+        message = f"unexpected error occured while retrieving cap doc, md-identifier {md_id}, url: {url}"
         logging.exception(message)
-
     return result
 
 
@@ -325,12 +319,15 @@ def flatten_service(service):
         return fun_mapping[service["protocol"]](layer)
 
     result = list(map(flatten_layer, service["layers"]))
-
     return result
 
 
-def main(out_file, number_records, pretty):
-    protocols = PROTOCOLS
+def main(out_file, number_records, pretty, protocols):
+    if protocols:
+        protocols = protocols.split(",")
+    else:
+        protocols = PROTOCOLS
+
     csw_results = list(
         map(
             lambda x: get_csw_results(x, number_records),
@@ -350,7 +347,6 @@ def main(out_file, number_records, pretty):
 
     # delete duplicate service entries, some service endpoint have multiple service records
     new_dict = dict()
-
     for obj in get_record_results:
         new_dict[obj["url"]] = obj
 
@@ -364,7 +360,6 @@ def main(out_file, number_records, pretty):
     )
     loop.run_until_complete(future)
     cap_results = future.result()
-
     failed_services = list(filter(lambda x: "layers" not in x, cap_results))
     failed_svc_urls = map(lambda x: x["url"], failed_services)
     nr_failed_services = len(failed_services)
@@ -374,13 +369,12 @@ def main(out_file, number_records, pretty):
     config = list(map(flatten_service, cap_results))
 
     # each services returns as a list of layers, flatten list, see https://stackoverflow.com/a/953097
-    config = list(itertools.chain(*config))
+    config = [item for sublist in config for item in sublist]
     wms_layers = list(filter(lambda x: isinstance(x, list), config))
     config = list(filter(lambda x: isinstance(x, dict), config))
     # wms layers are nested one level deeper, due to exploding layers on styles
-    wms_layers = list(itertools.chain(*wms_layers))
+    wms_layers = [item for sublist in wms_layers for item in sublist]
     config.extend(wms_layers)
-
     nr_layers = len(config)
 
     with open(out_file, "w") as f:
@@ -412,7 +406,25 @@ if __name__ == "__main__":
         help="nr of records to retrieve per service type",
     )
     parser.add_argument(
-        "--pretty", dest="pretty", action="store_true", help="pretty print JSON output"
+        "-p",
+        "--protocols",
+        action="store",
+        type=str,
+        default="",
+        help="service type protocols to query, comma separated",
+    )
+
+    parser.add_argument(
+        "--pretty", dest="pretty", action="store_true", help="pretty JSON output"
+    )
+    parser.add_argument(
+        "--warnings", dest="show_warnings", action="store_true", help="show user warnings - owslib tends to show warnings about capabilities"
     )
     args = parser.parse_args()
-    main(args.output_file, args.number, args.pretty)
+
+    if args.show_warnings:
+        main(args.output_file, args.number, args.pretty, args.protocols)
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            main(args.output_file, args.number, args.pretty, args.protocols)
