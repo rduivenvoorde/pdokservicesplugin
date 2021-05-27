@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>838</width>
-    <height>800</height>
+    <height>944</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,16 +73,6 @@
          </item>
         </layout>
        </item>
-       <item row="2" column="0" colspan="4">
-        <widget class="QTextEdit" name="layerInfo">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>200</height>
-          </size>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
@@ -119,6 +109,19 @@
        </item>
        <item row="0" column="2">
         <widget class="QLineEdit" name="layerSearch"/>
+       </item>
+       <item row="2" column="0" colspan="4">
+        <widget class="QTextBrowser" name="layerInfo">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>300</height>
+          </size>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -255,17 +258,17 @@
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:600; color:#444444;&quot;&gt;QGIS plugin voor PDOK services&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt;Deze plugin wordt gemaakt door Richard Duivenvoorde (&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:600; color:#444444;&quot;&gt;Zuidt&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt;, https://zuidt.nl).&lt;br /&gt;De code van deze plugin is te vinden op https://github.com/rduivenvoorde/pdokservicesplugin.&lt;br /&gt;Bugs kunt u daar melden. &lt;/span&gt;&lt;/p&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:600; color:#444444;&quot;&gt;QGIS plugin voor PDOK services&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt;Deze plugin wordt gemaakt door Richard Duivenvoorde (&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:600; color:#444444;&quot;&gt;Zuidt&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt;, https://zuidt.nl).&lt;br /&gt;De code van deze plugin is te vinden op https://github.com/rduivenvoorde/pdokservicesplugin.&lt;br /&gt;Bugs kunt u daar melden. &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/pdok.png&quot; /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:600; color:#444444;&quot;&gt;PDOK&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt; stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf, particulier) kosteloos te gebruiken. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt;Service url's voor alle in de plugin aanwezige lagen zijn afkomstig van deze pagina:&lt;br /&gt;&lt;br /&gt;&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:600; color:#444444;&quot;&gt;https://www.pdok.nl/datasets&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; color:#444444;&quot;&gt;Soms werken WFS'en niet vanwege zogenaamde 'complex features' in de (vaak Inspire) data. U kunt zelf proberen deze lagen als GML te downloaden of de plugin 'GML Application Schema Toolbox' te gebruiken.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:600; color:#444444;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:600; color:#444444;&quot;&gt;OpenGeoGroep. Anders denken, Anders doen...&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt;De &lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:600; color:#444444;&quot;&gt;OpenGeoGroep &lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt; is een commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-weight:296; color:#444444;&quot;&gt; &lt;/span&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/ogg.gif&quot; /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:600; color:#444444;&quot;&gt;PDOK&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt; stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf, particulier) kosteloos te gebruiken. &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt;Service url's voor alle in de plugin aanwezige lagen zijn afkomstig van deze pagina:&lt;br /&gt;&lt;br /&gt;&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:600; color:#444444;&quot;&gt;https://www.pdok.nl/datasets&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; color:#444444;&quot;&gt;Soms werken WFS'en niet vanwege zogenaamde 'complex features' in de (vaak Inspire) data. U kunt zelf proberen deze lagen als GML te downloaden of de plugin 'GML Application Schema Toolbox' te gebruiken.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:600; color:#444444;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:600; color:#444444;&quot;&gt;OpenGeoGroep. Anders denken, Anders doen...&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt;De &lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:600; color:#444444;&quot;&gt;OpenGeoGroep &lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt; is een commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue,Helvetica,Arial,sans-serif'; font-size:11pt; font-weight:296; color:#444444;&quot;&gt; &lt;/span&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/ogg.gif&quot; /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>

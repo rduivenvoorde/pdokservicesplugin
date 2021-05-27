@@ -279,7 +279,7 @@ class PdokServicesPlugin(object):
             title += f' [{style}]'
         servicetitle = self.currentLayer['servicetitle']
         layername = self.currentLayer['layers']
-        abstract = self.currentLayer['abstract']
+        abstract = self.currentLayer['abstract'] if (not None) else ""
         stype = self.currentLayer['type'].upper()
         minscale =''
         if 'minscale' in self.currentLayer and self.currentLayer['minscale'] != None and self.currentLayer['minscale'] != '':
@@ -287,13 +287,15 @@ class PdokServicesPlugin(object):
         maxscale = ''
         if 'maxscale' in self.currentLayer and self.currentLayer['maxscale'] != None and self.currentLayer['maxscale'] != '':
             maxscale = "max. schaal 1:"+self.currentLayer['maxscale']
+        md_id = self.currentLayer['md_id']
         self.dlg.ui.layerInfo.setText('')
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.btnLoadLayerTop.setEnabled(True)
         self.dlg.ui.btnLoadLayerBottom.setEnabled(True)
-        self.dlg.ui.layerInfo.setHtml('<h4>%s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li></lu>' % (servicetitle, title, abstract, stype, url, layername, style, minscale, maxscale))
+        self.dlg.ui.layerInfo.setHtml('<h4>Service: %s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>&nbsp;</li><li>Metadata ID: <a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/%s">%s</a> (link naar het Nationaal Georegister)</li><li>&nbsp;</li></lu>'
+                                        % (servicetitle, title, abstract, stype, url, layername, style, minscale, maxscale, md_id, md_id))
         self.dlg.ui.comboSelectProj.clear()
-        if stype=="WMS":
+        if stype == "WMS":
             try:
                 crs = self.currentLayer['crs']
             except KeyError:
@@ -813,9 +815,9 @@ class PdokServicesPlugin(object):
     def setPointer(self, point):
         self.removePointer()
         self.pointer = QgsVertexMarker(self.iface.mapCanvas())
-        self.pointer.setColor(QColor(255, 255, 0))
+        self.pointer.setColor(QColor(255, 0, 0))
         self.pointer.setIconSize(10)
-        self.pointer.setPenWidth(5)
+        self.pointer.setPenWidth(2)
         self.pointer.setCenter(point)
         self.clean_action.setEnabled(True)
 
