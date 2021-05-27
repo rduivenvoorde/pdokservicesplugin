@@ -4,7 +4,28 @@
 
 ## Usage
 
-Install dependencies from `requirements.txt` and run:
+Optionally you can use a virtual environment for all this:
+
+```
+python -m venv venv
+cd venv
+# on linux
+source bin/activate
+# on windows
+.\venv\Scripts\activate
+# you are now 'working' in your virtual environment, you should see (venv) in your prompt
+
+# NOTE to 'deactivate' your venv (to go out) run
+deactivate
+```
+
+Install python module dependencies from `requirements.txt` 
+
+```
+pip install -r requirements.txt
+```
+
+and run:
 
 ```
 ./spider.py --help
