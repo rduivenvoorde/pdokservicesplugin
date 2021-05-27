@@ -10,6 +10,14 @@ Install dependencies from `requirements.txt` and run:
 ./spider.py --help
 ```
 
+Example to create a valid/full pdok.json usable ik (old) psokservicesplugin:
+
+```
+# -n 250 tries to retrieve 250 services of every protocol (WMS,WFS etc) 
+# that is for now enough (WMS is max 164 currently)
+# pdok.json is the default name of the json file used in the psokservicesplugin
+./spider.py -n 250 pdok.json
+```
 
 ## Output Example
 
