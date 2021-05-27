@@ -6,6 +6,8 @@ from qgis.PyQt.QtWidgets import QAction, QMessageBox
 from qgis.PyQt.QtGui import QIcon
 
 from .locator_filter.pdoklocatieserverfilter import PDOKLocatieserverLocatorFilter
+from .pdok_services_dialog import PdokServicesDialog
+
 
 
 
@@ -15,16 +17,20 @@ class PdokServicesPlugin:
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
 
+        # services dialog
+        self.services_dlg = PdokServicesDialog(self, parent=self.iface.mainWindow())
+
         # locator filter
         self.filter = PDOKLocatieserverLocatorFilter(self.iface)
         self.iface.registerLocatorFilter(self.filter)
 
+
     def initGui(self):
         add_service_icon = QIcon(os.path.join(self.plugin_dir, 'img', 'icon_add_service.svg'))
-        self.add_service_action = QAction(add_service_icon, 'Voeg PDOK-kaartlaag toe', self.iface.mainWindow())
+        self.add_service_action = QAction(add_service_icon, 'Voeg PDOK-kaartlaag toe...', self.iface.mainWindow())
         self.add_service_action.triggered.connect(self.show_add_service_dlg)
 
-        self.toolbar = self.iface.addToolBar("PDOK")
+        self.toolbar = self.iface.addToolBar("PDOK Services Plugin")
         self.toolbar.addAction(self.add_service_action)
 
 
@@ -39,4 +45,5 @@ class PdokServicesPlugin:
 
 
     def show_add_service_dlg(self):
-        QMessageBox.information(None, 'PDOK Services Plugin', 'Dummy text')
+        #QMessageBox.information(None, 'PDOK Services Plugin', 'Dummy text')
+        self.services_dlg.show()
