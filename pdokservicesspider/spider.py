@@ -7,6 +7,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 import itertools
 import requests
+from copy import deepcopy
 from owslib.csw import CatalogueServiceWeb
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
@@ -16,10 +17,6 @@ from owslib.wcs import WebCoverageService
 CSW_URL = "https://nationaalgeoregister.nl/geonetwork/srv/dut/csw"
 LOG_LEVEL = "INFO"
 PROTOCOLS = ["OGC:WMS", "OGC:WFS", "OGC:WMTS", "OGC:WCS"]
-
-IGNORE_SERVICE_URLS = [
-    'https://service.pdok.nl/kadaster/kadasterkaarttest/wfs/v1_0-preprod?request=GetCapabilities&service=WFS',
-]
 
 logging.basicConfig(
     level=LOG_LEVEL,
@@ -44,15 +41,17 @@ def get_csw_results(protocol, maxresults=0):
     query = (
         f"type='service' AND organisationName='{svc_owner}' AND protocol='{protocol}'"
         # to be able to check specific services:
-        #f"type='service' AND organisationName='{svc_owner}' AND protocol='{protocol}' AND any='zeegras'"
+        # f"type='service' AND organisationName='{svc_owner}' AND protocol='{protocol}' AND any='zeegras'"
     )
     md_ids = []
     start = 1
     maxrecord = maxresults if (maxresults < 100 and maxresults != 0) else 100
+        
     while True:
         csw.getrecords2(maxrecords=maxrecord, cql=query, startposition=start)
-        md_ids.extend([{"mdId": rec, "protocol": protocol} for rec in csw.records])
-        if len(md_ids) >= maxresults:
+        result = [{"mdId": rec, "protocol": protocol} for rec in csw.records]
+        md_ids.extend(result)
+        if maxresults!=0 and len(result) >= maxresults: # break only early when maxresults set
             break
         if csw.results["nextrecord"] != 0:
             start = csw.results["nextrecord"]
@@ -109,23 +108,19 @@ async def get_data_asynchronous(results, fun):
 
 
 def get_cap(result):
-    function_mapping = {"OGC:WMS": get_wms_cap, "OGC:WFS": get_wfs_cap, "OGC:WCS": get_wcs_cap, "OGC:WMTS": get_wmts_cap}
-    try:
-        result = function_mapping[result["protocol"]](result)
-    except requests.exceptions.SSLError:
-        md_id = result["mdId"]
-        url = result["url"]
-        message = f"requests.exceptions.SSLError occured while retrieving capabilities for service mdID {md_id} and url {url}"
-        logging.error(message)
+    function_mapping = {
+        "OGC:WMS": get_wms_cap,
+        "OGC:WFS": get_wfs_cap,
+        "OGC:WCS": get_wcs_cap,
+        "OGC:WMTS": get_wmts_cap,
+    }
+    result = function_mapping[result["protocol"]](result)
     return result
+
 
 def get_wcs_cap(result):
     def convert_layer(lyr):
-        return {
-            "name": lyr,
-            "title": wcs[lyr].title,
-            "layers": wcs[lyr].id
-        }
+        return {"name": lyr, "title": wcs[lyr].title, "layers": wcs[lyr].id}
 
     try:
         url = result["url"]
@@ -135,25 +130,28 @@ def get_wcs_cap(result):
         title = wcs.identification.title
         abstract = wcs.identification.abstract
         keywords = wcs.identification.keywords
-        getcoverage_op = next((x for x in wcs.operations if x.name == "GetCoverage"), None)
+        getcoverage_op = next(
+            (x for x in wcs.operations if x.name == "GetCoverage"), None
+        )
         result["formats"] = ",".join(getcoverage_op.formatOptions)
         layers = list(wcs.contents)
         result["title"] = title
         result["abstract"] = abstract
         result["layers"] = list(map(convert_layer, layers))
         result["keywords"] = keywords
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"mdId: {md_id} - {e}")
     except Exception:
-        message = f"exception while retrieving WCS cap for service mdId: {md_id}, url: {url}"
+        message = (
+            f"exception while retrieving WCS cap for service mdId: {md_id}, url: {url}"
+        )
         logging.exception(message)
     return result
 
+
 def get_wfs_cap(result):
     def convert_layer(lyr):
-        return {
-            "name": lyr,
-            "title": wfs[lyr].title,
-            "layers": wfs[lyr].id
-        }
+        return {"name": lyr, "title": wfs[lyr].title, "layers": wfs[lyr].id}
 
     try:
         url = result["url"]
@@ -163,15 +161,21 @@ def get_wfs_cap(result):
         title = wfs.identification.title
         abstract = wfs.identification.abstract
         keywords = wfs.identification.keywords
-        getfeature_op = next((x for x in wfs.operations if x.name == "GetFeature"), None)
+        getfeature_op = next(
+            (x for x in wfs.operations if x.name == "GetFeature"), None
+        )
         result["formats"] = ",".join(getfeature_op.formatOptions)
         layers = list(wfs.contents)
         result["title"] = title
         result["abstract"] = abstract
         result["layers"] = list(map(convert_layer, layers))
         result["keywords"] = keywords
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"mdId: {md_id} - {e}")
     except Exception:
-        message = f"exception while retrieving WFS cap for service mdId: {md_id}, url: {url}"
+        message = (
+            f"exception while retrieving WFS cap for service mdId: {md_id}, url: {url}"
+        )
         logging.exception(message)
     return result
 
@@ -181,7 +185,7 @@ def get_wms_cap(result):
         return {
             "name": lyr,
             "title": wms[lyr].title,
-            "style": list(wms[lyr].styles.keys())[0]
+            "styles": list(wms[lyr].styles.keys())
             if len(list(wms[lyr].styles.keys())) > 0
             else "",
             "crs": ",".join([x[4] for x in wms[lyr].crs_list]),
@@ -211,8 +215,12 @@ def get_wms_cap(result):
         result["abstract"] = abstract
         result["layers"] = list(map(convert_layer, layers))
         result["keywords"] = keywords
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"mdId: {md_id} - {e}")
     except Exception:
-        message = f"exception while retrieving WMS cap for service mdId: {md_id}, url: {url}"
+        message = (
+            f"exception while retrieving WMS cap for service mdId: {md_id}, url: {url}"
+        )
         logging.exception(message)
     return result
 
@@ -242,24 +250,38 @@ def get_wmts_cap(result):
         result["abstract"] = abstract
         result["layers"] = list(map(convert_layer, layers))
         result["keywords"] = keywords
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"mdId: {md_id} - {e}")
     except Exception:
-        message = f"exception while retrieving WMTS cap for service mdId: {md_id}, url: {url}"
+        message = (
+            f"exception while retrieving WMTS cap for service mdId: {md_id}, url: {url}"
+        )
         logging.exception(message)
-        
+
     return result
 
 
 def flatten_service(service):
     def flatten_layer_wms(layer):
-        fields = ["imgformats", "url"]
-        for field in fields:
-            layer[field] = service[field]
-        layer["servicetitle"] = service["title"]
-        layer["type"] = service["protocol"].split(":")[1].lower()
-        layer["layers"] = layer["name"]
-        layer["abstract"] = service["abstract"] if (not None) else ""
-        layer["md_id"] = service["mdId"]
-        return layer
+        def flatten_styles(stylename):
+            layer_copy = deepcopy(
+                layer
+            )  #  to prevent the same layer object to be modified each iteration
+            fields = ["imgformats", "url"]  # fields not renamed
+            for field in fields:
+                layer_copy[field] = service[field]
+            layer_copy["servicetitle"] = service["title"]
+            layer_copy["type"] = service["protocol"].split(":")[1].lower()
+            layer_copy["layers"] = layer_copy["name"]
+            layer_copy["abstract"] = service["abstract"] if (not None) else ""
+            layer_copy["md_id"] = service["mdId"]
+            layer_copy["style"] = stylename
+            layer_copy.pop("name", None)
+            return layer_copy
+
+        styles = layer["styles"]
+        layer.pop("styles", None)
+        return list(map(flatten_styles, styles))
 
     def flatten_layer_wcs(layer):
         fields = ["url"]
@@ -302,10 +324,12 @@ def flatten_service(service):
         }
         return fun_mapping[service["protocol"]](layer)
 
-    return list(map(flatten_layer, service["layers"]))
+    result = list(map(flatten_layer, service["layers"]))
+
+    return result
 
 
-def main(out_file, number_records):
+def main(out_file, number_records, pretty):
     protocols = PROTOCOLS
     csw_results = list(
         map(
@@ -326,15 +350,12 @@ def main(out_file, number_records):
 
     # delete duplicate service entries, some service endpoint have multiple service records
     new_dict = dict()
+
     for obj in get_record_results:
-        print(obj["url"])
-        if obj["url"] in IGNORE_SERVICE_URLS:
-            pass
-        elif obj["url"] not in new_dict:
-            new_dict[obj["url"]] = obj
-    get_record_results_filtered = [
-        value for key, value in new_dict.items()
-    ]  
+        new_dict[obj["url"]] = obj
+
+    get_record_results_filtered = [value for key, value in new_dict.items()]
+
     nr_services = len(get_record_results_filtered)
 
     loop = asyncio.get_event_loop()
@@ -343,34 +364,39 @@ def main(out_file, number_records):
     )
     loop.run_until_complete(future)
     cap_results = future.result()
-    
+
     failed_services = list(filter(lambda x: "layers" not in x, cap_results))
     failed_svc_urls = map(lambda x: x["url"], failed_services)
     nr_failed_services = len(failed_services)
-    cap_results = filter(lambda x: "layers" in x, cap_results)  # filter out services where getcap req failed
+    cap_results = filter(
+        lambda x: "layers" in x, cap_results
+    )  # filter out services where getcap req failed
     config = list(map(flatten_service, cap_results))
-    config = [
-        item for sublist in config for item in sublist
-    ]  # remove nesting due to flattening
+
+    # each services returns as a list of layers, flatten list, see https://stackoverflow.com/a/953097
+    config = list(itertools.chain(*config))
+    wms_layers = list(filter(lambda x: isinstance(x, list), config))
+    config = list(filter(lambda x: isinstance(x, dict), config))
+    # wms layers are nested one level deeper, due to exploding layers on styles
+    wms_layers = list(itertools.chain(*wms_layers))
+    config.extend(wms_layers)
 
     nr_layers = len(config)
 
     with open(out_file, "w") as f:
-        #services = {"services": config}
-        #json.dump(services, f, indent=4)
-        f.write('{"services": [\n')
-        for i in range(0, len(config)):
-            json.dump(config[i], f)
-            if i < len(config)-1:
-                f.write(',\n')
-        f.write('\n]}')
+        indent = None
+        if pretty:
+            indent = 4
+        services = {"services": config}
+        json.dump(services, f, indent=indent)
 
-    logging.info(f"indexed {nr_services} services with {nr_layers} layers") 
-    logging.info(f"failed to index {nr_failed_services} services")
-    failed_svc_urls_str = "\n".join(failed_svc_urls)
-    logging.info(f"failed service urls:\n{failed_svc_urls_str}")
+    logging.info(f"indexed {nr_services} services with {nr_layers} layers")
+    if nr_failed_services > 0:
+        logging.info(f"failed to index {nr_failed_services} services")
+        failed_svc_urls_str = "\n".join(failed_svc_urls)
+        logging.info(f"failed service urls:\n{failed_svc_urls_str}")
     logging.info(f"output written to {out_file}")
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Validate XML against schema")
@@ -385,5 +411,8 @@ if __name__ == "__main__":
         default=0,
         help="nr of records to retrieve per service type",
     )
+    parser.add_argument(
+        "--pretty", dest="pretty", action="store_true", help="pretty print JSON output"
+    )
     args = parser.parse_args()
-    main(args.output_file, args.number)
+    main(args.output_file, args.number, args.pretty)
