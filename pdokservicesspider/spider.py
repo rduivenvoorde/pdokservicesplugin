@@ -17,6 +17,10 @@ CSW_URL = "https://nationaalgeoregister.nl/geonetwork/srv/dut/csw"
 LOG_LEVEL = "INFO"
 PROTOCOLS = ["OGC:WMS", "OGC:WFS", "OGC:WMTS", "OGC:WCS"]
 
+IGNORE_SERVICE_URLS = [
+    'https://service.pdok.nl/kadaster/kadasterkaarttest/wfs/v1_0-preprod?request=GetCapabilities&service=WFS',
+]
+
 logging.basicConfig(
     level=LOG_LEVEL,
     format="%(asctime)s - %(levelname)s: %(message)s",
@@ -323,7 +327,10 @@ def main(out_file, number_records):
     # delete duplicate service entries, some service endpoint have multiple service records
     new_dict = dict()
     for obj in get_record_results:
-        if obj["url"] not in new_dict:
+        print(obj["url"])
+        if obj["url"] in IGNORE_SERVICE_URLS:
+            pass
+        elif obj["url"] not in new_dict:
             new_dict[obj["url"]] = obj
     get_record_results_filtered = [
         value for key, value in new_dict.items()
