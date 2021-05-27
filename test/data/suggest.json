@@ -1,0 +1,70 @@
+{
+    "response": {
+        "numFound": 812662,
+        "start": 0,
+        "maxScore": 19.91312,
+        "docs": [
+            {
+                "type": "gemeente",
+                "weergavenaam": "Gemeente Amsterdam",
+                "id": "gem-0b2a8b92856b27f86fbd67ab35808ebf",
+                "score": 19.91312
+            },
+            {
+                "type": "woonplaats",
+                "weergavenaam": "Amsterdam, Amsterdam, Noord-Holland",
+                "id": "wpl-62fe60a4eea50b7c33ba3d9c39a21e6a",
+                "score": 16.974325
+            },
+            {
+                "type": "woonplaats",
+                "weergavenaam": "Nieuw-Amsterdam, Emmen, Drenthe",
+                "id": "wpl-a1454fa0a5303cf142cc16ab4509a386",
+                "score": 14.8786
+            },
+            {
+                "type": "woonplaats",
+                "weergavenaam": "Amsterdam-Duivendrecht, Ouder-Amstel, Noord-Holland",
+                "id": "wpl-89ef8880a29baf0d14fe2219a9ab8be6",
+                "score": 14.846458
+            },
+            {
+                "type": "weg",
+                "weergavenaam": "Amsterdam Rijnkanaalkade, Amsterdam",
+                "id": "weg-77216b4b28a7af5944cd684cece5dd67",
+                "score": 10.223845
+            }
+        ]
+    },
+    "highlighting": {
+        "gem-0b2a8b92856b27f86fbd67ab35808ebf": {
+            "suggest": [
+                "Gemeente <b>Amsterdam</b>"
+            ]
+        },
+        "wpl-62fe60a4eea50b7c33ba3d9c39a21e6a": {
+            "suggest": [
+                "<b>Amsterdam</b>, <b>Amsterdam</b>, Noord-Holland"
+            ]
+        },
+        "wpl-a1454fa0a5303cf142cc16ab4509a386": {
+            "suggest": [
+                "Nieuw-<b>Amsterdam</b>, Emmen, Drenthe"
+            ]
+        },
+        "wpl-89ef8880a29baf0d14fe2219a9ab8be6": {
+            "suggest": [
+                "<b>Amsterdam</b>-Duivendrecht, Ouder-Amstel, Noord-Holland"
+            ]
+        },
+        "weg-77216b4b28a7af5944cd684cece5dd67": {
+            "suggest": [
+                "<b>Amsterdam</b> Rijnkanaalkade, <b>Amsterdam</b>"
+            ]
+        }
+    },
+    "spellcheck": {
+        "suggestions": [],
+        "collations": []
+    }
+}
