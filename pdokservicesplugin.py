@@ -344,12 +344,19 @@ class PdokServicesPlugin(object):
             return
         servicetype = self.currentLayer['type']
         url = self.currentLayer['url']
-        # some services have an url with query parameters in it, we have to urlencode those:
         location, query = urllib.parse.splitquery(url)
-        url = location
+        # some services have an url with query parameters in it, we have to urlencode those:
         # RD: 20200820: lijkt of het quoten van de query problemen geeft bij WFS, is/was dit nodig???
         #if query != None and query != '':
         #    url +=('?'+urllib.parse.quote_plus(query))
+        # the following services seem to need the ?service=WMTS&request=getcapabilities
+        if 'https://service.pdok.nl/brt/achtergrondkaart' in url or \
+           'https://geodata.nationaalgeoregister.nl/kadastralekaart' in url:
+            #pass    # we want the full url here including the 'service=wmts&request=getcapabilities'-part
+            url = location+'?'+urllib.parse.quote_plus(query)
+            #print(f'service url: {url}')
+        else:
+            url = location
         title = self.currentLayer['title']
         if 'style' in self.currentLayer:
             style = self.currentLayer['style']
@@ -410,8 +417,7 @@ class PdokServicesPlugin(object):
             elif tilematrixset.startswith('OGC:1.0'):
                 crs='EPSG:3857'
             uri = "tileMatrixSet="+tilematrixset+"&crs="+crs+"&layers="+layers+"&styles=default&format="+imgformat+"&url="+url;
-            #print "############ PDOK URI #################"
-            #print uri
+            #print(f"############ PDOK URI #################\n{uri}")
             new_layer = QgsRasterLayer(uri, title, "wms")
             self.addLayer(new_layer, tree_location)
         elif servicetype == "wfs":
