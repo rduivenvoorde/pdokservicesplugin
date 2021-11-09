@@ -240,18 +240,18 @@ class PdokServicesPlugin(object):
 
     def about(self):
         infoString =  "Written by Richard Duivenvoorde\nEmail - richard@duif.net\n"
-        infoString += "Company - Zuidt - http://www.zuidt.nl\n"
+        infoString += "Company - Zuidt - https://www.zuidt.nl\n"
         infoString += "Source: https://github.com/rduivenvoorde/pdokservicesplugin"
         QMessageBox.information(self.iface.mainWindow(), "Pdok Services Plugin About", infoString)
 
     def unload(self):
-        self.removePointer()
-        # Remove the plugin menu item and icon
-        self.iface.removePluginMenu("&Pdok Services Plugin", self.run_action)
-        self.iface.removePluginMenu("&Pdok Services Plugin", self.aboutAction)
-        del self.toolbarSearch
-        del self.run_action
-        del self.aboutAction
+        try:  # using try except here because plugin could be unloaded during development: gracefully fail
+            self.removePointer()
+            self.iface.removePluginMenu("&Pdok Services Plugin", self.run_action)
+            self.iface.removePluginMenu("&Pdok Services Plugin", self.aboutAction)
+            del self.toolbar
+        except Exception as e:
+            pass
 
     def showService(self, selectedIndexes):
         if len(selectedIndexes) == 0:
