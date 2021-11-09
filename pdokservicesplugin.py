@@ -349,9 +349,11 @@ class PdokServicesPlugin(object):
         # RD: 20200820: lijkt of het quoten van de query problemen geeft bij WFS, is/was dit nodig???
         #if query != None and query != '':
         #    url +=('?'+urllib.parse.quote_plus(query))
-        # the following services seem to need the ?service=WMTS&request=getcapabilities
-        if 'https://service.pdok.nl/brt/achtergrondkaart' in url or \
-           'https://geodata.nationaalgeoregister.nl/kadastralekaart' in url:
+        # the following wmts(!) services seem to need the ?service=WMTS&request=getcapabilities
+        # note: the WFS servcies of kadastralekaart should NOT have that part!!
+        if servicetype == "wmts" and \
+            ('https://service.pdok.nl/brt/achtergrondkaart' in url or \
+                'https://geodata.nationaalgeoregister.nl/kadastralekaart' in url):
             #pass    # we want the full url here including the 'service=wmts&request=getcapabilities'-part
             url = location+'?'+urllib.parse.quote_plus(query)
             #print(f'service url: {url}')

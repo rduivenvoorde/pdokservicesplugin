@@ -10,11 +10,12 @@ about=Nederlands:
         - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://data.pdok.nl
         - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://data.pdok.nl ophalen.
 
-version=3.7.1
+version=3.7.2
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    3.7.2   (11-2021) Fix #45 (kadastralekaart wfs) thanks Mathijs
     3.7.1   (10-2021) Update Url's Thanks Edward, Raymond, Anton; small fixes in wmts handling
     3.7.0   (05-2021) Add Buttons choose place in layerlist (Thanks Raymond Nijssen), Use pdok-spider to create pdok.json (layer/service list, Thanks Anton Bakker), Add url to metadata in Nationaal Georegister
     3.6.0   (03-2021) Add 2 favourites button/menu, remove all (i18n) translation code, new services (lufo2020)
