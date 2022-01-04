@@ -108,7 +108,14 @@
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QLineEdit" name="layerSearch"/>
+        <widget class="QLineEdit" name="layerSearch">
+         <property name="placeholderText">
+          <string>Start met het type service en dan overige termen, bv &quot;wfs cbs provincie&quot;</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item row="2" column="0" colspan="4">
         <widget class="QTextBrowser" name="layerInfo">

@@ -39,7 +39,7 @@ http://pdokviewer.pdok.nl/
 from qgis.PyQt.QtCore import QSettings, QVariant, QFileInfo, Qt, QTranslator, QCoreApplication, qVersion
 from qgis.PyQt.QtWidgets import QAction, QLineEdit, QAbstractItemView, QMessageBox, QMenu, QToolButton
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
-from qgis.PyQt.QtCore import QSortFilterProxyModel
+from qgis.PyQt.QtCore import QSortFilterProxyModel, QRegExp
 from qgis.core import QgsApplication, Qgis, QgsProject ,QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
     QgsGeometry, QgsRectangle, QgsMessageLog, QgsRasterLayer, QgsVectorLayer, QgsLayerTreeLayer
 from qgis.gui import QgsVertexMarker
@@ -511,7 +511,15 @@ class PdokServicesPlugin(object):
         self.dlg.servicesView.selectRow(0)
         #self.currentLayer = None
         self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        self.proxyModel.setFilterFixedString(string)
+        #self.proxyModel.setFilterFixedString(string)
+        #self.proxyModel.setFilterRegExp(QRegExp(string.replace(' ', '|')))
+
+        strlist = string.strip().split(' ')
+        string = ''
+        for s in strlist:
+            string +=f'{s}.*'
+        self.info(f'zoektekst: {string}')
+        self.proxyModel.setFilterRegExp(QRegExp(string, Qt.CaseInsensitive))
 
     #def addSourceRow(self, service, layer):
     def addSourceRow(self, serviceLayer):
@@ -533,6 +541,7 @@ class PdokServicesPlugin(object):
         itemLayername.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["servicetitle"] ))
         # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
         itemFilter = QStandardItem("%s %s %s %s" % (serviceLayer["type"], layername, serviceLayer["servicetitle"], serviceLayer["abstract"]) )
+        #itemFilter = QStandardItem("%s %s %s %s" % (serviceLayer["type"], layername, serviceLayer["servicetitle"], "") )
         itemServicetitle = QStandardItem("%s" % (serviceLayer["servicetitle"]))
         itemServicetitle.setToolTip("%s - %s" % (serviceLayer["type"].upper() ,serviceLayer["title"] ))
         self.sourceModel.appendRow( [ itemLayername, itemType, itemServicetitle, itemFilter ] )
@@ -583,7 +592,7 @@ class PdokServicesPlugin(object):
                     self.addSourceRow(service)
 
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
-            self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
+            #self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
             self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
             self.dlg.servicesView.doubleClicked.connect(lambda: self.loadService(None)) # Using lambda here to prevent sending signal parameters to the loadService() function
 
