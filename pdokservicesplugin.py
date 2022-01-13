@@ -596,7 +596,7 @@ class PdokServicesPlugin(object):
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
             #self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
             self.dlg.servicesView.selectionModel().selectionChanged.connect(self.showService)
-            self.dlg.servicesView.doubleClicked.connect(lambda: self.loadService(None)) # Using lambda here to prevent sending signal parameters to the loadService() function
+            self.dlg.servicesView.doubleClicked.connect(lambda: self.loadService(None))  # Using lambda here to prevent sending signal parameters to the loadService() function
 
             self.dlg.servicesView.setContextMenuPolicy(Qt.CustomContextMenu)
             self.dlg.servicesView.customContextMenuRequested.connect(self.make_favourite)
@@ -610,8 +610,8 @@ class PdokServicesPlugin(object):
             self.dlg.geocoderResultView.selectionModel().selectionChanged.connect(self.zoomToAddress)
 
             # hide itemFilter column:
-            self.dlg.servicesView.hideColumn(3)
-            self.servicesLoaded = True;
+            :wqself.dlg.servicesView.hideColumn(3)
+            self.servicesLoaded = True
 
         self.sourceModel.setHeaderData(2, Qt.Horizontal, "Service")
         self.sourceModel.setHeaderData(1, Qt.Horizontal, "Type")
