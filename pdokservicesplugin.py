@@ -519,7 +519,9 @@ class PdokServicesPlugin(object):
         for s in strlist:
             string +=f'{s}.*'
         self.info(f'zoektekst: {string}')
-        self.proxyModel.setFilterRegExp(QRegExp(string, Qt.CaseInsensitive))
+        regexp = QRegExp(string, Qt.CaseInsensitive)
+        regexp.setMinimal(True)
+        self.proxyModel.setFilterRegExp(regexp)
 
     #def addSourceRow(self, service, layer):
     def addSourceRow(self, serviceLayer):
