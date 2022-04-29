@@ -610,7 +610,7 @@ class PdokServicesPlugin(object):
             self.dlg.geocoderResultView.selectionModel().selectionChanged.connect(self.zoomToAddress)
 
             # hide itemFilter column:
-            :wqself.dlg.servicesView.hideColumn(3)
+            self.dlg.servicesView.hideColumn(3)
             self.servicesLoaded = True
 
         self.sourceModel.setHeaderData(2, Qt.Horizontal, "Service")
