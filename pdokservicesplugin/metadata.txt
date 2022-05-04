@@ -1,0 +1,60 @@
+[general]
+name=PDOK services plugin
+qgisMinimumVersion=3.10
+qgisMaximumVersion=3.99
+description=Plugin to easily load the available Dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in Dutch.
+about=Nederlands:
+
+        - Plugin om eenvoudiger PDOK services (WMS, WMTS, WFS en WCS) te laden in QGIS.
+        - Vindt u dit een handige plugin? Stuur eens een (klein) Tikkie of een ASN betaling. Zie verder de 'homepage' van deze plugin: https://github.com/rduivenvoorde/pdokservicesplugin
+        - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://data.pdok.nl
+        - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://data.pdok.nl ophalen.
+
+version=4.0.0
+author=Richard Duivenvoorde
+email=richard@zuidt.nl
+
+changelog=
+    3.7.3   (01-2022) Feature: search with words in layerlist (eg: 'wfs prov'), new url's via script from Nationaal Georegister (thanks Raymond and Anton)
+    3.7.2   (11-2021) Fix #45 (kadastralekaart wfs) thanks Mathijs
+    3.7.1   (10-2021) Update Url's Thanks Edward, Raymond, Anton; small fixes in wmts handling
+    3.7.0   (05-2021) Add Buttons choose place in layerlist (Thanks Raymond Nijssen), Use pdok-spider to create pdok.json (layer/service list, Thanks Anton Bakker), Add url to metadata in Nationaal Georegister
+    3.6.0   (03-2021) Add 2 favourites button/menu, remove all (i18n) translation code, new services (lufo2020)
+    3.5.3   (01-2021) Fix Qt-scene warning, Fix Windows Locale issue, Fix WCS ahn service, Update PDOK services. Test with Tikkie and Betaalverzoek
+    3.5.2   (08-2020) Fix urlencoding issue, Remove some old NON-working services
+    3.5.1   (07-2020) Remove redundant (not working) BAG url's (thanks Gerben D)
+    3.5.0   (06-2020) Refresh of services, new Icons (thanks Raymond Nijssen)
+    3.4.4   (01-2019) Fixing WCS services adding them both as RGB-tiff and FLOAT32 Tiffs to make them usable as true rasters
+    3.4.3   (12-2018) new services, WFS->2.0.0, remove doubles etc
+    3.4.2   (09-2018) fix userLocale problem on certain Windows installs
+    3.4.1   (06-2018) fix #21: default search hecto and perceel too
+    3.4.0   (06-2018) add fq filters (perceel, hectometerpaal), deprecating dock, deprecating use of '/free'-api, fix some data exceptions (NWB now in service)
+    3.3.0   (05-2018) possibility to choose crs of service and fixes (thanks Anne Blankert)
+    3.2.3   (04-2018) new services
+    3.2.2   (02-2018) api fixes to make it run with QGIS3 release
+    3.2.1   (12-2017) little zoom tweak for lookup service
+    3.2.0   (12-2017) in dialog and widget use the suggest and lookup service AND show the object properties from the lookup
+    3.1.0   (11-2017) use of new PDOK locatieserver! Services update
+    3.0.2   (07-2017) new layers + fix for api change
+    3.0.1   (05-2017) new layers + fix for api change
+    3.0     (11-2016) bump to 3, update to work (only) with QGIS 3.0 / Python3 / Qt5
+    0.12    (10-2016) new service: lufolabels, fix WCS bug (thanks Raymond Nijssen)
+    0.11    (08-2016) remove of QtWebkit, new services: bag, cbs2015 wijkenbuurt, Opentopo, drone nofly zone, Kadastrale Percelen
+    0.10    (01-2016) new services + all to https
+    0.9     (09-2014) removing some not working wmts services from pdok.json
+    0.8     (08-2014) proxy fix (thanks Bart Baas), new icons (thanks Raymond Nijssen), geocoder is now zooming to pdok scale, new button to clean result, now also searching in stylenames, disable double click on headers (was confusing)
+    0.7     (05-2014) new services, styles of wms's are working, extra settings for docked/dialog, retrieve pdok.json over network
+    0.6     (03-2014) new services (ahn2!), added geocoder tab and geocoder toolbar
+    0.5     (10-2013) fix for QGIS 2.0 api
+    0.4     (11-2012) updated for new pdok services
+    0.3     (10-2012) initial version
+
+tags=Nederland, PDOK, ows, services
+
+tracker=https://github.com/rduivenvoorde/pdokservicesplugin/issues
+homepage=https://github.com/rduivenvoorde/pdokservicesplugin
+repository=https://github.com/rduivenvoorde/pdokservicesplugin
+
+experimental=False
+icon=resources/icon_pdok.svg
+hasProcessingProvider=yes
