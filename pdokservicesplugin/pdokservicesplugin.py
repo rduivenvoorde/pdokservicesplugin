@@ -519,7 +519,11 @@ class PdokServicesPlugin(object):
             new_layer = QgsRasterLayer(uri, title, "wms")
             self.addLayer(new_layer, tree_location)
         elif servicetype == "wfs":
-            location, query = urllib.parse.splitquery(url)
+            parse_result = urllib.parse.urlparse(url)
+            location = (
+                f"{parse_result.scheme}://{parse_result.netloc}/{parse_result.path}"
+            )
+            query = parse_result.query
             uri = (
                 " pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='"
                 + layers
@@ -532,10 +536,7 @@ class PdokServicesPlugin(object):
         elif servicetype == "wcs":
             uri = ""
             format = "GEOTIFF_FLOAT32"
-            # working for ahn25m is only image/tiff
-            if layers == "ahn25m":
-                format = "image/tiff"
-            # we handcrated some wcs layers with 2 different image formats: tiff (RGB) and tiff (float32):
+            # we handcrafted some wcs layers with 2 different image formats: tiff (RGB) and tiff (float32):
             if "imgformats" in self.currentLayer:
                 format = self.currentLayer["imgformats"].split(",")[0]
             uri = (
