@@ -84,7 +84,6 @@ class PdokServicesPlugin(object):
         self.iface.registerLocatorFilter(self.filter)
 
         # initialize plugin directory
-
         self.currentLayer = None
         self.SETTINGS_SECTION = "/pdokservicesplugin/"
         self.pointer = None
@@ -129,11 +128,8 @@ class PdokServicesPlugin(object):
         self.setupfq()
 
         # Add toolbar button and menu item
-        # self.iface.addToolBarIcon(self.action)
-
         self.toolbar = self.iface.addToolBar("PDOK services plugin")
         self.toolbar.setObjectName("PDOK services plugin")
-        # self.toolbar.addAction(self.run_action)
         self.toolbar.addWidget(self.run_button)
 
         # Set default loading behaviour
@@ -143,8 +139,6 @@ class PdokServicesPlugin(object):
             "wfs": "top",
             "wcs": "top",
         }
-
-        # self.run_button.menu().addSection('Favorieten')
 
         self.favourite_1_action = QAction("Favoriet 1", self.iface.mainWindow())
         self.favourite_1_action.setIcon(self.runIcon)
@@ -202,8 +196,6 @@ class PdokServicesPlugin(object):
         self.dlg.geocoderResultSearch.setPlaceholderText(
             "een of meer zoekwoorden uit resultaat"
         )
-        # self.iface.mapCanvas().renderStarting.connect(self.extentsChanged)
-
         ui = self.dlg.ui
         cbxs = [
             ui.cbx_gem,
@@ -221,51 +213,6 @@ class PdokServicesPlugin(object):
         self.run(True)
         self.provider = Provider()
         QgsApplication.processingRegistry().addProvider(self.provider)
-
-    # for now hiding the pointer as soon as the extent changes
-    # def extentsChanged(self):
-    #    self.removePointer()
-
-    # 2021-02 hiding the check JSON: to much hassle
-    def checkPdokJson(self):
-        myversion = self.getSettingsValue("pdokversion", "1")
-        msgtxt = ""
-        msglvl = 0  # QgsMessageBar.INFO
-        try:
-            response = urllib.request.urlopen("http://www.qgis.nl/pdok.version")
-            str_response = response.read().decode("utf-8")
-            pdokversion = json.loads(str_response)
-            if pdokversion > int(myversion):
-                response = urllib.request.urlopen("http://www.qgis.nl/pdok.json")
-                str_response = response.read().decode("utf-8")
-                pdokjson = json.loads(str_response)
-                with open(os.path.join(self.plugin_dir, "pdok.json"), "w") as outfile:
-                    json.dump(pdokjson, outfile)
-                msgtxt = (
-                    "De laatste versie is opgehaald en zal worden gebruikt "
-                    + str(pdokversion)
-                    + " (was "
-                    + myversion
-                    + ")"
-                )
-                self.servicesLoaded = False  # reset reading of json
-                self.run()
-                self.setSettingsValue("pdokversion", pdokversion)
-            else:
-                msgtxt = "Geen nieuwere versie beschikbaar dan " + str(pdokversion)
-        except Exception as e:
-            # print e
-            msgtxt = "Fout bij ophalen van service info. Netwerk probleem?"
-            msglvl = 2  # QgsMessageBar.CRITICAL
-        # msg
-        if hasattr(self.iface, "messageBar"):
-            self.iface.messageBar().pushMessage(
-                "PDOK services update", msgtxt, level=msglvl, duration=10
-            )
-        else:  # 1.8
-            QMessageBox.information(
-                self.iface.mainWindow(), "Pdok Services Plugin", msgtxt
-            )
 
     def showAndRaise(self):
         self.dlg.show()
@@ -413,7 +360,6 @@ class PdokServicesPlugin(object):
             return
         servicetype = self.currentLayer["type"]
         url = self.currentLayer["url"]
-
         parse_result = urllib.parse.urlparse(url)
         location = f"{parse_result.scheme}://{parse_result.netloc}/{parse_result.path}"
         query = parse_result.query
@@ -423,24 +369,26 @@ class PdokServicesPlugin(object):
         #    url +=('?'+urllib.parse.quote_plus(query))
         # the following wmts(!) services seem to need the ?service=WMTS&request=getcapabilities
         # note: the WFS servcies of kadastralekaart should NOT have that part!!
+        # AB 20220504: onduidelijk wat nu precies het probleem is met het al dan niet quoten van query params
         if servicetype == "wmts" and (
             "https://service.pdok.nl/brt/achtergrondkaart" in url
             or "https://geodata.nationaalgeoregister.nl/kadastralekaart" in url
         ):
-            # pass    # we want the full url here including the 'service=wmts&request=getcapabilities'-part
+            # we want the full url here including the 'service=wmts&request=getcapabilities'-part
             url = location + "?" + urllib.parse.quote_plus(query)
-            # print(f'service url: {url}')
         else:
             url = location
+
         title = self.currentLayer["title"]
+
         if "style" in self.currentLayer:
             style = self.currentLayer["style"]
             title += f" [{style}]"
         else:
             style = ""  # == default for this service
+
         layers = self.currentLayer["layers"]
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
-
         if tree_location is None:
             tree_location = self.default_tree_locations[servicetype]
 
@@ -568,7 +516,7 @@ class PdokServicesPlugin(object):
         tree_location can be 'default', 'top', 'bottom'
         """
         if tree_location not in ["default", "top", "bottom"]:
-            # raise error ?
+            # TODO: proper error handling
             return
         if tree_location == "default":
             QgsProject.instance().addMapLayer(new_layer, True)
@@ -582,7 +530,6 @@ class PdokServicesPlugin(object):
             layer_tree.insertChildNode(-1, new_layer_tree_layer)
 
     def filterGeocoderResult(self, string):
-        # print "filtering geocoder results: %s" % string
         self.dlg.geocoderResultView.selectRow(0)
         self.geocoderProxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.geocoderProxyModel.setFilterFixedString(string)
@@ -594,9 +541,7 @@ class PdokServicesPlugin(object):
 
     def searchAddress(self):
         self.removePointer()
-        # print "search geocoder for: %s" % self.dlg.geocoderSearch.text()
         self.geocoderSourceModel.clear()
-        # self.geocode(self.dlg.geocoderSearch.text())
         self.suggest()
 
     def eraseAddress(self):
@@ -614,11 +559,7 @@ class PdokServicesPlugin(object):
     def filterLayers(self, string):
         # remove selection if one row is selected
         self.dlg.servicesView.selectRow(0)
-        # self.currentLayer = None
         self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        # self.proxyModel.setFilterFixedString(string)
-        # self.proxyModel.setFilterRegExp(QRegExp(string.replace(' ', '|')))
-
         strlist = string.strip().split(" ")
         string = ""
         for s in strlist:
@@ -628,7 +569,6 @@ class PdokServicesPlugin(object):
         regexp.setMinimal(True)
         self.proxyModel.setFilterRegExp(regexp)
 
-    # def addSourceRow(self, service, layer):
     def addSourceRow(self, serviceLayer):
         # you can attache different "data's" to to an QStandarditem
         # default one is the visible one:
@@ -662,7 +602,6 @@ class PdokServicesPlugin(object):
                 serviceLayer["abstract"],
             )
         )
-        # itemFilter = QStandardItem("%s %s %s %s" % (serviceLayer["type"], layername, serviceLayer["servicetitle"], "") )
         itemServicetitle = QStandardItem("%s" % (serviceLayer["servicetitle"]))
         itemServicetitle.setToolTip(
             "%s - %s" % (serviceLayer["type"].upper(), serviceLayer["title"])
@@ -673,7 +612,6 @@ class PdokServicesPlugin(object):
 
     # run method that performs all the real work
     def run(self, hiddenDialog=False):
-
         # enable possible remote pycharm debugging
         # import pydevd
         # pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True)
@@ -711,19 +649,11 @@ class PdokServicesPlugin(object):
             self.dlg.geocoderResultView.setEditTriggers(
                 QAbstractItemView.NoEditTriggers
             )
-
-            # {"services":[
-            #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"},
-            #   {"naam":"WMS NHI","url":"http://geodata.nationaalgeoregister.nl/nhi/ows","layers":["dmlinks","dmnodes"],"type":"wms"}
-            # ]}
-            #
             for service in self.pdok["services"]:
-                # service[layer] was an array
                 if isinstance(service["layers"], str):
                     self.addSourceRow(service)
 
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
-            # self.dlg.layerSearch.setPlaceholderText("woord uit laagnaam, type of service ")
             self.dlg.servicesView.selectionModel().selectionChanged.connect(
                 self.showService
             )
@@ -740,12 +670,9 @@ class PdokServicesPlugin(object):
             # but as I cannot get this to work, let's disable clicking it then
             self.dlg.servicesView.verticalHeader().setSectionsClickable(False)
             self.dlg.servicesView.horizontalHeader().setSectionsClickable(False)
-
-            # self.dlg.geocoderResultView.doubleClicked.connect(self.zoomToAddress)
             self.dlg.geocoderResultView.selectionModel().selectionChanged.connect(
                 self.zoomToAddress
             )
-
             # hide itemFilter column:
             self.dlg.servicesView.hideColumn(3)
             self.servicesLoaded = True
@@ -756,8 +683,6 @@ class PdokServicesPlugin(object):
         self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignLeft)
         self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
         self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
-        # self.dlg.servicesView.verticalHeader().hide()
-        # self.dlg.servicesView.resizeColumnsToContents()
         self.dlg.servicesView.setColumnWidth(
             0, 300
         )  # set name to 300px (there are some huge layernames)
@@ -797,7 +722,6 @@ class PdokServicesPlugin(object):
         like ['weg','adres']
         """
         checked_fqs = self.getSettingsValue("checkedfqs", [])
-        # self.info('setup fq: {}'.format(checked_fqs))
         if len(checked_fqs) > 0:  # else there is not saved state... take gui defaults
             self.dlg.ui.cbx_gem.setChecked("gemeente" in checked_fqs)
             self.dlg.ui.cbx_wpl.setChecked("woonplaats" in checked_fqs)
@@ -807,37 +731,14 @@ class PdokServicesPlugin(object):
             self.dlg.ui.cbx_pcl.setChecked("perceel" in checked_fqs)
             self.dlg.ui.cbx_hmp.setChecked("hectometerpaal" in checked_fqs)
 
-    def createfq(self):
-        """
-        This creates a fq-string (Filter Query, see https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver)
-        Based on the checkboxes in the dialog.
-        Defaults to ''
-        Example: 'fq=+type:adres+type:gemeente'  (only gemeente AND addresses)
-        :return:
-        """
-        fqlist = []
-        if self.dlg.ui.cbx_gem.isChecked():
-            fqlist.append("gemeente")
-        if self.dlg.ui.cbx_wpl.isChecked():
-            fqlist.append("woonplaats")
-        if self.dlg.ui.cbx_weg.isChecked():
-            fqlist.append("weg")
-        if self.dlg.ui.cbx_pcd.isChecked():
-            fqlist.append("postcode")
-        if self.dlg.ui.cbx_adr.isChecked():
-            fqlist.append("adres")
-        if self.dlg.ui.cbx_pcl.isChecked():
-            fqlist.append("perceel")
-        if self.dlg.ui.cbx_hmp.isChecked():
-            fqlist.append("hectometerpaal")
-        self.setSettingsValue("checkedfqs", fqlist)
-        # self.info(self.getSettingsValue('checkedfqs', ['leeg?']))
-        fq = ""
-        if len(fqlist) > 0:
-            fq = "&fq=+type:" + "+type:".join(fqlist)
-        return fq
-
     def createfq_filter(self):
+        """
+        This creates a fq-TypeFilter (Filter Query, see https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver)
+        Based on the checkboxes in the dialog.
+        Defaults to []
+        Cast to string to get filter string like: str(filter)
+        Example: 'fq=+type:adres+type:gemeente' (only gemeente AND addresses)
+        """
         filter = TypeFilter()
         if self.dlg.ui.cbx_gem.isChecked():
             filter.filter_types.append(LsType.gemeente)
@@ -860,14 +761,11 @@ class PdokServicesPlugin(object):
         search_text = self.dlg.geocoderSearch.text()
         if len(search_text) <= 1:
             return
-
-        # results = self.pdokgeocoder.suggest(search_text, self.createfq())
         results = suggest_query(search_text, self.createfq_filter())
         if len(results) == 0:
             # ignore, as we are suggesting, maybe more characters will reveal something...
             return
         for result in results:
-            # print address
             adrestekst = QStandardItem("%s" % (result["weergavenaam"]))
             adrestekst.setData(result, Qt.UserRole)
             type = QStandardItem("%s" % (result["type"]))
@@ -910,7 +808,6 @@ class PdokServicesPlugin(object):
         else:
             # no centroid yet, probably only object id, retrieve it via lookup service
             id = data["id"]
-            # data = self.pdokgeocoder.lookup(id)
             data = lookup_object(id, Projection.EPSG_28992)
             geom = QgsGeometry.fromWkt(data["wkt_centroid"])
             adrestekst = "{}: {}".format(data["type"], data["weergavenaam"])
