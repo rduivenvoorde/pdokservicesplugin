@@ -33,7 +33,7 @@ from qgis.core import (
     NULL,
 )
 
-from ..locatieserver import (
+from ..lib.locatieserver import (
     LsType,
     TypeFilter,
     Projection,

@@ -32,7 +32,7 @@ from qgis.core import (
     QgsProcessingParameterFeatureSink,
 )
 
-from ..http_client import (
+from ..lib.http_client import (
     get_request_bytes,
 )
 

@@ -32,7 +32,7 @@ from qgis.core import (
     QgsProcessingParameterFeatureSink,
 )
 
-from ..locatieserver import (
+from ..lib.locatieserver import (
     LsType,
     reverse_lookup,
     TypeFilter,
