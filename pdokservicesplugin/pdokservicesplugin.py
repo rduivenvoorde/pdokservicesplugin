@@ -68,7 +68,13 @@ from .processing_provider.provider import Provider
 
 from .locator_filter.pdoklocatieserverfilter import PDOKLocatieserverLocatorFilter
 
-from .locatieserver import suggest_query, TypeFilter, LsType, lookup_object, Projection
+from .lib.locatieserver import (
+    suggest_query,
+    TypeFilter,
+    LsType,
+    lookup_object,
+    Projection,
+)
 
 
 class PdokServicesPlugin(object):

@@ -12,7 +12,7 @@ from qgis.core import (
     QgsGeometry,
 )
 
-from ..locatieserver import suggest_query, lookup_object, Projection
+from ..lib.locatieserver import suggest_query, lookup_object, Projection
 
 from qgis.PyQt.QtCore import pyqtSignal
 
