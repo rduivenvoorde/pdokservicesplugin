@@ -99,6 +99,7 @@ def suggest_query(
     rows=10,
 ) -> "list[dict]":
     """
+
     Returns list of dict with fields: type, weergavenaam, id score
     For example:
         {
