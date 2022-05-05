@@ -90,9 +90,8 @@ class PDOKLocatieserverLocatorFilter(QgsLocatorFilter):
                 point_xy = QgsPointXY(point)
 
                 dest_crs = QgsProject.instance().crs()
-                results_crs = QgsCoordinateReferenceSystem(
-                    4326, QgsCoordinateReferenceSystem.PostgisCrsId
-                )
+                results_crs = QgsCoordinateReferenceSystem.fromEpsgId(4326)
+
                 transform = QgsCoordinateTransform(
                     results_crs, dest_crs, QgsProject.instance()
                 )

@@ -828,8 +828,7 @@ class PdokServicesPlugin(object):
 
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
-        crs28992 = QgsCoordinateReferenceSystem()
-        crs28992.fromEpsgId(28992)
+        crs28992 = QgsCoordinateReferenceSystem.fromEpsgId(28992)
         crsTransform = QgsCoordinateTransform(crs28992, crs, QgsProject.instance())
         z = 1587
         if adrestekst.lower().startswith("adres"):
