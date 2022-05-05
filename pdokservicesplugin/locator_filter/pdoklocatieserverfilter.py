@@ -21,13 +21,14 @@ from qgis.PyQt.QtCore import pyqtSignal
 class PDOKLocatieserverLocatorFilter(QgsLocatorFilter):
 
     # some magic numbers to be able to zoom to more or less defined levels
-    ADDRESS = 1000
-    STREET = 1500
-    ZIP = 3000
-    PLACE = 30000
-    CITY = 120000
-    ISLAND = 250000
-    COUNTRY = 4000000
+
+    ZOOMLEVELS = {
+        "adres": 1000,  # ADDRESS
+        "weg": 1500,  # STREET
+        "postcode": 3000,  # ZIP
+        "gemeente": 30000,  # PLACE
+        "woonplaats": 120000,  # CITY
+    }
 
     resultProblem = pyqtSignal(str)
 
@@ -99,17 +100,11 @@ class PDOKLocatieserverLocatorFilter(QgsLocatorFilter):
                 self.iface.mapCanvas().setCenter(point_xy)
 
                 scale_denominator = 10000.0
-                # map the result types to generic GeocoderLocator types to determine the zoom
-                if doc["type"] == "adres":
-                    scale_denominator = self.ADDRESS
-                elif doc["type"] == "weg":
-                    scale_denominator = self.STREET
-                elif doc["type"] == "postcode":
-                    scale_denominator = self.ZIP
-                elif doc["type"] == "gemeente":
-                    scale_denominator = self.PLACE
-                elif doc["type"] == "woonplaats":
-                    scale_denominator = self.CITY
+
+                result_type = doc["type"]
+                if result_type in self.ZOOMLEVELS:
+                    scale_denominator = self.ZOOMLEVELS[result_type]
+
                 self.iface.mapCanvas().zoomScale(scale_denominator)
                 self.iface.mapCanvas().refresh()
         except Exception as err:
