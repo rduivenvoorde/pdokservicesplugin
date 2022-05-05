@@ -245,6 +245,14 @@ class PdokServicesPlugin(object):
         except Exception as e:
             pass
 
+    def get_dd(self, val, val_string=""):
+        md_item_empty = "<dd><em>Niet ingevuld</em></dd>"
+        if val:
+            if val_string:
+                val = val_string
+            return f"<dd>{val}</dd>"
+        return md_item_empty
+
     def showService(self, selectedIndexes):
         if len(selectedIndexes) == 0:
             self.currentLayer = None
@@ -263,31 +271,29 @@ class PdokServicesPlugin(object):
                 val = self.currentLayer[key]
                 currentLayer[str(key)] = str(val.toString())
             self.currentLayer = currentLayer
-        url = self.currentLayer["url"]
+        url = self.currentLayer["service_url"]
         title = self.currentLayer["title"]
+        abstract_dd = self.get_dd(self.currentLayer["abstract"])
         style = ""
         if "style" in self.currentLayer:
             style = self.currentLayer["style"]
             title += f" [{style}]"
-        servicetitle = self.currentLayer["servicetitle"]
-        layername = self.currentLayer["layers"]
-        abstract = self.currentLayer["abstract"] if (not None) else ""
-        stype = self.currentLayer["type"].upper()
+        service_title = (
+            self.currentLayer["service_title"]
+            if self.currentLayer["service_title"]
+            else "[service title niet ingevuld]"
+        )
+        layername = self.currentLayer["name"]
+        service_abstract_dd = self.get_dd(self.currentLayer["service_abstract"])
+        stype = self.currentLayer["service_type"].upper()
         minscale = ""
-        if (
-            "minscale" in self.currentLayer
-            and self.currentLayer["minscale"] != None
-            and self.currentLayer["minscale"] != ""
-        ):
+        if "minscale" in self.currentLayer and self.currentLayer["minscale"] != "":
             minscale = f'min. schaal 1:{self.currentLayer["minscale"]}'
         maxscale = ""
-        if (
-            "maxscale" in self.currentLayer
-            and self.currentLayer["maxscale"] != None
-            and self.currentLayer["maxscale"] != ""
-        ):
+        if "maxscale" in self.currentLayer and self.currentLayer["maxscale"] != "":
             maxscale = f'max. schaal 1: {self.currentLayer["maxscale"]}'
-        md_id = self.currentLayer["md_id"]
+        service_md_id = self.currentLayer["service_md_id"]
+        dataset_md_id = self.currentLayer["dataset_md_id"]
         self.dlg.ui.layerInfo.setText("")
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.btnLoadLayerTop.setEnabled(True)
@@ -313,22 +319,32 @@ class PdokServicesPlugin(object):
             "WFS": "Featuretype",
         }
         layername_key = f"{layername_key_mapping[stype]}"
+        dataset_metadata_dd = self.get_dd(
+            dataset_md_id,
+            f'<a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
+        )
 
         self.dlg.ui.layerInfo.setHtml(
             f"""
-            <h4>Service: {servicetitle} - {stype}</h4>
+            <h2><a href="{url}">{service_title} - {stype}</a></h2>
+            <dl>
+                <dt><b>Service Abstract</b></dt>
+                {service_abstract_dd}
+                <!--<dt><b>Service Url</b></dt>
+                <dd>{url}</dd>-->
+                <dt><b>Service Metadata</b></dt>
+                <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a></dd>
+            </dl>
             <h3>{layername_key}: {title}</h3>
             <dl>
-                 <dt><b>Name</b></dt>
+                <dt><b>Name</b></dt>
                 <dd>{layername}</a></dd>
                 <dt><b>Abstract</b></dt>
-                <dd>{abstract}</dd>
-                <dt><b>Service Url</b></dt>
-                <dd><a href="{url}">{url}</a></dd>
+                {abstract_dd}
+                <dt><b>Dataset Metadata</b></dt>
+                {dataset_metadata_dd}
                 {minscale_string}
                 {maxscale_string}
-                 <dt><b>Service Metadata</b></dt>
-                <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{md_id}">{md_id}</a></dd>
             </dl>
             """
         )
@@ -361,8 +377,8 @@ class PdokServicesPlugin(object):
                 if "style" in layer:
                     style = layer["style"]
                     title += f" [{style}]"
-                if "type" in layer:
-                    stype = layer["type"].upper()
+                if "service_type" in layer:
+                    stype = layer["service_type"].upper()
                     title += f" ({stype})"
                 action.setText(title)
                 action.setIcon(self.runIcon)
@@ -372,7 +388,7 @@ class PdokServicesPlugin(object):
             layer = QSettings().value(
                 f"/pdokservicesplugin/favourite_{favourite_number}", None
             )
-            if layer and layer in self.pdok["services"]:
+            if layer and layer in self.layers_pdok:
                 self.currentLayer = layer
                 self.loadService()
                 return
@@ -390,8 +406,8 @@ class PdokServicesPlugin(object):
     def loadService(self, tree_location=None):
         if self.currentLayer == None:
             return
-        servicetype = self.currentLayer["type"]
-        url = self.currentLayer["url"]
+        servicetype = self.currentLayer["service_type"]
+        url = self.currentLayer["service_url"]
         parse_result = urllib.parse.urlparse(url)
         location = f"{parse_result.scheme}://{parse_result.netloc}/{parse_result.path}"
         query = parse_result.query
@@ -420,7 +436,7 @@ class PdokServicesPlugin(object):
         else:
             style = ""  # == default for this service
 
-        layers = self.currentLayer["layers"]
+        layers = self.currentLayer["name"]
         # mmm, tricky: we take the first one while we can actually want png/gif or jpeg
         if tree_location is None:
             tree_location = self.default_tree_locations[servicetype]
@@ -566,12 +582,14 @@ class PdokServicesPlugin(object):
     def addSourceRow(self, serviceLayer):
         # you can attache different "data's" to to an QStandarditem
         # default one is the visible one:
-        itemType = QStandardItem(str(serviceLayer["type"].upper()))
+        itemType = QStandardItem(str(serviceLayer["service_type"].upper()))
         # userrole is a free form one:
         # only attach the data to the first item
         # service layer = a dict/object with all props of the layer
         itemType.setData(serviceLayer, Qt.UserRole)
-        itemType.setToolTip(f'{serviceLayer["type"].upper()} - {serviceLayer["title"]}')
+        itemType.setToolTip(
+            f'{serviceLayer["service_type"].upper()} - {serviceLayer["title"]}'
+        )
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
         if "style" in serviceLayer:
@@ -582,15 +600,15 @@ class PdokServicesPlugin(object):
         else:
             itemLayername = QStandardItem(str(serviceLayer["title"]))
         itemLayername.setToolTip(
-            f'{serviceLayer["type"].upper()} - {serviceLayer["servicetitle"]}'
+            f'{serviceLayer["service_type"].upper()} - {serviceLayer["service_title"]}'
         )
         # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
         itemFilter = QStandardItem(
-            f'{serviceLayer["type"]} {layername} {serviceLayer["servicetitle"]} {serviceLayer["abstract"]}'
+            f'{serviceLayer["service_type"]} {layername} {serviceLayer["service_title"]} {serviceLayer["service_abstract"]}'
         )
-        itemServicetitle = QStandardItem(str(serviceLayer["servicetitle"]))
+        itemServicetitle = QStandardItem(str(serviceLayer["service_title"]))
         itemServicetitle.setToolTip(
-            f'{serviceLayer["type"].upper()} - {serviceLayer["title"]}'
+            f'{serviceLayer["service_type"].upper()} - {serviceLayer["title"]}'
         )
         self.sourceModel.appendRow(
             [itemLayername, itemType, itemServicetitle, itemFilter]
@@ -615,9 +633,9 @@ class PdokServicesPlugin(object):
                 )
 
         if self.servicesLoaded == False:
-            pdokjson = os.path.join(self.plugin_dir, "resources", "pdok.json")
+            pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
-                self.pdok = json.load(f)
+                self.layers_pdok = json.load(f)
             self.proxyModel = QSortFilterProxyModel()
             self.sourceModel = QStandardItemModel()
             self.proxyModel.setSourceModel(self.sourceModel)
@@ -635,9 +653,9 @@ class PdokServicesPlugin(object):
             self.dlg.geocoderResultView.setEditTriggers(
                 QAbstractItemView.NoEditTriggers
             )
-            for service in self.pdok["services"]:
-                if isinstance(service["layers"], str):
-                    self.addSourceRow(service)
+            for layer in self.layers_pdok:
+                if isinstance(layer["name"], str):
+                    self.addSourceRow(layer)
 
             self.dlg.layerSearch.textChanged.connect(self.filterLayers)
             self.dlg.servicesView.selectionModel().selectionChanged.connect(
@@ -811,7 +829,7 @@ class PdokServicesPlugin(object):
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
         crs28992 = QgsCoordinateReferenceSystem()
-        crs28992.createFromId(28992)
+        crs28992.fromEpsgId(28992)
         crsTransform = QgsCoordinateTransform(crs28992, crs, QgsProject.instance())
         z = 1587
         if adrestekst.lower().startswith("adres"):
