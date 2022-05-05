@@ -19,6 +19,8 @@
  *                                                                         *
  ***************************************************************************/
 """
+import re
+from numpy import isin
 from qgis.PyQt.QtCore import (
     QSettings,
     QVariant,
@@ -326,7 +328,7 @@ class PdokServicesPlugin(object):
                 {minscale_string}
                 {maxscale_string}
                  <dt><b>Service Metadata</b></dt>
-                <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{md_id}">{md_id}</a></a></dd>
+                <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{md_id}">{md_id}</a></dd>
             </dl>
             """
         )
@@ -790,16 +792,21 @@ class PdokServicesPlugin(object):
             id = data["id"]
             data = lookup_object(id, Projection.EPSG_28992)
             geom = QgsGeometry.fromWkt(data["wkt_centroid"])
-            adrestekst = "{}: {}".format(data["type"], data["weergavenaam"])
+            adrestekst = "{} - {}".format(data["type"], data["weergavenaam"])
 
             result_list = ""
             for key in data.keys():
                 if key in ["wkt_centroid", "wkt_geom"]:  # skip geom fields
                     continue
-                result_list = f"{result_list}<li>{key}: {data[key]}</li>"
-            self.dlg.ui.lookupinfo.setHtml(
-                f"<h4>{adrestekst}</h4><lu>{result_list}</lu>"
-            )
+
+                val = data[key]
+                if isinstance(val, str) and re.match("^https?:\/\/.*$", val):
+                    val = f'<a href="{data[key]}">{data[key]}</a>'
+                if isinstance(val, list):
+                    val = ", ".join(val)
+
+                result_list = f"{result_list}<li><b>{key}:</b> {val}</li>"
+            self.dlg.ui.lookupinfo.setHtml(f"<lu>{result_list}</lu>")
 
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()

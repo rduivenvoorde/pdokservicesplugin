@@ -53,3 +53,21 @@ Format python code with:
 ```sh
 black pdokservicesplugin
 ```
+
+Escape HTML info pagina, for copying to `ui_pdokservicesplugindialog.ui`:
+
+```sh
+sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&#39;/g' < resources/infotab.html > resources/infotab.html.escaped
+```
+
+Generate `ui_pdokservicesplugindialog.py` from `ui_pdokservicesplugindialog.ui`:
+
+```sh
+pyuic5 ui_pdokservicesplugindialog.ui -o ui_pdokservicesplugindialog.py
+```
+
+Compile `resources_rc.py` file:
+
+```sh
+pyrcc5 resources.qrc -o resources_rc.py
+```
