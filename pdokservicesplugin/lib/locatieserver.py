@@ -1,3 +1,4 @@
+from email.policy import default
 from enum import Enum
 import json
 from qgis.core import QgsWkbTypes
@@ -57,21 +58,35 @@ class LsType(Enum):
 
 
 class TypeFilter:
-    def __init__(self, filter_types: "list[LsType]" = []):
-        if len(filter_types) == 0:
-            filter_types = list(map(lambda x: LsType[x.value], LsType))
-        self.filter_types = filter_types
+    # Default types requested, match default types of LS service, see:
+    # https://github.com/PDOK/locatieserver/wiki/API-Locatieserver#31request-url
+    default_types = [
+        LsType.gemeente,
+        LsType.woonplaats,
+        LsType.weg,
+        LsType.adres,
+        LsType.postcode,
+    ]
+
+    def __init__(self, filter_types: "list[LsType]"):
+        self.types: "list[LsType]" = filter_types
+
+    @classmethod  # cls==self for class methods see https://stackoverflow.com/a/4795306/1763690
+    def new_with_default_values(cls):
+        "Initialize TypeFilter with default values"
+        return cls(cls.default_types)
+
+    def add_type(self, type: LsType):
+        self.types.append(type)
 
     def __str__(self):
-        filter_types_str = list(map(lambda x: x.value, self.filter_types))
+        filter_types_str = list(map(lambda x: x.value, self.types))
         filter_types_str = " OR ".join(filter_types_str)
         return urllib.parse.quote(f"type:({filter_types_str})")
 
     def rev_geo_filter(self):
-        filter_types_str = list(map(lambda x: f"type={x.value}", self.filter_types))
+        filter_types_str = list(map(lambda x: f"type={x.value}", self.types))
         return "&".join(filter_types_str)
-
-    filter_types: "list[LsType]" = []
 
 
 def url_encode_query_string(query_string):
@@ -80,9 +95,7 @@ def url_encode_query_string(query_string):
 
 def suggest_query(
     query,
-    type_filter=TypeFilter(
-        [LsType.gemeente, LsType.woonplaats, LsType.weg, LsType.adres, LsType.postcode]
-    ),
+    type_filter=TypeFilter.new_with_default_values(),
     rows=10,
 ) -> "list[dict]":
     """
@@ -94,8 +107,6 @@ def suggest_query(
             "id": "gem-0b2a8b92856b27f86fbd67ab35808ebf",
             "score": 19.91312
         }
-    Default types requested, match default types of LS service, see:
-    https://github.com/PDOK/locatieserver/wiki/API-Locatieserver#31request-url
     """
     # TODO: add fields filter, with fl=id,geometrie_ll/rd or *
     query = url_encode_query_string(query)
@@ -150,7 +161,7 @@ def process_geom_fields(result_item, proj: Projection):
 
 
 def free_query(
-    query, proj: Projection, type_filter=TypeFilter(), rows=10
+    query, proj: Projection, type_filter=TypeFilter.new_with_default_values(), rows=10
 ) -> "list[dict]":
     query = url_encode_query_string(query)
     query_string = f"q={query}&rows={rows}"
@@ -161,7 +172,9 @@ def free_query(
     return filter_result
 
 
-def reverse_lookup(x, y, fields, type_filter=TypeFilter()) -> "list[dict]":
+def reverse_lookup(
+    x, y, fields, type_filter=TypeFilter.new_with_default_values()
+) -> "list[dict]":
     """
     Reverse geocoder lookup, x and y coordinates in EPSG:28992
     """

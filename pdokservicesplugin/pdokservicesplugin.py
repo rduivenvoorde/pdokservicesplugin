@@ -737,29 +737,25 @@ class PdokServicesPlugin(object):
             self.dlg.ui.cbx_pcl.setChecked("perceel" in checked_fqs)
             self.dlg.ui.cbx_hmp.setChecked("hectometerpaal" in checked_fqs)
 
-    def createfq_filter(self):
+    def create_type_filter(self):
         """
-        This creates a fq-TypeFilter (Filter Query, see https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver)
-        Based on the checkboxes in the dialog.
-        Defaults to []
-        Cast to string to get filter string like: str(filter)
-        Example: 'fq=+type:adres+type:gemeente' (only gemeente AND addresses)
+        This creates a TypeFilter (Filter Query, see https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver) based on the checkboxes in the dialog. Defaults to []
         """
-        filter = TypeFilter()
+        filter = TypeFilter([])
         if self.dlg.ui.cbx_gem.isChecked():
-            filter.filter_types.append(LsType.gemeente)
+            filter.add_type(LsType.gemeente)
         if self.dlg.ui.cbx_wpl.isChecked():
-            filter.filter_types.append(LsType.woonplaats)
+            filter.add_type(LsType.woonplaats)
         if self.dlg.ui.cbx_weg.isChecked():
-            filter.filter_types.append(LsType.weg)
+            filter.add_type(LsType.weg)
         if self.dlg.ui.cbx_pcd.isChecked():
-            filter.filter_types.append(LsType.postcode)
+            filter.add_type(LsType.postcode)
         if self.dlg.ui.cbx_adr.isChecked():
-            filter.filter_types.append(LsType.adres)
+            filter.add_type(LsType.adres)
         if self.dlg.ui.cbx_pcl.isChecked():
-            filter.filter_types.append(LsType.perceel)
+            filter.add_type(LsType.perceel)
         if self.dlg.ui.cbx_hmp.isChecked():
-            filter.filter_types.append(LsType.hectometerpaal)
+            filter.add_type(LsType.hectometerpaal)
         return filter
 
     def suggest(self):
@@ -767,7 +763,7 @@ class PdokServicesPlugin(object):
         search_text = self.dlg.geocoderSearch.text()
         if len(search_text) <= 1:
             return
-        results = suggest_query(search_text, self.createfq_filter())
+        results = suggest_query(search_text, self.create_type_filter())
         if len(results) == 0:
             # ignore, as we are suggesting, maybe more characters will reveal something...
             return
