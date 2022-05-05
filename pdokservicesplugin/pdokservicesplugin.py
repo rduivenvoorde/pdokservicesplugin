@@ -96,8 +96,8 @@ class PdokServicesPlugin(object):
         self.geocoderSourceModel = None
 
     def getSettingsValue(self, key, default=""):
-        if QSettings().contains(self.SETTINGS_SECTION + key):
-            key = self.SETTINGS_SECTION + key
+        if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
+            key = f"{self.SETTINGS_SECTION}{key}"
             if Qgis.QGIS_VERSION_INT < 10900:  # qgis <= 1.8
                 return str(QSettings().value(key).toString())
             else:
@@ -106,7 +106,7 @@ class PdokServicesPlugin(object):
             return default
 
     def setSettingsValue(self, key, value):
-        key = self.SETTINGS_SECTION + key
+        key = f"{self.SETTINGS_SECTION}{key}"
         if Qgis.QGIS_VERSION_INT < 10900:
             # qgis <= 1.8
             QSettings().setValue(key, QVariant(value))
@@ -277,34 +277,58 @@ class PdokServicesPlugin(object):
             and self.currentLayer["minscale"] != None
             and self.currentLayer["minscale"] != ""
         ):
-            minscale = "min. schaal 1:" + self.currentLayer["minscale"]
+            minscale = f'min. schaal 1:{self.currentLayer["minscale"]}'
         maxscale = ""
         if (
             "maxscale" in self.currentLayer
             and self.currentLayer["maxscale"] != None
             and self.currentLayer["maxscale"] != ""
         ):
-            maxscale = "max. schaal 1:" + self.currentLayer["maxscale"]
+            maxscale = f'max. schaal 1: {self.currentLayer["maxscale"]}'
         md_id = self.currentLayer["md_id"]
         self.dlg.ui.layerInfo.setText("")
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.btnLoadLayerTop.setEnabled(True)
         self.dlg.ui.btnLoadLayerBottom.setEnabled(True)
+
+        maxscale_string = ""
+        if maxscale:
+            maxscale_string = f"""
+            <dt><b>Maxscale</b></dt>
+            <dd>{maxscale}</a></dd>
+            """
+        minscale_string = ""
+        if minscale:
+            minscale_string = f"""
+            <dt><b>Minscale</b></dt>
+            <dd>{minscale}</a></dd>
+            """
+
+        layername_key_mapping = {
+            "WCS": "Coverage",
+            "WMS": "Layer",
+            "WMTS": "Layer",
+            "WFS": "Featuretype",
+        }
+        layername_key = f"{layername_key_mapping[stype]}"
+
         self.dlg.ui.layerInfo.setHtml(
-            '<h4>Service: %s</h4><h3>%s</h3><lu><li>%s</li><li>&nbsp;</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>&nbsp;</li><li>Metadata ID: <a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/%s">%s</a> (link naar het Nationaal Georegister)</li><li>&nbsp;</li></lu>'
-            % (
-                servicetitle,
-                title,
-                abstract,
-                stype,
-                url,
-                layername,
-                style,
-                minscale,
-                maxscale,
-                md_id,
-                md_id,
-            )
+            f"""
+            <h4>Service: {servicetitle} - {stype}</h4>
+            <h3>{layername_key}: {title}</h3>
+            <dl>
+                 <dt><b>Name</b></dt>
+                <dd>{layername}</a></dd>
+                <dt><b>Abstract</b></dt>
+                <dd>{abstract}</dd>
+                <dt><b>Service Url</b></dt>
+                <dd><a href="{url}">{url}</a></dd>
+                {minscale_string}
+                {maxscale_string}
+                 <dt><b>Service Metadata</b></dt>
+                <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{md_id}">{md_id}</a></a></dd>
+            </dl>
+            """
         )
         self.dlg.ui.comboSelectProj.clear()
         if stype == "WMS":
@@ -381,7 +405,8 @@ class PdokServicesPlugin(object):
             or "https://geodata.nationaalgeoregister.nl/kadastralekaart" in url
         ):
             # we want the full url here including the 'service=wmts&request=getcapabilities'-part
-            url = location + "?" + urllib.parse.quote_plus(query)
+            query_escaped_quoted = urllib.parse.quote_plus(query)
+            url = f"{location}?{query_escaped_quoted}"
         else:
             url = location
 
@@ -418,18 +443,7 @@ class PdokServicesPlugin(object):
                 )  # crs code searchstring
             else:
                 # qgis > 1.8
-                uri = (
-                    "crs="
-                    + crs
-                    + "&layers="
-                    + layers
-                    + "&styles="
-                    + style
-                    + "&format="
-                    + imgformat
-                    + "&url="
-                    + url
-                )
+                uri = f"crs={crs}&layers={layers}&styles={style}&format={imgformat}&url={url}"
                 new_layer = QgsRasterLayer(uri, title, "wms")
                 self.addLayer(new_layer, tree_location)
         elif servicetype == "wmts":
@@ -438,9 +452,7 @@ class PdokServicesPlugin(object):
                     self.iface.mainWindow(),
                     "PDOK plugin",
                     (
-                        "Sorry, dit type layer: '"
-                        + servicetype.upper()
-                        + "' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"
+                        f"Sorry, dit type layer: '{servicetype.upper()}' \nkan niet worden geladen in deze versie van QGIS.\nMisschien kunt u QGIS 2.0 installeren (die kan het WEL)?\nOf is de laag niet ook beschikbaar als wms of wfs?"
                     ),
                     QMessageBox.Ok,
                     QMessageBox.Ok,
@@ -458,18 +470,7 @@ class PdokServicesPlugin(object):
                     crs = crs[:i]
             elif tilematrixset.startswith("OGC:1.0"):
                 crs = "EPSG:3857"
-            uri = (
-                "tileMatrixSet="
-                + tilematrixset
-                + "&crs="
-                + crs
-                + "&layers="
-                + layers
-                + "&styles=default&format="
-                + imgformat
-                + "&url="
-                + url
-            )
+            uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layers}&styles=default&format={imgformat}&url={url}"
             new_layer = QgsRasterLayer(uri, title, "wms")
             self.addLayer(new_layer, tree_location)
         elif servicetype == "wfs":
@@ -478,13 +479,7 @@ class PdokServicesPlugin(object):
                 f"{parse_result.scheme}://{parse_result.netloc}/{parse_result.path}"
             )
             query = parse_result.query
-            uri = (
-                " pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='"
-                + layers
-                + "' url='"
-                + url
-                + "' version='2.0.0' "
-            )
+            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layers}' url='{url}' version='2.0.0'"
             new_layer = QgsVectorLayer(uri, title, "wfs")
             self.addLayer(new_layer, tree_location)
         elif servicetype == "wcs":
@@ -493,14 +488,7 @@ class PdokServicesPlugin(object):
             # we handcrafted some wcs layers with 2 different image formats: tiff (RGB) and tiff (float32):
             if "imgformats" in self.currentLayer:
                 format = self.currentLayer["imgformats"].split(",")[0]
-            uri = (
-                "cache=AlwaysNetwork&crs=EPSG:28992&format="
-                + format
-                + "&identifier="
-                + layers
-                + "&url="
-                + url
-            )
+            uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layers}&url={url}"
             new_layer = QgsRasterLayer(uri, title, "wcs")
             self.addLayer(new_layer, tree_location)
         else:
@@ -508,9 +496,7 @@ class PdokServicesPlugin(object):
                 self.iface.mainWindow(),
                 "PDOK plugin",
                 (
-                    "Sorry, dit type layer: '"
-                    + servicetype.upper()
-                    + "' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"
+                    f"Sorry, dit type layer: '{servicetype.upper()}' \nkan niet worden geladen door de plugin of door QGIS.\nIs het niet beschikbaar als wms, wmts of wfs?"
                 ),
                 QMessageBox.Ok,
                 QMessageBox.Ok,
@@ -578,39 +564,31 @@ class PdokServicesPlugin(object):
     def addSourceRow(self, serviceLayer):
         # you can attache different "data's" to to an QStandarditem
         # default one is the visible one:
-        itemType = QStandardItem("%s" % (serviceLayer["type"].upper()))
+        itemType = QStandardItem(str(serviceLayer["type"].upper()))
         # userrole is a free form one:
         # only attach the data to the first item
         # service layer = a dict/object with all props of the layer
         itemType.setData(serviceLayer, Qt.UserRole)
-        itemType.setToolTip(
-            "%s - %s" % (serviceLayer["type"].upper(), serviceLayer["title"])
-        )
+        itemType.setToolTip(f'{serviceLayer["type"].upper()} - {serviceLayer["title"]}')
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
         if "style" in serviceLayer:
             itemLayername = QStandardItem(
-                "%s [%s]" % (serviceLayer["title"], serviceLayer["style"])
+                f'{serviceLayer["title"]} [{serviceLayer["style"]}]'
             )
-            layername = "%s [%s]" % (serviceLayer["title"], serviceLayer["style"])
+            layername = f'{serviceLayer["title"]} [{serviceLayer["style"]}]'
         else:
-            itemLayername = QStandardItem("%s" % (serviceLayer["title"]))
+            itemLayername = QStandardItem(str(serviceLayer["title"]))
         itemLayername.setToolTip(
-            "%s - %s" % (serviceLayer["type"].upper(), serviceLayer["servicetitle"])
+            f'{serviceLayer["type"].upper()} - {serviceLayer["servicetitle"]}'
         )
         # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
         itemFilter = QStandardItem(
-            "%s %s %s %s"
-            % (
-                serviceLayer["type"],
-                layername,
-                serviceLayer["servicetitle"],
-                serviceLayer["abstract"],
-            )
+            f'{serviceLayer["type"]} {layername} {serviceLayer["servicetitle"]} {serviceLayer["abstract"]}'
         )
-        itemServicetitle = QStandardItem("%s" % (serviceLayer["servicetitle"]))
+        itemServicetitle = QStandardItem(str(serviceLayer["servicetitle"]))
         itemServicetitle.setToolTip(
-            "%s - %s" % (serviceLayer["type"].upper(), serviceLayer["title"])
+            f'{serviceLayer["type"].upper()} - {serviceLayer["title"]}'
         )
         self.sourceModel.appendRow(
             [itemLayername, itemType, itemServicetitle, itemFilter]
@@ -768,11 +746,11 @@ class PdokServicesPlugin(object):
             # ignore, as we are suggesting, maybe more characters will reveal something...
             return
         for result in results:
-            adrestekst = QStandardItem("%s" % (result["weergavenaam"]))
+            adrestekst = QStandardItem(str(result["weergavenaam"]))
             adrestekst.setData(result, Qt.UserRole)
-            type = QStandardItem("%s" % (result["type"]))
-            id = QStandardItem("%s" % (result["id"]))
-            score = QStandardItem("%s" % (result["score"]))
+            type = QStandardItem(str(result["type"]))
+            id = QStandardItem(str(result["id"]))
+            score = QStandardItem(str(result["score"]))
             adrestekst.setData(result, Qt.UserRole)
             self.geocoderSourceModel.appendRow([adrestekst, type])
         self.geocoderSourceModel.setHeaderData(0, Qt.Horizontal, "Resultaat")
@@ -816,11 +794,11 @@ class PdokServicesPlugin(object):
 
             result_list = ""
             for key in data.keys():
-                if key in ["", ""]:
+                if key in ["wkt_centroid", "wkt_geom"]:  # skip geom fields
                     continue
-                result_list = result_list + "<li>{}: {}</li>".format(key, data[key])
+                result_list = f"{result_list}<li>{key}: {data[key]}</li>"
             self.dlg.ui.lookupinfo.setHtml(
-                "<h4>{}</h4><lu>{}</lu>".format(adrestekst, result_list)
+                f"<h4>{adrestekst}</h4><lu>{result_list}</lu>"
             )
 
         # just always transform from 28992 to mapcanvas crs
