@@ -19,8 +19,10 @@
  *                                                                         *
  ***************************************************************************/
 """
+from copy import deepcopy
 import re
 from numpy import isin
+from pytz import NonExistentTimeError
 from qgis.PyQt.QtCore import (
     QSettings,
     QVariant,
@@ -371,6 +373,7 @@ class PdokServicesPlugin(object):
             layer = QSettings().value(
                 f"/pdokservicesplugin/favourite_{favourite_number}", None
             )
+
             if layer:
                 action.setToolTip(layer["title"].capitalize())
                 title = layer["title"].capitalize()
@@ -383,12 +386,36 @@ class PdokServicesPlugin(object):
                 action.setText(title)
                 action.setIcon(self.runIcon)
 
+    def get_layer_in_pdok_layers(self, lyr):
+        # check for layer equality based on equal
+        # - service_md_id
+        # - name (layername)
+        # - style (in case of WMS layer)
+        # returns None if layer not found
+        def predicate(x):
+            if x["service_md_id"] == lyr["service_md_id"] and x["name"] == lyr["name"]:
+                # WMS layer with style
+                if "style" in x and "style" in lyr:
+                    if x["style"] == lyr["style"]:
+                        return True
+                    else:
+                        return False
+                # other layer without style (but with matching layername and service_md_id)
+                return True
+            return False
+
+        return next(filter(predicate, self.layers_pdok), None)
+
     def load_favourite(self, favourite_number):
         if QSettings().contains(f"/pdokservicesplugin/favourite_{favourite_number}"):
-            layer = QSettings().value(
+            saved_layer = QSettings().value(
                 f"/pdokservicesplugin/favourite_{favourite_number}", None
             )
-            if layer and layer in self.layers_pdok:
+            if "md_id" in saved_layer:
+                saved_layer["service_md_id"] = saved_layer["md_id"]
+
+            layer = self.get_layer_in_pdok_layers(saved_layer)
+            if layer:
                 self.currentLayer = layer
                 self.loadService()
                 return
