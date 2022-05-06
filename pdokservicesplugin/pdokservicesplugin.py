@@ -845,7 +845,7 @@ class PdokServicesPlugin(object):
                     continue
 
                 val = data[key]
-                if isinstance(val, str) and re.match("^https?:\/\/.*$", val):
+                if isinstance(val, str) and re.match(r"^https?:\/\/.*$", val):
                     val = f'<a href="{data[key]}">{data[key]}</a>'
                 if isinstance(val, list):
                     val = ", ".join(val)
