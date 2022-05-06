@@ -411,10 +411,20 @@ class PdokServicesPlugin(object):
             saved_layer = QSettings().value(
                 f"/pdokservicesplugin/favourite_{favourite_number}", None
             )
+            # migration code required for change: https://github.com/rduivenvoorde/pdokservicesplugin/commit/a5700dace54250b8f18229939907c3cab39f5297
+            # which changed the schema of the layer config json file
+            migrate_fav = False
             if "md_id" in saved_layer:
                 saved_layer["service_md_id"] = saved_layer["md_id"]
-
+                migrate_fav = True
+            if "layers" in saved_layer:
+                saved_layer["name"] = saved_layer["layers"]
+                migrate_fav = True
             layer = self.get_layer_in_pdok_layers(saved_layer)
+            if migrate_fav:
+                QSettings().setValue(
+                    f"/pdokservicesplugin/favourite_{favourite_number}", layer
+                )
             if layer:
                 self.currentLayer = layer
                 self.loadService()
