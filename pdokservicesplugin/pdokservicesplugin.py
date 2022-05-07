@@ -79,6 +79,7 @@ from .lib.locatieserver import (
     TypeFilter,
     LsType,
     lookup_object,
+    get_lookup_object_url,
     Projection,
 )
 
@@ -862,7 +863,7 @@ class PdokServicesPlugin(object):
         self.removePointer()
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
         if "wkt_centroid" in data:  # free OR lookup service
-            geom = QgsGeometry.fromWkt(data["wkt_centroid"])
+            centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
             adrestekst = data["weergavenaam"]
         else:
             # no centroid yet, probably only object id, retrieve it via lookup service
@@ -870,6 +871,7 @@ class PdokServicesPlugin(object):
             data = None
             try:
                 data = lookup_object(id, Projection.EPSG_28992)
+                lookup_url = get_lookup_object_url(id)
             except PdokServicesNetworkException as ex:
                 title = f"{PLUGIN_NAME} - HTTP Request Error"
                 message = textwrap.dedent(
@@ -881,21 +883,27 @@ class PdokServicesPlugin(object):
                 self.show_error(message, title)
             if data is None:
                 return
-            geom = QgsGeometry.fromWkt(data["wkt_centroid"])
             adrestekst = "{} - {}".format(data["type"], data["weergavenaam"])
+            data["lookup_url"] = lookup_url
+            # generate lookupinfo list
+            data_sorted = {}
+
+            # lambda function to ensure values starting with _ are place last
+            # see https://stackoverflow.com/a/18875168/1763690
+            for key in sorted(data.keys(), key=lambda d: d.lower().replace("_", "{")):
+                data_sorted[key] = data[key]
 
             result_list = ""
-            for key in data.keys():
+            for key in data_sorted.keys():
                 if key in ["wkt_centroid", "wkt_geom"]:  # skip geom fields
                     continue
-
-                val = data[key]
+                val = data_sorted[key]
                 if isinstance(val, str) and re.match(r"^https?:\/\/.*$", val):
-                    val = f'<a href="{data[key]}">{data[key]}</a>'
+                    val = f'<a href="{val}">{val}</a>'
                 if isinstance(val, list):
                     val = ", ".join(val)
-
                 result_list = f"{result_list}<li><b>{key}:</b> {val}</li>"
+
             self.dlg.ui.lookupinfo.setHtml(f"<lu>{result_list}</lu>")
 
             # just always transform from 28992 to mapcanvas crs
@@ -903,29 +911,39 @@ class PdokServicesPlugin(object):
             crs28992 = QgsCoordinateReferenceSystem.fromEpsgId(28992)
             crsTransform = QgsCoordinateTransform(crs28992, crs, QgsProject.instance())
             z = 1587
-            if adrestekst.lower().startswith("adres"):
+            adrestekst_lower = adrestekst.lower()
+            if adrestekst_lower.startswith("adres"):
                 z = 794
-            elif adrestekst.lower().startswith("perceel"):
+            elif adrestekst_lower.startswith("perceel"):
                 z = 794
-            elif adrestekst.lower().startswith("hectometer"):
+            elif adrestekst_lower.startswith("hectometer"):
                 z = 1587
-            elif adrestekst.lower().startswith("straat"):
+            elif adrestekst_lower.startswith("weg"):
                 z = 3175
-            elif adrestekst.lower().startswith("postcode"):
+            elif adrestekst_lower.startswith("postcode"):
                 z = 6350
-            elif adrestekst.lower().startswith("woonplaats"):
+            elif adrestekst_lower.startswith("woonplaats"):
                 z = 25398
-            elif adrestekst.lower().startswith("gemeente"):
+            elif adrestekst_lower.startswith("gemeente"):
                 z = 50797
-            elif adrestekst.lower().startswith("provincie"):
+            elif adrestekst_lower.startswith("provincie"):
                 z = 812750
-            geom.transform(crsTransform)
-            center = geom.asPoint()
+
+            centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
+            centroid.transform(crsTransform)
+            center = centroid.asPoint()
             self.setPointer(center)
-            # zoom to with center is actually setting a point rectangle and then zoom
-            rect = QgsRectangle(center, center)
-            self.iface.mapCanvas().setExtent(rect)
-            self.iface.mapCanvas().zoomScale(z)
+
+            geom = QgsGeometry.fromWkt(data["wkt_geom"])
+            geom.transform(crsTransform)
+            geom_bbox = geom.boundingBox()
+            rect = QgsRectangle(geom_bbox)
+            self.iface.mapCanvas().zoomToFeatureExtent(rect)
+
+            # zoom to a point feature is actually setting a point rectangle and then zoom
+            if re.match(r"^POINT", data["wkt_geom"]):
+                self.iface.mapCanvas().zoomScale(z)
+
             self.iface.mapCanvas().refresh()
 
     def setPointer(self, point):
