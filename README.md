@@ -12,11 +12,10 @@ If you think this plugin is usefull, consider to donate via Paypal button below,
 
 ## Nederlands
 
-PDOK (Publieke Data Op de Kaart) is een eenvoudige plugin om de verschillende
+PDOK (Publieke Data Op de Kaart) is een plugin om de verschillende
 PDOK services te testen of te bekijken.
 
-Op basis van een json bestand (IN de plugin) met alle op dit moment beschikbare
-services wordt een dialoog opgebouwd met daarin
+Op basis van een json bestand (IN de plugin) met alle op dit moment beschikbare services wordt een dialoog opgebouwd met daarin
 
 - het soort service (WMS, WMTS, WFS of TMS)
 - de naam van de service
