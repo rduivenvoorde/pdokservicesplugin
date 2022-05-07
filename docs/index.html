@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="date" content=''>
+    <title>QGIS PDOK Services Plugin</title>
+</head>
+
+<body>
+    <h1 id="qgis-pdok-services-plugin">QGIS PDOK Services Plugin</h1>
+    <p>De <em>PDOK Services Plugin</em> is een plugin om eenvoudig PDOK services binnen QGIS te gebruiken. Hieronder zijn de verschillende features van de plugin beschreven.</p>
+    <h2 id="eenvoudige-toegang-tot-alle-pdok-services-in-qgis">Eenvoudige toegang tot alle PDOK services in QGIS</h2>
+    <ul>
+    <li>Alle beschikbare kaartlagen (WMS/WMTS/WFS/WCS) van PDOK snel doorzoekbaar</li>
+    </ul>
+    <p><img src="images/lagen_doorzoekbaar.png" /></p>
+    <ul>
+    <li>Snelle toegang tot twee favoriete kaartlagen</li>
+    </ul>
+    <p><img src="images/favorieten.png" /></p>
+    <ul>
+    <li>Uitgebreide laaginformatie in laag informatiepanel (inclusief metadata links)</li>
+    </ul>
+    <p><img src="images/laag_informatie.png" /></p>
+    <h2 id="pdok-locatieserver-integratie-in-qgis">PDOK Locatieserver Integratie in QGIS</h2>
+    <ul>
+    <li>Locatieserver search via de locator bar</li>
+    </ul>
+    <p><img src="images/ls_locator_bar.png" /></p>
+    <ul>
+    <li>Snelle toegang tot Locatieserver search via de toolbar</li>
+    </ul>
+    <p><img src="images/ls_toolbar.png" /></p>
+    <ul>
+    <li>Locatieserver panel met geavanceerde filter mogelijkheden</li>
+    </ul>
+    <p><img src="images/ls_panel.png" /></p>
+    <h2 id="pdok-processing-tools">PDOK Processing Tools</h2>
+    <ul>
+    <li>Snelle toegang to processing tools via de locator bar</li>
+    </ul>
+    <p><img src="images/processing_tools.png" /></p>
+    <h3 id="processing-tool---pdok-geocoder">Processing Tool - PDOK Geocoder</h3>
+    <p>Transformeer locatie namen (adressen, plaatsnamen etc.) in geometrieën met behulp van de PDOK Locatieserver.</p>
+    <p><strong>Voorbeeld usecase:</strong> transformeer een CSV bestand met adressen naar een GeoPackage file met punt geometrieën met een adres attribuut.</p>
+    <h3 id="processing-tool---pdok-reverse-geooder">Processing Tool - PDOK Reverse Geooder</h3>
+    <p>Transformeer geometrieën in locatie namen (adressen, plaatsnamen etc.) met behulp van de PDOK Locatieserver.</p>
+    <p><strong>Voorbeeld usecase:</strong> transformeer een Geopackage bestand met punt geometrieën naar een GeoPackage bestand met punt geometrieën met een adres attribuut.</p>
+    <h3 id="processing-tool---pdok-ahn3-wcs-tool">Processing Tool - PDOK AHN3 WCS Tool</h3>
+    <p>Ophalen van hoogte waardes (elevatie) voor punt geometrieën op basis van de AHN3 Web Coverage Service (WCS).</p>
+    <p><strong>Voorbeeld usecase:</strong> transformeer een Geopackage bestand met punt geometrieën naar een GeoPackage bestand met punt geometrieën met een hoogte attribuut.</p>
+    <style>
+        body {
+            font: 400 16px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+            color: #111;
+            background-color: #fdfdfd;
+            -webkit-text-size-adjust: 100%;
+            -webkit-font-feature-settings: "kern" 1;
+            -moz-font-feature-settings: "kern" 1;
+            -o-font-feature-settings: "kern" 1;
+            font-feature-settings: "kern" 1;
+            font-kerning: normal;
+            padding: 30px;
+            margin: auto;
+            width: 80%;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+
+            body>#content {
+                padding: 0px 20px 20px 20px !important;
+            }
+        }
+
+        body>#content {
+            margin: 0px;
+            max-width: 900px;
+            border: 1px solid #e1e4e8;
+            padding: 10px 40px;
+            padding-bottom: 20px;
+            border-radius: 2px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        hr {
+            color: #bbb;
+            background-color: #bbb;
+            height: 1px;
+            flex: 0 1 auto;
+            margin: 1em 0;
+            padding: 0;
+            border: none;
+        }
+
+        /**
+ * Links
+ */
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+
+        a:visited {
+            color: #0366d6;
+        }
+
+        a:hover {
+            color: #0366d6;
+            text-decoration: underline;
+        }
+
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-size: 85%;
+            line-height: 1.45;
+            overflow: auto;
+            padding: 16px;
+        }
+
+        /**
+  * Code blocks
+  */
+
+        code {
+            background-color: rgba(27, 31, 35, .05);
+            border-radius: 3px;
+            font-size: 85%;
+            margin: 0;
+            word-wrap: break-word;
+            padding: .2em .4em;
+            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+        }
+
+        pre>code {
+            background-color: transparent;
+            border: 0;
+            display: inline;
+            line-height: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: 0;
+            word-wrap: normal;
+            font-size: 100%;
+        }
+
+
+        /**
+ * Blockquotes
+ */
+        blockquote {
+            margin-left: 30px;
+            margin-top: 0px;
+            margin-bottom: 16px;
+            border-left-width: 3px;
+            padding: 0 1em;
+            color: #828282;
+            border-left: 4px solid #e8e8e8;
+            padding-left: 15px;
+            font-size: 18px;
+            letter-spacing: -1px;
+            font-style: italic;
+        }
+
+        blockquote * {
+            font-style: normal !important;
+            letter-spacing: 0;
+            color: #6a737d !important;
+        }
+
+        /**
+ * Tables
+ */
+        table {
+            border-spacing: 2px;
+            display: block;
+            font-size: 14px;
+            overflow: auto;
+            width: 100%;
+            margin-bottom: 16px;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        th {
+            font-weight: 600;
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+
+        /**
+ * Others
+ */
+
+        img {
+            max-width: 100%;
+        }
+
+        p {
+            line-height: 24px;
+            font-weight: 400;
+            font-size: 16px;
+            color: #24292e;
+        }
+
+        ul {
+            margin-top: 0;
+        }
+
+        li {
+            color: #24292e;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        li+li {
+            margin-top: 0.25em;
+        }
+
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            color: #24292e;
+        }
+
+        a:visited {
+            color: #0366d6;
+        }
+
+        h1,
+        h2,
+        h3 {
+            border-bottom: 1px solid #eaecef;
+            color: #111;
+            /* Darker */
+        }
+    </style>
+</body>
+
+</html>
