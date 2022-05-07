@@ -193,17 +193,19 @@ def reverse_lookup(
     return result
 
 
+def get_lookup_object_url(object_id: str) -> str:
+    object_id = url_encode_query_string(object_id)
+    query_string = f"id={object_id}&fl=*"  # return all fields with fl=*
+    url = f"{SERVICE_ENDPOINT}/lookup?{query_string}"
+    return url
+
+
 def lookup_object(object_id: str, proj: Projection) -> dict:
     """
     Raises PdokServicesNetworkException when request fails
     """
     # TODO: add fields filter, with fl=id,geometrie_ll/rd or fl=*
-    geom_string = proj_mapping[proj]
-    fields_filter = f"*,{geom_string}"
-    fields_filter = url_encode_query_string(fields_filter)
-    object_id = url_encode_query_string(object_id)
-    query_string = f"id={object_id}&fl={fields_filter}"
-    url = f"{SERVICE_ENDPOINT}/lookup?{query_string}"
+    url = get_lookup_object_url(object_id)
     content_obj = get_request_json(url)
     if content_obj["response"]["numFound"] != 1:
         return None
