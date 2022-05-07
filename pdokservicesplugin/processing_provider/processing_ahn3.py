@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os.path
+import textwrap
 import uuid
 import re
 import struct
@@ -32,9 +33,11 @@ from qgis.core import (
     QgsProcessingParameterFeatureSink,
 )
 
-from ..lib.http_client import (
-    get_request_bytes,
+from pdokservicesplugin.lib.util import (
+    get_processing_error_message,
 )
+
+from ..lib.http_client import get_request_bytes, PdokServicesNetworkException
 
 # util methods for unpacking wcs response
 
@@ -83,6 +86,7 @@ def parse_response(content):
 
 
 # end - util methods for unpacking wcs response
+# TODO: move code to lib folder
 
 
 class PDOKWCSTool(QgsProcessingAlgorithm):
@@ -136,15 +140,23 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         Returns a localised short help string for the algorithm.
         """
         return self.tr(
-            'This processing tool retrieves elevation data from the <a href="https://geodata.nationaalgeoregister.nl/ahn3/wcs?service=WCS&request=GetCapabilities">AHN3 WCS</a> \
-            for each point in the point input layer. The output is a point layer with the joined elevation attribute. \
-            When a NODATA value is encountered, the resulting value in the output layer is NULL.\n\
-            Parameters:\n\n\
-            <ul><li><b>Input point layer</b></li>\
-            <li><b>CoverageId:</b> type of coverage to query, see the <a href="https://www.ahn.nl/kwaliteitsbeschrijving">\
-                AHN documentation</a></li>\
-            <li><b>Attribute name:</b> name of attribution to store elevation data in</li>\
-            <li><b>Output layer:</b> resulting output layer, projection taken from input layer</li></ul>'
+            textwrap.dedent(
+                """
+                This processing tool retrieves elevation data from the <a href="https://geodata.nationaalgeoregister.nl/ahn3/wcs?service=WCS&request=GetCapabilities">AHN3 WCS</a> for each point in the point input layer. The output is a point layer with the joined elevation attribute. When a NODATA value is encountered, the resulting value in the output layer is NULL.
+
+                <h3>Parameters</h3>
+                <dl>
+                    <dt><b>Input point layer</b><dt>
+                    <dd>input layer with points to retrieve elevation for</dd>
+                    <dt><b>CoverageId:</b></dt>
+                    <dd>type of coverage to query, see the <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentation</a></dd>
+                    <dt><b>Attribute name:</b></dt>
+                    <dd>name of attribute to store elevation data in output layer</dd>
+                    <dt><b>Output layer:</b></dt>
+                    <dd>resulting output layer, projection taken from input layer</dd>
+                </dl>
+                """
+            )
         )
 
     def initAlgorithm(self, config=None):
@@ -198,14 +210,25 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             self.addParameter(
                 QgsProcessingParameterFeatureSink(self.OUTPUT, self.tr("Output layer"))
             )
+        except PdokServicesNetworkException as ex:
+            message = get_processing_error_message(
+                "an error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+                "while executing HTTP request",
+            )
+            raise QgsProcessingException(message)
         except Exception as e:
-            traceback_str = traceback.format_exc()
-            toolname = self.displayName()
-            message = f"Unexpected error occured while initializing  {toolname}: {e} - traceback: {traceback_str}"
-            self.log_message(message, loglevel=2)
+            message = get_processing_error_message(
+                "an unexpected error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+            )
             raise QgsProcessingException(
                 message
-            )  # not sure if this is the correct way to raise errors
+            )  # not sure if this is the correct way to raise errors here
 
     def processAlgorithm(self, parameters, context, feedback):
         try:
@@ -272,11 +295,23 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             results = {}
             results[self.OUTPUT] = dest_id
             return results
+
+        except PdokServicesNetworkException as ex:
+            message = get_processing_error_message(
+                "an error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+                "while executing HTTP request",
+            )
+            raise QgsProcessingException(message)
         except Exception as e:
-            traceback_str = traceback.format_exc()
-            toolname = self.displayName()
-            message = f"Unexpected error occured while running {toolname}: {e} - traceback: {traceback_str}"
-            self.log_message(message, loglevel=2)
+            message = get_processing_error_message(
+                "an unexpected error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+            )
             raise QgsProcessingException(message)
 
     def get_gdal_ds_from_wcs(self, x, y, coverage_id, feedback):
@@ -307,12 +342,12 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         return nodata
 
     def log_message(self, message, loglevel=0):
-        # loglevel:
-        #     Info
-        #     Warning
-        #     Critical
-        #     Success
-        #     None
+        """loglevel:
+        Info
+        Warning
+        Critical
+        Success
+        None"""
         QgsMessageLog.logMessage(
             message,
             self.displayName(),

@@ -11,7 +11,7 @@
             </rect>
         </property>
         <property name="windowTitle">
-            <string>PdokServicesPlugin</string>
+            <string>PDOK Services Plugin</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
             <item>
@@ -23,7 +23,7 @@
                         </sizepolicy>
                     </property>
                     <property name="currentIndex">
-                        <number>0</number>
+                        <number>2</number>
                     </property>
                     <widget class="QWidget" name="tab_2">
                         <attribute name="title">
@@ -110,7 +110,7 @@
                             <item row="0" column="2">
                                 <widget class="QLineEdit" name="layerSearch">
                                     <property name="placeholderText">
-                                        <string>Start met het type service en dan overige termen, bv &quot;wfs cbs provincie&quot;</string>
+                                        <string>Start met het type service en dan overige termen, bv "wfs cbs provincie"</string>
                                     </property>
                                     <property name="clearButtonEnabled">
                                         <bool>true</bool>
@@ -240,10 +240,11 @@
                                 <widget class="QTableView" name="geocoderResultView"/>
                             </item>
                             <item row="4" column="0" colspan="3">
-                                <widget class="QTextBrowser" name="lookupinfo"/>
-                                <property name="openExternalLinks">
-                                    <bool>true</bool>
-                                </property>
+                                <widget class="QTextBrowser" name="lookupinfo">
+                                    <property name="openExternalLinks">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
                             </item>
                             <item row="2" column="0">
                                 <widget class="QLabel" name="label_2">
@@ -264,6 +265,9 @@
                         <layout class="QGridLayout" name="gridLayout_3">
                             <item row="0" column="0">
                                 <widget class="QTextBrowser" name="webView">
+                                    <property name="openExternalLinks">
+                                        <bool>true</bool>
+                                    </property>
                                     <property name="html">
                                         <string>&lt;html&gt;
 
@@ -287,25 +291,26 @@
 &lt;body&gt;
   &lt;h1&gt;QGIS plugin voor PDOK services&lt;/h1&gt;
   &lt;p&gt;
-    Deze plugin wordt gemaakt door Richard Duivenvoorde
-    (&lt;a href=&quot;http://www.zuidt.nl&quot;&gt;Zuidt&lt;/a&gt;).&lt;br /&gt;
-  &lt;/p&gt;
-  &lt;p&gt;
+    Deze plugin wordt gemaakt door Richard Duivenvoorde (&lt;a href=&quot;http://www.zuidt.nl&quot;&gt;Zuidt&lt;/a&gt;).
+    &lt;br&gt;
+    &lt;br&gt;
     De code van deze plugin is te vinden op &lt;a href=&quot;https://github.com/rduivenvoorde/pdokservicesplugin&quot;&gt;Github&lt;/a&gt;.
     Bugs kunt u daar melden.
   &lt;/p&gt;
 
-  &lt;p&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/resources/pdok.png&quot; /&gt;&lt;/p&gt;
+  &lt;h2&gt;PDOK&lt;/h2&gt;
   &lt;p&gt;
+    &lt;img style=&quot;margin-right:10px;&quot; src=&quot;:/plugins/pdokservicesplugin/resources/pdok.png&quot; align=&quot;left&quot; /&gt;
     &lt;a href=&quot;http://www.pdok.nl&quot;&gt;PDOK&lt;/a&gt; stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van
     overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze
     data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf,
     particulier) kosteloos te gebruiken.
   &lt;/p&gt;
   &lt;p&gt;
-    Service url&#39;s voor alle in de plugin aanwezige lagen worden met behulp van het &lt;tt&gt;pdokservicesspider&lt;/tt&gt; script
-    (te vinden op &lt;a href=&quot;https://github.com/rduivenvoorde/pdokservicesplugin&quot;&gt;Github&lt;/a&gt;) gegeneerd die gebruik maakt
-    van de CSW service van het Nationaal Georegister.
+    De lijst van services en lagen in deze plugin worden met behulp van het &lt;tt&gt;pdokservicesspider&lt;/tt&gt; script
+    gegeneerd (te vinden op &lt;a href=&quot;https://github.com/rduivenvoorde/pdokservicesplugin&quot;&gt;Github&lt;/a&gt;). Dit script
+    genereert deze lijst op basis van de &lt;a href=&quot;https://www.nationaalgeoregister.nl/geonetwork/srv/dut/csw?service=CSW&amp;request=GetCapabilities&amp;version=2.0.2&quot;&gt;CSW
+      service&lt;/a&gt; van het &lt;a href=&quot;https://www.nationaalgeoregister.nl/&quot;&gt;Nationaal Georegister&lt;/a&gt;.
   &lt;/p&gt;
 
   &lt;h2&gt;OpenGeoGroep. Anders denken, Anders doen...&lt;/h2&gt;

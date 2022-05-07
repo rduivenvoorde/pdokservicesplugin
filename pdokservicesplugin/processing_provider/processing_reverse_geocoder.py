@@ -7,6 +7,7 @@
 """
 import traceback
 import os.path
+import textwrap
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import QCoreApplication, QVariant
@@ -31,6 +32,12 @@ from qgis.core import (
     QgsProcessingParameterString,
     QgsProcessingParameterFeatureSink,
 )
+
+from pdokservicesplugin.lib.util import (
+    get_processing_error_message,
+)
+
+from pdokservicesplugin.lib.http_client import PdokServicesNetworkException
 
 from ..lib.locatieserver import (
     LsType,
@@ -93,20 +100,28 @@ class PDOKReverseGeocoder(QgsProcessingAlgorithm):
         Returns a localised short help string for the tool.
         """
         return self.tr(
-            'This processing tool queries the PDOK Locatieserver (PDOK-LS) reverse geocoder service for each\
-            point in the input layer and adds the selected fields of the reverse geocoder result to the point.\n\n\
-            See also the PDOK Locatieserver reverse geocoding API <a href="https://github.com/PDOK/locatieserver/wiki/API-Reverse-Geocoder">documentation</a> \n\
-            Parameters:\n\n\
-            <ul><li><b>Input point layer:</b> for each point the PDOK-LS reverse geocoder service will be queried</li>\
-            <li><b>Fields:</b> fields to add to input point layer from reverse geocoder response, defaults to "weergavenaam" \
-            (note that in the resulting output weergavenaam is remapped to "weergavenaam_{result_type}")</li>\
-            <li><b>Result type to query</b></li>\
-            <li><b>Score threshold, optional:</b> objects returned by the PDOK-LS geocoder each have a score, \
-            to indicate how well they match the query. Results with a score lower than the threshold \
-            are excluded</li>\
-            <li><b>Output point layer:</b> output layer with fields added from the PDOK-LS reverse geocoder \
-            response, projection same as input point layer</li></ul>\
-            '
+            textwrap.dedent(
+                """
+                This processing tool queries the PDOK Locatieserver (PDOK-LS) reverse geocoder service for each point in the input layer and adds the selected fields of the reverse geocoder result to the point.
+
+
+                See also the PDOK Locatieserver reverse geocoding API <a href="https://github.com/PDOK/locatieserver/wiki/API-Reverse-Geocoder">documentation</a>
+                
+                <h3>Parameters</h3>
+                <dl>
+                    <dt><b>Input point layer</b></dt>
+                    <dd>for each point the PDOK-LS reverse geocoder service will be queried</dd>
+                    <dt><b>Fields</b> - <em>default value: weergavenaam</em></dt>
+                    <dd>fields to add to input point layer from reverse geocoder response, defaults to "weergavenaam"(note that in the resulting output layer "weergavenaam" is remapped to "weergavenaam_{result_type}")</dd>
+                    <dt><b>Result type</b></dt>
+                    <dd>PDOK-LS result type to query</dd>
+                    <dt><b>Score threshold [optional]</b></dt>
+                    <dd>objects returned by the PDOK-LS geocoder each have a score, to indicate how well they match the query. Results with a score lower than the threshold are excluded</dd>
+                    <dt><b>Output point layer</b></dt>
+                    <dd>output layer with fields added from the PDOK-LS reverse geocoder response, projection same as input point layer</dd>
+                </dl>
+                """
+            )
         )
 
     def initAlgorithm(self, config=None):
@@ -278,8 +293,20 @@ class PDOKReverseGeocoder(QgsProcessingAlgorithm):
             results = {}
             results[self.OUTPUT] = dest_id
             return results
-        except Exception as ex:
-            traceback_str = traceback.format_exc()
-            raise QgsProcessingException(
-                f"Unexpected error occured while running PDOKReverseGeocoder: {str(ex)} - {traceback_str}"
+        except PdokServicesNetworkException as ex:
+            message = get_processing_error_message(
+                "an error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+                "while executing HTTP request",
             )
+            raise QgsProcessingException(message)
+        except Exception as e:
+            message = get_processing_error_message(
+                "an unexpected error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+            )
+            raise QgsProcessingException(message)

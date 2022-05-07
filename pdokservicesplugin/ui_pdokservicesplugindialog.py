@@ -122,6 +122,7 @@ class Ui_PdokServicesPlugin(object):
         self.geocoderResultView.setObjectName("geocoderResultView")
         self.gridLayout_4.addWidget(self.geocoderResultView, 3, 0, 1, 3)
         self.lookupinfo = QtWidgets.QTextBrowser(self.tab_3)
+        self.lookupinfo.setOpenExternalLinks(True)
         self.lookupinfo.setObjectName("lookupinfo")
         self.gridLayout_4.addWidget(self.lookupinfo, 4, 0, 1, 3)
         self.label_2 = QtWidgets.QLabel(self.tab_3)
@@ -136,6 +137,7 @@ class Ui_PdokServicesPlugin(object):
         self.gridLayout_3 = QtWidgets.QGridLayout(self.tab)
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.webView = QtWidgets.QTextBrowser(self.tab)
+        self.webView.setOpenExternalLinks(True)
         self.webView.setObjectName("webView")
         self.gridLayout_3.addWidget(self.webView, 0, 0, 1, 1)
         self.tabWidget.addTab(self.tab, "")
@@ -147,12 +149,12 @@ class Ui_PdokServicesPlugin(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(PdokServicesPlugin)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(PdokServicesPlugin)
 
     def retranslateUi(self, PdokServicesPlugin):
         _translate = QtCore.QCoreApplication.translate
-        PdokServicesPlugin.setWindowTitle(_translate("PdokServicesPlugin", "PdokServicesPlugin"))
+        PdokServicesPlugin.setWindowTitle(_translate("PdokServicesPlugin", "PDOK Services Plugin"))
         self.btnLoadLayer.setToolTip(_translate("PdokServicesPlugin", "Boven actieve kaartlaag toevoegen"))
         self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Standaard"))
         self.btnLoadLayerTop.setToolTip(_translate("PdokServicesPlugin", "Als bovenste kaartlaag toevoegen"))
@@ -197,30 +199,33 @@ class Ui_PdokServicesPlugin(object):
 "<body>\n"
 "  <h1>QGIS plugin voor PDOK services</h1>\n"
 "  <p>\n"
-"    Deze plugin wordt gemaakt door Richard Duivenvoorde\n"
-"    (<a href=\"http://www.zuidt.nl\">Zuidt</a>).<br />\n"
-"  </p>\n"
-"  <p>\n"
+"    Deze plugin wordt gemaakt door Richard Duivenvoorde (<a href=\"http://www.zuidt.nl\">Zuidt</a>).\n"
+"    <br>\n"
+"    <br>\n"
 "    De code van deze plugin is te vinden op <a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\">Github</a>.\n"
 "    Bugs kunt u daar melden.\n"
 "  </p>\n"
 "\n"
-"  <p><img src=\":/plugins/pdokservicesplugin/resources/pdok.png\" /></p>\n"
+"  <h2>PDOK</h2>\n"
 "  <p>\n"
+"    <img style=\"margin-right:10px;\" src=\":/plugins/pdokservicesplugin/resources/pdok.png\" align=\"left\" />\n"
 "    <a href=\"http://www.pdok.nl\">PDOK</a> stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van\n"
 "    overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze\n"
 "    data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf,\n"
 "    particulier) kosteloos te gebruiken.\n"
 "  </p>\n"
 "  <p>\n"
-"    Service url\'s voor alle in de plugin aanwezige lagen worden met behulp van het <tt>pdokservicesspider</tt> script\n"
-"    (te vinden op <a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\">Github</a>) gegeneerd die gebruik maakt\n"
-"    van de CSW service van het Nationaal Georegister.\n"
+"    De lijst van services en lagen in deze plugin worden met behulp van het <tt>pdokservicesspider</tt> script\n"
+"    gegeneerd (te vinden op <a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\">Github</a>). Dit script\n"
+"    genereert deze lijst op basis van de <a\n"
+"      href=\"https://www.nationaalgeoregister.nl/geonetwork/srv/dut/csw?service=CSW&request=GetCapabilities&version=2.0.2\">CSW\n"
+"      service</a> van het <a href=\"https://www.nationaalgeoregister.nl/\">Nationaal Georegister</a>.\n"
 "  </p>\n"
 "\n"
 "  <h2>OpenGeoGroep. Anders denken, Anders doen...</h2>\n"
 "\n"
-"  <p><img src=\":/plugins/pdokservicesplugin/resources/ogg.gif\" align=\"left\" />De <a href=\"http://www.opengeogroep.nl\">OpenGeoGroep</a> is een\n"
+"  <p><img src=\":/plugins/pdokservicesplugin/resources/ogg.gif\" align=\"left\" />De <a\n"
+"      href=\"http://www.opengeogroep.nl\">OpenGeoGroep</a> is een\n"
 "    commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten\n"
 "    zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve\n"
 "    oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.</p>\n"

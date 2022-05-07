@@ -7,6 +7,8 @@ from .processing_geocoder import PDOKGeocoder
 from .processing_reverse_geocoder import PDOKReverseGeocoder
 from .processing_ahn3 import PDOKWCSTool
 
+from ..lib.constants import PLUGIN_NAME, PLUGIN_ID
+
 
 class Provider(QgsProcessingProvider):
     def loadAlgorithms(self, *args, **kwargs):
@@ -15,10 +17,10 @@ class Provider(QgsProcessingProvider):
         self.addAlgorithm(PDOKWCSTool())
 
     def id(self, *args, **kwargs):
-        return "pdokservices"
+        return PLUGIN_ID
 
     def name(self, *args, **kwargs):
-        return self.tr("PDOK Services Plugin")
+        return self.tr(PLUGIN_NAME)
 
     def icon(self):
         provider_path = os.path.dirname(__file__)
