@@ -142,18 +142,19 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         return self.tr(
             textwrap.dedent(
                 """
-                This processing tool retrieves elevation data from the <a href="https://geodata.nationaalgeoregister.nl/ahn3/wcs?service=WCS&request=GetCapabilities">AHN3 WCS</a> for each point in the point input layer. The output is a point layer with the joined elevation attribute. When a NODATA value is encountered, the resulting value in the output layer is NULL.
+                Deze processing tool haalt hoogte data op van de <a href="https://geodata.nationaalgeoregister.nl/ahn3/wcs?service=WCS&request=GetCapabilities">AHN3 WCS</a> service voor elk punt in de inputlaag. De output is een punten laag met het toegevoegde hoogte attribuut. Wanneer voor een locatie in de AHN3 WCS een <tt>NODATA</tt> waarde wordt gevonden is de resulterende waarde in de outputlaag <tt>NULL</tt>.
+
 
                 <h3>Parameters</h3>
                 <dl>
                     <dt><b>Input point layer</b><dt>
-                    <dd>input layer with points to retrieve elevation for</dd>
+                    <dd>inputlaag met punten</dd>
                     <dt><b>CoverageId:</b></dt>
-                    <dd>type of coverage to query, see the <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentation</a></dd>
+                    <dd>coverage om te bevragen, de AHN3 bied verschillende coverages voornaamste verschil is resolutie (5m vs 0.5m) en terrein (dtm) - vs oppervlaktemodel (dsm), zie de <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentatie</a></dd>
                     <dt><b>Attribute name:</b></dt>
-                    <dd>name of attribute to store elevation data in output layer</dd>
+                    <dd>attribuutnaam om de hoogte op te slaan in de outputlaag</dd>
                     <dt><b>Output layer:</b></dt>
-                    <dd>resulting output layer, projection taken from input layer</dd>
+                    <dd>outputlaag met hoogte attribuut, projectie hetzelfde als de inputlaag</dd>
                 </dl>
                 """
             )

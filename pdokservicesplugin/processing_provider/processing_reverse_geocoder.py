@@ -102,23 +102,22 @@ class PDOKReverseGeocoder(QgsProcessingAlgorithm):
         return self.tr(
             textwrap.dedent(
                 """
-                This processing tool queries the PDOK Locatieserver (PDOK-LS) reverse geocoder service for each point in the input layer and adds the selected fields of the reverse geocoder result to the point.
-
-
-                See also the PDOK Locatieserver reverse geocoding API <a href="https://github.com/PDOK/locatieserver/wiki/API-Reverse-Geocoder">documentation</a>
+                Deze processing tool bevraagd de PDOK Locatieserver reverse geocoder service voor elk punt in de inputlaag and voegt het geselecteerde veld uit het resultaat van de reverse geocoder service toe aan dit punt. 
+                
+                Zie ook de PDOK Locatieserver reverse geocoding API <a href="https://github.com/PDOK/locatieserver/wiki/API-Reverse-Geocoder">documentatie</a>
                 
                 <h3>Parameters</h3>
                 <dl>
                     <dt><b>Input point layer</b></dt>
-                    <dd>for each point the PDOK-LS reverse geocoder service will be queried</dd>
-                    <dt><b>Fields</b> - <em>default value: weergavenaam</em></dt>
-                    <dd>fields to add to input point layer from reverse geocoder response, defaults to "weergavenaam"(note that in the resulting output layer "weergavenaam" is remapped to "weergavenaam_{result_type}")</dd>
-                    <dt><b>Result type</b></dt>
-                    <dd>PDOK-LS result type to query</dd>
+                    <dd>voor elke feature in de input laag wordt de reverse geocoder service bevraagd</dd>
+                    <dt><b>Fields</b> - <em>default value: <tt>weergavenaam</tt></em></dt>
+                    <dd>velden (kommagescheiden lijst) uit het reverse geocoder resultaat om toe te voegen aan de inputlaag, default is <tt>weergavenaam</tt> (N.B. in de outputlaag wordt het veld <tt>weergavenaam</tt> hernoemd naar <tt>weergavenaam_{result_type}</tt>)</dd>
+                    <dt><b>Result type</b> - <em>default value: <tt>adres</tt></em></dt>
+                    <dd>Locatieserver result type om te bevragen</dd>
                     <dt><b>Score threshold [optional]</b></dt>
-                    <dd>objects returned by the PDOK-LS geocoder each have a score, to indicate how well they match the query. Results with a score lower than the threshold are excluded</dd>
+                    <dd>resultaten van de geocoder bevatten een score, die een indicatie geven van hoe goed het resultaat matcht met de query, resultaten met een score lager dan de score threshold worden achterwege gelaten</dd>
                     <dt><b>Output point layer</b></dt>
-                    <dd>output layer with fields added from the PDOK-LS reverse geocoder response, projection same as input point layer</dd>
+                    <dd>outputlaag met het resultaat van de geocoder met de toegevoegde attributen van het reverse geocoder resultaat, projectie hetzelfde als de inputlaag</dd>
                 </dl>
                 """
             )

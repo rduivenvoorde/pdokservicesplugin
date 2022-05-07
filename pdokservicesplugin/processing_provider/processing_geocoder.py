@@ -34,7 +34,7 @@ from qgis.core import (
     NULL,
 )
 
-from pdokservicesplugin.lib.pdokservices_exception import (
+from pdokservicesplugin.lib.util import (
     get_processing_error_message,
 )
 
@@ -105,40 +105,38 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
         return self.tr(
             textwrap.dedent(
                 """
-                This is processing tool queries the PDOK Locatieserver (PDOK-LS) geocoder service for each feature in the input layer, with the target attribute of the feature. The geometry returned by the PDOK-LS will be added to the output layer. Layers without geometry such as CSV and XSLX based layers are also suported. Existing attributes will be overwritten in the output layer. To query based on postcode and house number, ensure your input data conforms to this format:
+                Dit is een processing tool die de PDOK LocatieServer geocodeer service bevraagd  voor elke feature in de input laag met het target attribuut. De geometrie uit het antwoord van de geocodeer service zal worden toegevoegd aan de output laag. Lagen zonder geometrieën zoals CSV en XSLX gebaseerd lagen worden ook ondersteund. Bestaande attributen worden overschreven in de output laag. Om op postcode en huisnummer te bevragen dient de input data aan het volgende format te voldoen:
 
+                <pre><code>{postcode} {huisnr}</pre></code>
 
-                <pre><code>{postcode} {house-nr}</pre></code>
+                Bij voorbeeld: <em><tt>"6821BN 40-2"</tt></em> (zonder aanhalingstekens, merk op dat de huisnummer en postcode gescheiden zijn met een enkele spatie).
 
-                For example "6821BN 40-2" (note the space between postcode and housenumber).
-
-
-                See also the PDOK Locatieserver API <a href="https://github.com/PDOK/locatieserver/wiki/API-Locatieserver">documentation</a>
+                Zie ook de PDOK Locatieserver API <a href="https://github.com/PDOK/locatieserver/wiki/API-Locatieserver">documentatie</a>.
 
                 <h3>Parameters</h3>
                 <dl>
                     <dt><b>Input layer</b></dt>
-                    <dd>for each feature the PDOK-LS geocoder service will be queried</dd>
+                    <dd>voor elke feature in de input laag wordt de geocoder service bevraagd</dd>
                     <dt><b>Geocode attribute</b></dt>
-                    <dd>attribute in input layer to query PDOK-LS with</dd>
+                    <dd>attribuut in input laag om de geocoder service mee te bevragen</dd>
                     <dt><b>Geocode result type</b></dt>
-                    <dd>PDOK-LS result type to query</dd>
+                    <dd>Locatieserver result type om te bevragen</dd>
                     <dt><b>Target CRS</b></dt>
-                    <dd>CRS of the resulting output layer</dd>
-                    <dt><b>Retrieve actual geometry (instead of centroid)</b> - <em>default value: false</em></dt>
-                    <dd>will return higher order geometry type if available (depends on <em>Geocode result type</em>)</dd>
-                    <dt><b>Add x and Y attribute</b> - <em>default value: false</em></dt>
-                    <dd>add "gc_x" and "gc_y" attributes to the output layer containing the geometry centroid coordinates</dd>
-                    <dt><b>Add "weergavenaam" (display name) attribute</b> - <em>default value: false</em></dt>
-                    <dd>add "gc_naam" attribute to the output layer, containing the "weergavenaam" returned by the geocoder</dd>
-                    <dt><b>Add score attribute</b> - <em>default value: false</em></dt>
-                    <dd>add "gc_score" attribute to the output layer containing the matching "score" returned by the geocoder</dd>
-                    <dt><b>Add dummy geometry</b></dt>
-                    <dd>add features with a dummy geometry (near 0,0) for not found locations, instead of leaving these features out from the result. This can be handy for manually moving these features afterwards.</dd>
+                    <dd>CRS van de outputlaag</dd>
+                    <dt><b>Retrieve actual geometry (instead of centroid)</b> - <em>default value: <tt>false</tt></em></dt>
+                    <dd>daadwerkelijke geometry ophalen in plaats van centroïde indien beschikbaar (hangt af <em>Geocode result type</em>)</dd>
+                    <dt><b>Add x and Y attribute</b> - <em>default value: <tt>false</tt></em></dt>
+                    <dd>voeg <tt>gc_x</tt> and <tt>gc_y</tt> attributen aan de outputlaag die de coördinaten van de centroïde bevatten</dd>
+                    <dt><b>Add <tt>weergavenaam</tt> (display name) attribute</b> - <em>default value: <tt>false</tt></em></dt>
+                    <dd>voeg <tt>gc_naam</tt> attribuut toe aan de outputlaag, met het <tt>weergavenaam</tt> veld uit het geocoder resultaat</dd>
+                    <dt><b>Add score attribute</b> - <em>default value: <tt>false</tt></em></dt>
+                    <dd>voeg <tt>gc_score</tt> attribuut toe aan de outputlaag, met het <tt>score</tt> veld uit het geocoder resultaat</dd>
+                    <dt><b>Add dummy geometry</b> - <em>default value: <tt>false</tt></dt>
+                    <dd>voeg dummy features toe (in de buurt van <tt>0,0</tt>) voor niet gevonden locaties, anders worden deze locaties niet meegenomen in het resultaat. Dit kan handig zijn voor het naderhand handmatig verplaatsten van deze features.</dd>
                     <dt><b>Score threshold [optional]</b></dt>
-                    <dd>objects returned by the PDOK-LS geocoder each have a score, to indicate how well they match with the query. Results with a score lower than the threshold are excluded</dd>
+                    <dd>resultaten van de geocoder bevatten een score, die een indicatie geven van hoe goed het resultaat matcht met de query, resultaten met een score lager dan de score threshold worden achterwege gelaten</dd>
                     <dt><b>Output layer</b></dt>
-                    <dd>resulting output layer</dd>
+                    <dd>outputlaag met het resultaat van de geocoder</dd>
                 </dl>
                 """
             )
