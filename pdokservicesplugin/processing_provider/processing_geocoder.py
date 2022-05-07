@@ -4,6 +4,7 @@
 Locatieserver. Tested with QGIS version 3.16, but will probably work with any \
 3.X version."""
 
+import textwrap
 import traceback
 import re
 import os.path
@@ -32,6 +33,12 @@ from qgis.core import (
     QgsProcessingParameterField,
     NULL,
 )
+
+from pdokservicesplugin.lib.pdokservices_exception import (
+    get_processing_error_message,
+)
+
+from pdokservicesplugin.lib.http_client import PdokServicesNetworkException
 
 from ..lib.locatieserver import (
     LsType,
@@ -96,27 +103,45 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
         Returns a localised short help string for the algorithm.
         """
         return self.tr(
-            'This is processing tool queries the PDOK Locatieserver (PDOK-LS) geocoder service for each\
-            feature in the input layer, with the target attribute of the feature. The geometry returned by the PDOK-LS will be added to the output layer. Layers without geometry such as CSV and XSLX based layers are also suported. Existing attributes will be overwritten in the output layer. To query based on\
-            postcode and house number, ensure your input data conforms to this format:\n\n\
-            <pre><code>{postcode} {house-nr}</pre></code>\n\
-            For example "6821BN 40-2" (note the space between postcode and housenumber).\n\n\
-            See also the PDOK Locatieserver API <a href="https://github.com/PDOK/locatieserver/wiki/API-Locatieserver">documentation</a>\n\
-            Parameters:\n\n\
-            <ul><li><b>Input layer:</b> for each feature the PDOK-LS geocoder service will be queried</li>\
-            <li><b>Geocode attribute:</b> attribute in input layer to query PDOK-LS with</li>\
-            <li><b>Geocode result type</b></li>\
-            <li><b>Target CRS:</b> CRS of the resulting output layer</li>\
-            <li><b>Retrieve actual geometry (instead of centroid):</b> default value: false, will return higher order geometry type if available (depends on <em>Geocode result type</em>)</li>\
-            <li><b>Add x and Y attribute:</b> default value: false, add "gc_x" and "gc_y" attributes to the output layer containing \ the geometry centroid coordinates\
-            <li><b>Add "weergavenaam" (display name) attribute: </b>, default value false, add "gc_naam" attribute to the output layer, containing the "weergavenaam" returned by the geocoder</li>\
-            <li><b>Add score attribute:</b> default value: false, add "gc_score" attribute to the output layer containing the matching "score" returned by the geocoder \
-            <li><b>Add dummy geometry:</b> add features with a dummy geometry (near 0,0) for not found locations, instead of leaving these features out from the result. This \
-            can be handy for manually moving these features afterwards.</li>\
-            <li><b>Score threshold [optional]:</b> objects returned by the PDOK-LS geocoder each have a score, \
-            to indicate how well they match with the query. Results with a score lower than the threshold \
-            are excluded</li>\
-            <li><b>Output layer:</b> resulting output layer</li></ul>'
+            textwrap.dedent(
+                """
+                This is processing tool queries the PDOK Locatieserver (PDOK-LS) geocoder service for each feature in the input layer, with the target attribute of the feature. The geometry returned by the PDOK-LS will be added to the output layer. Layers without geometry such as CSV and XSLX based layers are also suported. Existing attributes will be overwritten in the output layer. To query based on postcode and house number, ensure your input data conforms to this format:
+
+
+                <pre><code>{postcode} {house-nr}</pre></code>
+
+                For example "6821BN 40-2" (note the space between postcode and housenumber).
+
+
+                See also the PDOK Locatieserver API <a href="https://github.com/PDOK/locatieserver/wiki/API-Locatieserver">documentation</a>
+
+                <h3>Parameters</h3>
+                <dl>
+                    <dt><b>Input layer</b></dt>
+                    <dd>for each feature the PDOK-LS geocoder service will be queried</dd>
+                    <dt><b>Geocode attribute</b></dt>
+                    <dd>attribute in input layer to query PDOK-LS with</dd>
+                    <dt><b>Geocode result type</b></dt>
+                    <dd>PDOK-LS result type to query</dd>
+                    <dt><b>Target CRS</b></dt>
+                    <dd>CRS of the resulting output layer</dd>
+                    <dt><b>Retrieve actual geometry (instead of centroid)</b> - <em>default value: false</em></dt>
+                    <dd>will return higher order geometry type if available (depends on <em>Geocode result type</em>)</dd>
+                    <dt><b>Add x and Y attribute</b> - <em>default value: false</em></dt>
+                    <dd>add "gc_x" and "gc_y" attributes to the output layer containing the geometry centroid coordinates</dd>
+                    <dt><b>Add "weergavenaam" (display name) attribute</b> - <em>default value: false</em></dt>
+                    <dd>add "gc_naam" attribute to the output layer, containing the "weergavenaam" returned by the geocoder</dd>
+                    <dt><b>Add score attribute</b> - <em>default value: false</em></dt>
+                    <dd>add "gc_score" attribute to the output layer containing the matching "score" returned by the geocoder</dd>
+                    <dt><b>Add dummy geometry</b></dt>
+                    <dd>add features with a dummy geometry (near 0,0) for not found locations, instead of leaving these features out from the result. This can be handy for manually moving these features afterwards.</dd>
+                    <dt><b>Score threshold [optional]</b></dt>
+                    <dd>objects returned by the PDOK-LS geocoder each have a score, to indicate how well they match with the query. Results with a score lower than the threshold are excluded</dd>
+                    <dt><b>Output layer</b></dt>
+                    <dd>resulting output layer</dd>
+                </dl>
+                """
+            )
         )
 
     def initAlgorithm(self, config=None):
@@ -382,8 +407,20 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             results = {}
             results[self.OUTPUT] = dest_id
             return results
-        except Exception as e:
-            traceback_str = traceback.format_exc()
-            raise QgsProcessingException(
-                f"Unexpected error occured while running PDOKGeocoder: {str(e)} - {traceback_str}"
+        except PdokServicesNetworkException as ex:
+            message = get_processing_error_message(
+                "an error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+                "while executing HTTP request",
             )
+            raise QgsProcessingException(message)
+        except Exception as e:
+            message = get_processing_error_message(
+                "an unexpected error",
+                self.displayName(),
+                ex,
+                traceback.format_exc(),
+            )
+            raise QgsProcessingException(message)

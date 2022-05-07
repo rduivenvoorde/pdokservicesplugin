@@ -108,6 +108,7 @@ def suggest_query(
             "id": "gem-0b2a8b92856b27f86fbd67ab35808ebf",
             "score": 19.91312
         }
+    Raises PdokServicesNetworkException when request fails
     """
     # TODO: add fields filter, with fl=id,geometrie_ll/rd or *
     query = url_encode_query_string(query)
@@ -164,6 +165,9 @@ def process_geom_fields(result_item, proj: Projection):
 def free_query(
     query, proj: Projection, type_filter=TypeFilter.new_with_default_values(), rows=10
 ) -> "list[dict]":
+    """
+    Raises PdokServicesNetworkException when request fails
+    """
     query = url_encode_query_string(query)
     query_string = f"q={query}&rows={rows}"
     url = f"{SERVICE_ENDPOINT}/free?{query_string}&fq={type_filter}"
@@ -178,6 +182,8 @@ def reverse_lookup(
 ) -> "list[dict]":
     """
     Reverse geocoder lookup, x and y coordinates in EPSG:28992
+
+    Raises PdokServicesNetworkException when request fails
     """
     rev_geo_type_filter = type_filter.rev_geo_filter()
     fields_query_string = url_encode_query_string(",".join(fields))
@@ -188,6 +194,9 @@ def reverse_lookup(
 
 
 def lookup_object(object_id: str, proj: Projection) -> dict:
+    """
+    Raises PdokServicesNetworkException when request fails
+    """
     # TODO: add fields filter, with fl=id,geometrie_ll/rd or fl=*
     geom_string = proj_mapping[proj]
     fields_filter = f"*,{geom_string}"
