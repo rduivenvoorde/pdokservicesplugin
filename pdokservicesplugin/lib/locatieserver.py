@@ -110,6 +110,8 @@ def suggest_query(
         }
     Raises PdokServicesNetworkException when request fails
     """
+    if len(type_filter.types) == 0:
+        return []
     # TODO: add fields filter, with fl=id,geometrie_ll/rd or *
     query = url_encode_query_string(query)
     query_string = f"q={query}&rows={rows}&fq={type_filter}"

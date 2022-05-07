@@ -20,6 +20,7 @@
  ***************************************************************************/
 """
 from copy import deepcopy
+from optparse import check_choice
 import re
 from numpy import isin
 from pytz import NonExistentTimeError
@@ -195,6 +196,8 @@ class PdokServicesPlugin(object):
         self.dlg.ui.btnLoadLayerBottom.clicked.connect(
             lambda: self.loadService("bottom")
         )
+
+        self.dlg.ui.pushButton.clicked.connect(self.toggleAll)
 
         self.dlg.geocoderSearch.returnPressed.connect(self.searchAddress)
 
@@ -796,25 +799,42 @@ class PdokServicesPlugin(object):
             self.dlg.ui.cbx_pcl.setChecked("perceel" in checked_fqs)
             self.dlg.ui.cbx_hmp.setChecked("hectometerpaal" in checked_fqs)
 
+    def toggleAll(self):
+        checkboxes = [
+            self.dlg.ui.cbx_gem,
+            self.dlg.ui.cbx_wpl,
+            self.dlg.ui.cbx_weg,
+            self.dlg.ui.cbx_pcd,
+            self.dlg.ui.cbx_adr,
+            self.dlg.ui.cbx_pcl,
+            self.dlg.ui.cbx_hmp,
+        ]
+        none_checked = all(map(lambda x: not x.isChecked(), checkboxes))
+        if none_checked:
+            # check_all
+            [x.setChecked(True) for x in checkboxes]
+        else:
+            # uncheck all
+            [x.setChecked(False) for x in checkboxes]
+
     def create_type_filter(self):
         """
         This creates a TypeFilter (Filter Query, see https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver) based on the checkboxes in the dialog. Defaults to []
         """
+        # TODO: share checkbox dict as class field for other methods doing stuff with the checkboxes
+        checkbox_dict = {
+            self.dlg.ui.cbx_gem: LsType.gemeente,
+            self.dlg.ui.cbx_wpl: LsType.woonplaats,
+            self.dlg.ui.cbx_weg: LsType.weg,
+            self.dlg.ui.cbx_pcd: LsType.postcode,
+            self.dlg.ui.cbx_adr: LsType.adres,
+            self.dlg.ui.cbx_pcl: LsType.perceel,
+            self.dlg.ui.cbx_hmp: LsType.hectometerpaal,
+        }
         filter = TypeFilter([])
-        if self.dlg.ui.cbx_gem.isChecked():
-            filter.add_type(LsType.gemeente)
-        if self.dlg.ui.cbx_wpl.isChecked():
-            filter.add_type(LsType.woonplaats)
-        if self.dlg.ui.cbx_weg.isChecked():
-            filter.add_type(LsType.weg)
-        if self.dlg.ui.cbx_pcd.isChecked():
-            filter.add_type(LsType.postcode)
-        if self.dlg.ui.cbx_adr.isChecked():
-            filter.add_type(LsType.adres)
-        if self.dlg.ui.cbx_pcl.isChecked():
-            filter.add_type(LsType.perceel)
-        if self.dlg.ui.cbx_hmp.isChecked():
-            filter.add_type(LsType.hectometerpaal)
+        for key in checkbox_dict.keys():
+            if key.isChecked():
+                filter.add_type(checkbox_dict[key])
         return filter
 
     def suggest(self):
