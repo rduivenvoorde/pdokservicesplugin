@@ -103,6 +103,16 @@ class PdokServicesPlugin(object):
         self.pointer = None
         self.geocoderSourceModel = None
 
+        self.checkbox_dict = {
+            self.dlg.ui.cbx_gem: LsType.gemeente,
+            self.dlg.ui.cbx_wpl: LsType.woonplaats,
+            self.dlg.ui.cbx_weg: LsType.weg,
+            self.dlg.ui.cbx_pcd: LsType.postcode,
+            self.dlg.ui.cbx_adr: LsType.adres,
+            self.dlg.ui.cbx_pcl: LsType.perceel,
+            self.dlg.ui.cbx_hmp: LsType.hectometerpaal,
+        }
+
     def getSettingsValue(self, key, default=""):
         if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
             key = f"{self.SETTINGS_SECTION}{key}"
@@ -210,20 +220,9 @@ class PdokServicesPlugin(object):
         self.dlg.geocoderResultSearch.setPlaceholderText(
             "een of meer zoekwoorden uit resultaat"
         )
-        ui = self.dlg.ui
-        cbxs = [
-            ui.cbx_gem,
-            ui.cbx_wpl,
-            ui.cbx_weg,
-            ui.cbx_pcd,
-            ui.cbx_adr,
-            ui.cbx_pcl,
-            ui.cbx_hmp,
-        ]
         # connect all fq checkboxes with suggest, so upon a change in fq filter we re-search
-        for cbx in cbxs:
+        for cbx in self.checkbox_dict.keys():
             cbx.stateChanged.connect(self.searchAddress)
-
         self.run(True)
         self.provider = Provider()
         QgsApplication.processingRegistry().addProvider(self.provider)
@@ -791,50 +790,29 @@ class PdokServicesPlugin(object):
         """
         checked_fqs = self.getSettingsValue("checkedfqs", [])
         if len(checked_fqs) > 0:  # else there is not saved state... take gui defaults
-            self.dlg.ui.cbx_gem.setChecked("gemeente" in checked_fqs)
-            self.dlg.ui.cbx_wpl.setChecked("woonplaats" in checked_fqs)
-            self.dlg.ui.cbx_weg.setChecked("weg" in checked_fqs)
-            self.dlg.ui.cbx_pcd.setChecked("postcode" in checked_fqs)
-            self.dlg.ui.cbx_adr.setChecked("adres" in checked_fqs)
-            self.dlg.ui.cbx_pcl.setChecked("perceel" in checked_fqs)
-            self.dlg.ui.cbx_hmp.setChecked("hectometerpaal" in checked_fqs)
+            for checkbox in self.checkbox_dict.keys():
+                ls_type = self.checkbox_dict[checkbox]
+                checkbox.setChecked(ls_type.name in checked_fqs)
 
     def toggleAll(self):
-        checkboxes = [
-            self.dlg.ui.cbx_gem,
-            self.dlg.ui.cbx_wpl,
-            self.dlg.ui.cbx_weg,
-            self.dlg.ui.cbx_pcd,
-            self.dlg.ui.cbx_adr,
-            self.dlg.ui.cbx_pcl,
-            self.dlg.ui.cbx_hmp,
-        ]
-        none_checked = all(map(lambda x: not x.isChecked(), checkboxes))
+        none_checked = all(map(lambda x: not x.isChecked(), self.checkbox_dict.keys()))
         if none_checked:
             # check_all
-            [x.setChecked(True) for x in checkboxes]
+            [x.setChecked(True) for x in self.checkbox_dict.keys()]
         else:
             # uncheck all
-            [x.setChecked(False) for x in checkboxes]
+            [x.setChecked(False) for x in self.checkbox_dict.keys()]
 
     def create_type_filter(self):
         """
         This creates a TypeFilter (Filter Query, see https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver) based on the checkboxes in the dialog. Defaults to []
         """
         # TODO: share checkbox dict as class field for other methods doing stuff with the checkboxes
-        checkbox_dict = {
-            self.dlg.ui.cbx_gem: LsType.gemeente,
-            self.dlg.ui.cbx_wpl: LsType.woonplaats,
-            self.dlg.ui.cbx_weg: LsType.weg,
-            self.dlg.ui.cbx_pcd: LsType.postcode,
-            self.dlg.ui.cbx_adr: LsType.adres,
-            self.dlg.ui.cbx_pcl: LsType.perceel,
-            self.dlg.ui.cbx_hmp: LsType.hectometerpaal,
-        }
+
         filter = TypeFilter([])
-        for key in checkbox_dict.keys():
+        for key in self.checkbox_dict.keys():
             if key.isChecked():
-                filter.add_type(checkbox_dict[key])
+                filter.add_type(self.checkbox_dict[key])
         return filter
 
     def suggest(self):
@@ -930,24 +908,24 @@ class PdokServicesPlugin(object):
             crs = self.iface.mapCanvas().mapSettings().destinationCrs()
             crs28992 = QgsCoordinateReferenceSystem.fromEpsgId(28992)
             crsTransform = QgsCoordinateTransform(crs28992, crs, QgsProject.instance())
-            z = 1587
             adrestekst_lower = adrestekst.lower()
-            if adrestekst_lower.startswith("adres"):
-                z = 794
-            elif adrestekst_lower.startswith("perceel"):
-                z = 794
-            elif adrestekst_lower.startswith("hectometer"):
-                z = 1587
-            elif adrestekst_lower.startswith("weg"):
-                z = 3175
-            elif adrestekst_lower.startswith("postcode"):
-                z = 6350
-            elif adrestekst_lower.startswith("woonplaats"):
-                z = 25398
-            elif adrestekst_lower.startswith("gemeente"):
-                z = 50797
-            elif adrestekst_lower.startswith("provincie"):
-                z = 812750
+
+            zoom_dict = {
+                "adres": 794,
+                "perceel": 794,
+                "hectometer": 1587,
+                "weg": 3175,
+                "postcode": 6350,
+                "woonplaats": 25398,
+                "gemeente": 50797,
+                "provincie": 812750,
+            }
+            z = 1587
+            for z_type in zoom_dict.keys():
+                if adrestekst_lower.startswith(
+                    z_type
+                ):  # maybe find better way to infer return type?
+                    z = zoom_dict[z_type]
 
             centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
             centroid.transform(crsTransform)
