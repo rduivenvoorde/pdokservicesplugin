@@ -31,7 +31,6 @@ OF doe een donatie via de Paypal button, dan koop ik daar een biertje voor tijde
 
 [![paypal](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=DZ8R5JPAW55CJ&currency_code=EUR&source=url)
 
-
 ## Developers
 
 Install dev tools with:
@@ -48,10 +47,10 @@ pylint --errors-only --disable=E0611 pdokservicesplugin
 
 Format python code with:
 
-
 ```sh
 black pdokservicesplugin
 ```
+
 Generate `ui_pdokservicesplugindialog.py` from `ui_pdokservicesplugindialog.ui`:
 
 ```sh
@@ -69,11 +68,16 @@ xmlstarlet ed -u  ".//widget[@name='webView']/property[@name='html']/string" -v 
         pyuic5 ui_pdokservicesplugindialog.ui -o ui_pdokservicesplugindialog.py
 ```
 
-
-
 Compile `resources_rc.py` file:
 
 ```sh
 cd pdokservicesplugin
 pyrcc5 resources.qrc -o resources_rc.py
+```
+
+Create symlink to QGIS plugin directory from repository directory (Windows):
+
+```bat
+Rem maak eenv QGIS profiel aan met de naam "pdokplugin-develop"
+mklink /d "%APPDATA%\QGIS\QGIS3\profiles\pdokplugin-develop\python\plugins\pdokservicesplugin" "%REPODIR%\pdokservicesplugin"
 ```

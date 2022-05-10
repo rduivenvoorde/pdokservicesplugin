@@ -61,6 +61,7 @@ import textwrap
 import json
 import os
 import urllib.request, urllib.parse, urllib.error
+import locale
 
 # Initialize Qt resources from file resources.py
 from . import resources_rc
@@ -299,10 +300,16 @@ class PdokServicesPlugin(object):
         stype = self.currentLayer["service_type"].upper()
         minscale = ""
         if "minscale" in self.currentLayer and self.currentLayer["minscale"] != "":
-            minscale = f'min. schaal 1:{self.currentLayer["minscale"]}'
+            locale.setlocale(locale.LC_ALL, 'nl_NL') # enforce dutch locale, to ensure 1000 seperators is "."
+            minscale_formatted = locale.format_string("%d", int(float(self.currentLayer["minscale"])), grouping=True)
+            minscale = f'1:{minscale_formatted}'
+
         maxscale = ""
         if "maxscale" in self.currentLayer and self.currentLayer["maxscale"] != "":
-            maxscale = f'max. schaal 1: {self.currentLayer["maxscale"]}'
+            locale.setlocale(locale.LC_ALL, 'nl_NL') # enforce dutch locale, to ensure 1000 seperators is "."
+            maxscale_formatted = locale.format_string("%d", int(float(self.currentLayer["maxscale"])), grouping=True)
+            maxscale = f'1:{maxscale_formatted}'
+
         service_md_id = self.currentLayer["service_md_id"]
         dataset_md_id = self.currentLayer["dataset_md_id"]
         self.dlg.ui.layerInfo.setText("")
@@ -602,7 +609,7 @@ class PdokServicesPlugin(object):
             title = f"{PLUGIN_NAME} - HTTP Request Error"
             message = f"""
             an error occured while executing HTTP request, error:
-            
+
             {str(ex)}
             """
             self.show_error(message, title)
@@ -872,9 +879,9 @@ class PdokServicesPlugin(object):
                 Niets gevonden.
 
                 Probeer een andere spelling, of alleen postcode/huisnummer?
-                                
+
                 Selecteer meer (Locatieserver) 'types' in de  dialoog.
-                            
+
                 Of gebruik de 'PDOK geocoder'-tab in de {PLUGIN_NAME} dialoog.
                 """
             )
@@ -896,7 +903,7 @@ class PdokServicesPlugin(object):
                 title = f"{PLUGIN_NAME} - HTTP Request Error"
                 message = textwrap.dedent(
                     f"""an error occured while executing HTTP request, error:
-                    
+
                     {str(ex)}
                     """
                 )
