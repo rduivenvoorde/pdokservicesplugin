@@ -18,7 +18,9 @@ class Ui_PdokServicesPlugin(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(PdokServicesPlugin)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtWidgets.QTabWidget(PdokServicesPlugin)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
@@ -78,7 +80,9 @@ class Ui_PdokServicesPlugin(object):
         self.geocoderSearch.setObjectName("geocoderSearch")
         self.gridLayout_4.addWidget(self.geocoderSearch, 0, 1, 1, 2)
         self.groupBox_3 = QtWidgets.QGroupBox(self.tab_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_3.sizePolicy().hasHeightForWidth())
@@ -115,7 +119,9 @@ class Ui_PdokServicesPlugin(object):
         self.cbx_adr.setObjectName("cbx_adr")
         self.gridLayout_5.addWidget(self.cbx_adr, 0, 1, 1, 1)
         self.pushButton = QtWidgets.QPushButton(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
@@ -162,39 +168,77 @@ class Ui_PdokServicesPlugin(object):
 
     def retranslateUi(self, PdokServicesPlugin):
         _translate = QtCore.QCoreApplication.translate
-        PdokServicesPlugin.setWindowTitle(_translate("PdokServicesPlugin", "PDOK Services Plugin"))
-        self.btnLoadLayer.setToolTip(_translate("PdokServicesPlugin", "Boven actieve kaartlaag toevoegen"))
+        PdokServicesPlugin.setWindowTitle(
+            _translate("PdokServicesPlugin", "PDOK Services Plugin")
+        )
+        self.btnLoadLayer.setToolTip(
+            _translate("PdokServicesPlugin", "Boven actieve kaartlaag toevoegen")
+        )
         self.btnLoadLayer.setText(_translate("PdokServicesPlugin", "Standaard"))
-        self.btnLoadLayerTop.setToolTip(_translate("PdokServicesPlugin", "Als bovenste kaartlaag toevoegen"))
+        self.btnLoadLayerTop.setToolTip(
+            _translate("PdokServicesPlugin", "Als bovenste kaartlaag toevoegen")
+        )
         self.btnLoadLayerTop.setText(_translate("PdokServicesPlugin", "Boven"))
-        self.btnLoadLayerBottom.setToolTip(_translate("PdokServicesPlugin", "Als onderste kaartlaag toevoegen"))
+        self.btnLoadLayerBottom.setToolTip(
+            _translate("PdokServicesPlugin", "Als onderste kaartlaag toevoegen")
+        )
         self.btnLoadLayerBottom.setText(_translate("PdokServicesPlugin", "Onder"))
         self.label.setText(_translate("PdokServicesPlugin", "Zoeken           "))
         self.labelAddLayer.setText(_translate("PdokServicesPlugin", "Laag toevoegen"))
         self.labelCrs.setText(_translate("PdokServicesPlugin", "CRS"))
-        self.layerSearch.setPlaceholderText(_translate("PdokServicesPlugin", "Start met het type service en dan overige termen, bv \"wfs cbs provincie\""))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("PdokServicesPlugin", "PDOK services"))
-        self.groupBox_3.setTitle(_translate("PdokServicesPlugin", "Zoek alleen type (zie https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver voor defaults)"))
+        self.layerSearch.setPlaceholderText(
+            _translate(
+                "PdokServicesPlugin",
+                'Start met het type service en dan overige termen, bv "wfs cbs provincie"',
+            )
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_2),
+            _translate("PdokServicesPlugin", "PDOK services"),
+        )
+        self.groupBox_3.setTitle(
+            _translate(
+                "PdokServicesPlugin",
+                "Zoek alleen type (zie https://github.com/PDOK/locatieserver/wiki/Zoekvoorbeelden-Locatieserver voor defaults)",
+            )
+        )
         self.cbx_wpl.setText(_translate("PdokServicesPlugin", "Woonplaats"))
         self.cbx_gem.setText(_translate("PdokServicesPlugin", "Gemeente"))
         self.cbx_pcd.setText(_translate("PdokServicesPlugin", "Postcode"))
-        self.cbx_weg.setText(_translate("PdokServicesPlugin", "Weg (BAG openbare ruimte)"))
+        self.cbx_weg.setText(
+            _translate("PdokServicesPlugin", "Weg (BAG openbare ruimte)")
+        )
         self.cbx_pcl.setText(_translate("PdokServicesPlugin", "Perceel"))
         self.cbx_hmp.setText(_translate("PdokServicesPlugin", "Hectometerpaal"))
         self.cbx_adr.setText(_translate("PdokServicesPlugin", "Adres"))
         self.pushButton.setText(_translate("PdokServicesPlugin", "Toggle All/None"))
-        self.label_6.setText(_translate("PdokServicesPlugin", "Zoek (ook voor snelzoektoolbar)"))
-        self.label_2.setText(_translate("PdokServicesPlugin", "Filter resultaten hieronder op:"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PdokServicesPlugin", "PDOK Locatieserver"))
-        self.webView.setHtml(_translate("PdokServicesPlugin", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Ubuntu\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
-"<h1 style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:xx-large; font-weight:600; color:#444444;\">QGIS plugin voor PDOK services</span><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> </span></h1>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">Deze plugin wordt gemaakt door Richard Duivenvoorde (</span><a href=\"http://www.zuidt.nl\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Zuidt</span></a><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">). <br /><br />De code van deze plugin is te vinden op </span><a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Github</span></a><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">. Bugs kunt u daar melden. </span></p>\n"
-"<h2 style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:x-large; font-weight:600; color:#444444;\">PDOK</span><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> </span></h2>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><img src=\":/plugins/pdokservicesplugin/resources/pdok.png\" style=\"float: left;\" /><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> </span><a href=\"http://www.pdok.nl\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">PDOK</span></a><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf, particulier) kosteloos te gebruiken. </span></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">De lijst van services en lagen in deze plugin worden met behulp van het </span><span style=\" font-family:\'monospace\'; font-size:15px; font-weight:296; color:#444444;\">pdokservicesspider</span><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> script gegeneerd (te vinden op </span><a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Github</span></a><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">). Dit script genereert deze lijst op basis van de </span><a href=\"https://www.nationaalgeoregister.nl/geonetwork/srv/dut/csw?service=CSW&amp;request=GetCapabilities&amp;version=2.0.2\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">CSW service</span></a><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> van het </span><a href=\"https://www.nationaalgeoregister.nl/\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Nationaal Georegister</span></a><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">. </span></p>\n"
-"<h2 style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:x-large; font-weight:600; color:#444444;\">OpenGeoGroep. Anders denken, Anders doen...</span><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> </span></h2>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><img src=\":/plugins/pdokservicesplugin/resources/ogg.gif\" style=\"float: left;\" /><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\">De </span><a href=\"http://www.opengeogroep.nl\"><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">OpenGeoGroep</span></a><span style=\" font-family:\'Helvetica Neue\',\'Helvetica\',\'Arial\',\'sans-serif\'; font-size:15px; font-weight:296; color:#444444;\"> is een commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.</span> </p></body></html>"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("PdokServicesPlugin", "OpenGeoGroep en PDOK"))
+        self.label_6.setText(
+            _translate("PdokServicesPlugin", "Zoek (ook voor snelzoektoolbar)")
+        )
+        self.label_2.setText(
+            _translate("PdokServicesPlugin", "Filter resultaten hieronder op:")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_3),
+            _translate("PdokServicesPlugin", "PDOK Locatieserver"),
+        )
+        self.webView.setHtml(
+            _translate(
+                "PdokServicesPlugin",
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
+                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
+                "p, li { white-space: pre-wrap; }\n"
+                "</style></head><body style=\" font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
+                "<h1 style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:xx-large; font-weight:600; color:#444444;\">QGIS plugin voor PDOK services</span><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> </span></h1>\n"
+                "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\">Deze plugin wordt gemaakt door Richard Duivenvoorde (</span><a href=\"http://www.zuidt.nl\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Zuidt</span></a><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\">). <br /><br />De code van deze plugin is te vinden op </span><a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Github</span></a><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\">. Bugs kunt u daar melden. </span></p>\n"
+                "<h2 style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:600; color:#444444;\">PDOK</span><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> </span></h2>\n"
+                "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><img src=\":/plugins/pdokservicesplugin/resources/pdok.png\" style=\"float: left;\" /><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> </span><a href=\"http://www.pdok.nl\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">PDOK</span></a><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf, particulier) kosteloos te gebruiken. </span></p>\n"
+                "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\">De lijst van services en lagen in deze plugin worden met behulp van het </span><span style=\" font-family:'monospace'; font-size:15px; font-weight:296; color:#444444;\">pdokservicesspider</span><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> script gegeneerd (te vinden op </span><a href=\"https://github.com/rduivenvoorde/pdokservicesplugin\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Github</span></a><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\">). Dit script genereert deze lijst op basis van de </span><a href=\"https://www.nationaalgeoregister.nl/geonetwork/srv/dut/csw?service=CSW&amp;request=GetCapabilities&amp;version=2.0.2\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">CSW service</span></a><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> van het </span><a href=\"https://www.nationaalgeoregister.nl/\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">Nationaal Georegister</span></a><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\">. </span></p>\n"
+                "<h2 style=\" margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:600; color:#444444;\">OpenGeoGroep. Anders denken, Anders doen...</span><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> </span></h2>\n"
+                "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;\"><img src=\":/plugins/pdokservicesplugin/resources/ogg.gif\" style=\"float: left;\" /><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\">De </span><a href=\"http://www.opengeogroep.nl\"><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;\">OpenGeoGroep</span></a><span style=\" font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;\"> is een commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.</span> </p></body></html>",
+            )
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab),
+            _translate("PdokServicesPlugin", "OpenGeoGroep en PDOK"),
+        )

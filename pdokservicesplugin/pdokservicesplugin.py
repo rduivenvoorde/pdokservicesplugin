@@ -175,10 +175,6 @@ class PdokServicesPlugin(object):
         self.set_favourite_action(self.favourite_2_action, 2)
         self.run_button.menu().addAction(self.favourite_2_action)
 
-        # TODO :-)
-        # self.run_button.menu().addSection('Meest Recent')
-        # self.run_button.menu().addSeparator()
-
         self.toolbarSearch = QLineEdit()
         self.toolbarSearch.setMaximumWidth(200)
         self.toolbarSearch.setAlignment(Qt.AlignLeft)
@@ -299,15 +295,23 @@ class PdokServicesPlugin(object):
         stype = self.currentLayer["service_type"].upper()
         minscale = ""
         if "minscale" in self.currentLayer and self.currentLayer["minscale"] != "":
-            locale.setlocale(locale.LC_ALL, 'nl_NL') # enforce dutch locale, to ensure 1000 seperators is "."
-            minscale_formatted = locale.format_string("%d", int(float(self.currentLayer["minscale"])), grouping=True)
-            minscale = f'1:{minscale_formatted}'
+            locale.setlocale(
+                locale.LC_ALL, "nl_NL"
+            )  # enforce dutch locale, to ensure 1000 seperators is "."
+            minscale_formatted = locale.format_string(
+                "%d", int(float(self.currentLayer["minscale"])), grouping=True
+            )
+            minscale = f"1:{minscale_formatted}"
 
         maxscale = ""
         if "maxscale" in self.currentLayer and self.currentLayer["maxscale"] != "":
-            locale.setlocale(locale.LC_ALL, 'nl_NL') # enforce dutch locale, to ensure 1000 seperators is "."
-            maxscale_formatted = locale.format_string("%d", int(float(self.currentLayer["maxscale"])), grouping=True)
-            maxscale = f'1:{maxscale_formatted}'
+            locale.setlocale(
+                locale.LC_ALL, "nl_NL"
+            )  # enforce dutch locale, to ensure 1000 seperators is "."
+            maxscale_formatted = locale.format_string(
+                "%d", int(float(self.currentLayer["maxscale"])), grouping=True
+            )
+            maxscale = f"1:{maxscale_formatted}"
 
         service_md_id = self.currentLayer["service_md_id"]
         dataset_md_id = self.currentLayer["dataset_md_id"]
@@ -480,6 +484,7 @@ class PdokServicesPlugin(object):
         """
         Quoten wmts url is nodig omdat qgis de query param `SERVICE=WMS` erachter plakt als je de wmts url niet quote.
         Dit vermoedelijk omdat de wmts laag wordt toegevoegd mbv de wms provider: `return QgsRasterLayer(uri, title, "wms")`.
+        Wat op basis van de documentatie wel de manier is om een wmts laag toe te voegen.
         """
         parse_result = urllib.parse.urlparse(url)
         location = f"{parse_result.scheme}://{parse_result.netloc}/{parse_result.path}"
@@ -558,7 +563,7 @@ class PdokServicesPlugin(object):
             return QgsRasterLayer(uri, title, "wcs")
         else:
             self.show_warning(
-                f"""Sorry, dit type layer: '{servicetype.upper()}'
+                f"""Sorry, dit type laag: '{servicetype.upper()}'
                 kan niet worden geladen door de plugin of door QGIS.
                 Is het niet beschikbaar als wms, wmts of wfs?
                 """
@@ -835,8 +840,6 @@ class PdokServicesPlugin(object):
             adrestekst = QStandardItem(str(result["weergavenaam"]))
             adrestekst.setData(result, Qt.UserRole)
             type = QStandardItem(str(result["type"]))
-            id = QStandardItem(str(result["id"]))
-            score = QStandardItem(str(result["score"]))
             adrestekst.setData(result, Qt.UserRole)
             self.geocoderSourceModel.appendRow([adrestekst, type])
         self.geocoderSourceModel.setHeaderData(0, Qt.Horizontal, "Resultaat")
