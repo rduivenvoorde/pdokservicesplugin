@@ -5,8 +5,8 @@ import asyncio
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import itertools
+from contextlib import nullcontext
 import re
-from cv2 import sort
 import requests
 from copy import deepcopy
 from owslib.csw import CatalogueServiceWeb
@@ -108,7 +108,6 @@ def get_csw_results(query, maxresults=0):
 def get_csw_results_by_id(id):
     query = f"identifier='{id}'"
     md_ids = get_csw_results(query)
-    print(md_ids)
     return md_ids
 
 
@@ -116,13 +115,10 @@ def get_csw_results_by_protocol(protocol, maxresults=0):
     svc_owner = "Beheer PDOK"
     query = (
         f"type='service' AND organisationName='{svc_owner}' AND protocol='{protocol}'"
-        # f"identifier='e1b5861b-f94c-4b1f-8012-4e51c69df98f'"
-        # to be able to check specific services:
-        # f"type='service' AND organisationName='{svc_owner}' AND protocol='{protocol}' AND any='zeegras'"
     )
     md_ids = get_csw_results(query, maxresults)
-    md_ids = [x | {"protocol": protocol} for x in md_ids]
-    logging.info(f"Found {len(md_ids)} {protocol} services")
+    md_ids = [{**x, **{"protocol": protocol}} for x in md_ids]  # dict merge {**x,**y}
+    logging.info(f"found {len(md_ids)} {protocol} service metadata records")
     return md_ids
 
 
@@ -142,13 +138,23 @@ def get_protocol_by_ur(url):
     return ""
 
 
-def get_service_url(result):
-    md_id = result["md_id"]
+def get_service_information(input: "dict[str, str]") -> "dict[str, str]":
+    """Retrieve service metadata record for input["md_id"] en return title, protocol en service url
+
+    Args:
+        input (dict): dict containing "md_id" key and optional "protocol"
+
+    Returns:
+        dict: dict with "md_id", "url" and "title" keys
+    """
+    # TODO: refactor to take arguments instead of dict
+    md_id = input["md_id"]
     csw = CatalogueServiceWeb(CSW_URL)
     csw.getrecordbyid(id=[md_id])
     record = csw.records[md_id]
     uris = record.uris
     service_url = ""
+    title = record.title
 
     if len(uris) > 0:
 
@@ -156,34 +162,32 @@ def get_service_url(result):
         service_url = service_url.partition("?")[0]
 
         if (
-            "protocol" not in result
+            "protocol" not in input
         ):  # TODO: improve code to extract protocol from retrieved md record
 
             protocol = get_protocol_by_ur(uris[0]["url"])
-            print(protocol)
-            result["protocol"] = protocol
+            input["protocol"] = protocol
         else:
-            protocol = result["protocol"]
-        service_str = protocol.split(":")[1]
+            protocol = input["protocol"]
 
+        query_param_svc_type = protocol.split(":")[1]
         if (
             "https://geodata.nationaalgeoregister.nl/tiles/service/wmts" in service_url
         ):  # shorten paths, some wmts services have redundant path elements in service_url
             service_url = "https://geodata.nationaalgeoregister.nl/tiles/service/wmts"
-
         if service_url.endswith(
             "/WMTSCapabilities.xml"
         ):  # handle cases for restful wmts url, assume kvp variant is supported
             service_url = service_url.replace("/WMTSCapabilities.xml", "")
-
-        service_url = f"{service_url}?request=GetCapabilities&service={service_str}"
-
+        service_url = (
+            f"{service_url}?request=GetCapabilities&service={query_param_svc_type}"
+        )
     else:
         error_message = (
             f"expected at least 1 service url in service record {md_id}, found 0"
         )
         logging.error(error_message)
-    return {"md_id": md_id, "url": service_url}
+    return {"md_id": md_id, "url": service_url, "title": title}
 
 
 async def get_data_asynchronous(results, fun):
@@ -458,96 +462,209 @@ def sort_service_layers(layers):
     return result
 
 
-def main(out_file, number_records, sort, pretty, protocols, identifier):
-    if protocols:
-        protocols = protocols.split(",")
+def main_services(args):
+    output_file = args.output_file
+    number_records = args.number
+    pretty = args.pretty
+    protocols = args.protocols
+    show_warnings = args.show_warnings
+    if not show_warnings:
+        cm = warnings.catch_warnings()
+        warnings.simplefilter("ignore")
     else:
-        protocols = PROTOCOLS
+        cm = nullcontext()
 
-    if identifier:
-        csw_results = get_csw_results_by_id(identifier)
-    else:
+    with cm:
+        protocol_list = PROTOCOLS
+        if protocols:
+            protocol_list = protocol_list.split(",")
+
         csw_results = list(
             map(
                 lambda x: get_csw_results_by_protocol(x, number_records),
-                protocols,
+                protocol_list,
             )
         )
         csw_results = [
             item for sublist in csw_results for item in sublist
         ]  # flatten list of lists
-    loop = asyncio.get_event_loop()
-    future = asyncio.ensure_future(get_data_asynchronous(csw_results, get_service_url))
-    loop.run_until_complete(future)
-    get_record_results = join_lists_by_property(csw_results, future.result(), "md_id")
+        loop = asyncio.get_event_loop()
+        future = asyncio.ensure_future(
+            get_data_asynchronous(csw_results, get_service_information)
+        )
+        loop.run_until_complete(future)
+        get_record_results = join_lists_by_property(
+            csw_results, future.result(), "md_id"
+        )
+
+        filtered_record_results = filter_get_records_responses(get_record_results)
+
+        sorted_results = sorted(filtered_record_results, key=lambda x: x["title"])
+
+        nr_services = len(sorted_results)
+        logging.info(f"indexed {nr_services} services")
+
+        for prot in protocol_list:
+            nr_services_prot = len([x for x in sorted_results if x["protocol"] == prot])
+            logging.info(f"indexed {prot} {nr_services_prot} services")
+
+        with open(output_file, "w") as f:
+            indent = None
+            if pretty:
+                indent = 4
+            json.dump(sorted_results, f, indent=indent)
+
+        logging.info(f"output written to {output_file}")
+
+
+def filter_get_records_responses(get_record_results):
     get_record_results = filter(
         lambda x: "url" in x and x["url"], get_record_results
     )  # filter out results without serviceurl
-
     # delete duplicate service entries, some service endpoint have multiple service records
+    # so last record in get_record_results will be retained in case of duplicate
+    # since it will be inserted in new_dict last
     new_dict = dict()
     for obj in get_record_results:
         new_dict[obj["url"]] = obj
+    return [value for _, value in new_dict.items()]
 
-    get_record_results_filtered = [value for key, value in new_dict.items()]
 
-    nr_services = len(get_record_results_filtered)
+def main_layers(args):
+    output_file = args.output_file
+    number_records = args.number
+    sort = args.sort
+    pretty = args.pretty
+    protocols = args.protocols
+    identifier = args.id
+    show_warnings = args.show_warnings
 
-    loop = asyncio.get_event_loop()
-    future = asyncio.ensure_future(
-        get_data_asynchronous(get_record_results_filtered, get_cap)
-    )
-    loop.run_until_complete(future)
-    cap_results = future.result()
-    failed_services = list(filter(lambda x: "layers" not in x, cap_results))
-    failed_svc_urls = map(lambda x: x["url"], failed_services)
-    nr_failed_services = len(failed_services)
-    cap_results = filter(
-        lambda x: "layers" in x, cap_results
-    )  # filter out services where getcap req failed
-    config = list(map(flatten_service, cap_results))
+    if not show_warnings:
+        cm = warnings.catch_warnings()
+        warnings.simplefilter("ignore")
+    else:
+        cm = nullcontext()
 
-    # each services returns as a list of layers, flatten list, see https://stackoverflow.com/a/953097
-    config = [item for sublist in config for item in sublist]
-    wms_layers = list(filter(lambda x: isinstance(x, list), config))
-    config = list(filter(lambda x: isinstance(x, dict), config))
-    # wms layers are nested one level deeper, due to exploding layers on styles
-    wms_layers = [item for sublist in wms_layers for item in sublist]
-    config.extend(wms_layers)
-    nr_layers = len(config)
-
-    if sort:
-        logging.info(f"sorting services")
-        config = sort_service_layers(config)
-
-    with open(out_file, "w") as f:
-        if pretty:
-            json.dump(config, f, indent=4)
+    with cm:
+        protocol_list = PROTOCOLS
+        if protocols:
+            protocol_list = protocols.split(",")
+        if identifier:
+            csw_results = get_csw_results_by_id(identifier)
         else:
-            json.dump(config, f)
+            csw_results = list(
+                map(
+                    lambda x: get_csw_results_by_protocol(x, number_records),
+                    protocol_list,
+                )
+            )
+            csw_results = [
+                item for sublist in csw_results for item in sublist
+            ]  # flatten list of lists
+        loop = asyncio.get_event_loop()
+        future = asyncio.ensure_future(
+            get_data_asynchronous(csw_results, get_service_information)
+        )
+        loop.run_until_complete(future)
+        get_record_results = join_lists_by_property(
+            csw_results, future.result(), "md_id"
+        )
 
-    logging.info(f"indexed {nr_services} services with {nr_layers} layers")
-    if nr_failed_services > 0:
-        logging.info(f"failed to index {nr_failed_services} services")
-        failed_svc_urls_str = "\n".join(failed_svc_urls)
-        logging.info(f"failed service urls:\n{failed_svc_urls_str}")
-    logging.info(f"output written to {out_file}")
+        get_record_results_filtered = filter_get_records_responses(get_record_results)
+
+        nr_services = len(get_record_results_filtered)
+
+        loop = asyncio.get_event_loop()
+        future = asyncio.ensure_future(
+            get_data_asynchronous(get_record_results_filtered, get_cap)
+        )
+        loop.run_until_complete(future)
+        cap_results = future.result()
+        failed_services = list(filter(lambda x: "layers" not in x, cap_results))
+        failed_svc_urls = map(lambda x: x["url"], failed_services)
+        nr_failed_services = len(failed_services)
+        cap_results = filter(
+            lambda x: "layers" in x, cap_results
+        )  # filter out services where getcap req failed
+        config = list(map(flatten_service, cap_results))
+
+        # each services returns as a list of layers, flatten list, see https://stackoverflow.com/a/953097
+        config = [item for sublist in config for item in sublist]
+        wms_layers = list(filter(lambda x: isinstance(x, list), config))
+        config = list(filter(lambda x: isinstance(x, dict), config))
+        # wms layers are nested one level deeper, due to exploding layers on styles
+        wms_layers = [item for sublist in wms_layers for item in sublist]
+        config.extend(wms_layers)
+        nr_layers = len(config)
+
+        if sort:
+            logging.info(f"sorting services")
+            config = sort_service_layers(config)
+
+        with open(output_file, "w") as f:
+            if pretty:
+                json.dump(config, f, indent=4)
+            else:
+                json.dump(config, f)
+
+        logging.info(f"indexed {nr_services} services with {nr_layers} layers")
+        if nr_failed_services > 0:
+            logging.info(f"failed to index {nr_failed_services} services")
+            failed_svc_urls_str = "\n".join(failed_svc_urls)
+            logging.info(f"failed service urls:\n{failed_svc_urls_str}")
+        logging.info(f"output written to {output_file}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Validate XML against schema")
-    parser.add_argument(
-        "output_file", metavar="output-file", type=str, help="JSON output file"
+    parser = argparse.ArgumentParser(
+        description="Generate list of PDOK services and/or service layers"
     )
-    parser.add_argument(
+    parser.set_defaults(func=lambda args: parser.print_help())
+
+    parent_parser = argparse.ArgumentParser(add_help=False)
+
+    parent_parser.add_argument(
         "-n",
         "--number",
         action="store",
         type=int,
         default=0,
-        help="nr of records to retrieve per service type",
+        help="limit nr of records to retrieve per service type",
     )
-    parser.add_argument(
+
+    parent_parser.add_argument(
+        "output_file", metavar="output-file", type=str, help="JSON output file"
+    )
+
+    parent_parser.add_argument(
+        "-p",
+        "--protocols",
+        action="store",
+        type=str,
+        default="",
+        help=f'service protocols (types) to query, comma-separated, values: {", ".join(PROTOCOLS)}',
+    )
+
+    parent_parser.add_argument(
+        "--pretty", dest="pretty", action="store_true", help="pretty JSON output"
+    )
+    parent_parser.add_argument(
+        "--warnings",
+        dest="show_warnings",
+        action="store_true",
+        help="show user warnings - owslib tends to show warnings about capabilities",
+    )
+
+    subparsers = parser.add_subparsers()
+    subparsers.metavar = "subcommand"
+    services_parser = subparsers.add_parser(
+        "services", parents=[parent_parser], help="Generate list of all PDOK services"
+    )
+    layers_parser = subparsers.add_parser(
+        "layers", parents=[parent_parser], help="Generate list of all PDOK layers"
+    )
+
+    layers_parser.add_argument(
         "-i",
         "--id",
         action="store",
@@ -555,49 +672,16 @@ if __name__ == "__main__":
         default="",
         help="only process specific service (by service metadata identifier)",
     )
-    parser.add_argument(
-        "-p",
-        "--protocols",
-        action="store",
-        type=str,
-        default="",
-        help="service type protocols to query, comma separated",
-    )
 
-    parser.add_argument(
+    layers_parser.add_argument(
         "--sort",
         action="store_true",
-        help="sort service layers based on default sorting rules",
+        help="sort service layers based on default sorting rules for  pdokservicesplugin",
     )
 
-    parser.add_argument(
-        "--pretty", dest="pretty", action="store_true", help="pretty JSON output"
-    )
-    parser.add_argument(
-        "--warnings",
-        dest="show_warnings",
-        action="store_true",
-        help="show user warnings - owslib tends to show warnings about capabilities",
-    )
+    layers_parser.set_defaults(func=main_layers)
+    services_parser.set_defaults(func=main_services)
+
     args = parser.parse_args()
-
-    if args.show_warnings:
-        main(
-            args.output_file,
-            args.number,
-            args.sort,
-            args.pretty,
-            args.protocols,
-            args.id,
-        )
-    else:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            main(
-                args.output_file,
-                args.number,
-                args.sort,
-                args.pretty,
-                args.protocols,
-                args.id,
-            )
+    if args.func:
+        args.func(args)

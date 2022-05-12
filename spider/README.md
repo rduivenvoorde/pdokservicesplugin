@@ -21,24 +21,27 @@ deactivate
 
 Install python module dependencies from `requirements.txt`
 
-```
+```sh
 pip install -r requirements.txt
 ```
 
 and run:
 
-```
+```sh
 ./spider.py --help
 ```
+
+Spider has two subcommands: `layers` and `services`:
+
+- `layers` will output a JSON document will all layers of all PDOK services, with some additional service metadata
+- `services` will output a JSON document will all PDOK services, containing `md_id`, `title`, `url` and `protocol` of service.
 
 Example to create a valid/full pdok.json usable in (old) pdokservicesplugin:
 
 ```sh
-# -n 250 tries to retrieve 250 services of every protocol (WMS,WFS etc)
-# that is for now enough (WMS is max 164 currently)
-# pdok.json is the default name of the json file used in the psokservicesplugin
+# -n  tries to retrieve 250 services of every protocol (WMS,WFS etc)
 # use sort flag, to ensure popular services are on top of service list
-./spider.py -n 250 --sort pdok.json
+./spider.py -n 10 --sort pdok.json
 ```
 
 ## Output Example
