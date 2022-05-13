@@ -561,16 +561,23 @@ class PdokServicesPlugin(object):
                 selected_style_name = ""
                 selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
                 selected_style = next(
-                    x
-                    for x in self.currentLayer["styles"]
-                    if x["title"] == selected_style_title
-                )
-                if selected_style is None:
-                    # check if selected_style_title is one of the style names, in case no style title defined
-                    selected_style = next(
+                    (
                         x
                         for x in self.currentLayer["styles"]
-                        if x["name"] == selected_style_title
+                        if x["title"] == selected_style_title
+                    ),
+                    None,
+                )
+                if selected_style is None:
+                    # check if selected_style_title is one of the style names, in case the style in the cap doc does not have a title
+                    # style should have at least a name
+                    selected_style = next(
+                        (
+                            x
+                            for x in self.currentLayer["styles"]
+                            if x["name"] == selected_style_title
+                        ),
+                        None,
                     )
 
                 if selected_style is not None:
