@@ -302,11 +302,15 @@ def get_md_id_from_url(url):
 
 def get_wms_cap(result):
     def convert_layer(lyr):
-        styles = (
-            list(wms[lyr].styles.keys())
-            if len(list(wms[lyr].styles.keys())) > 0
-            else ""
-        )
+        styles = []
+        for style_name in list(wms[lyr].styles.keys()):
+            style_obj = wms[lyr].styles[style_name]
+            style = {"name": style_name}
+            if "title" in style_obj:
+                title = style_obj["title"]
+                style = {**style, **{"title": title}}  # merge dicts
+            styles.append(style)
+
         minscale = (
             wms[lyr].min_scale_denominator.text
             if wms[lyr].min_scale_denominator is not None
@@ -391,23 +395,30 @@ def get_wmts_cap(result):
 
 def flatten_service(service):
     def flatten_layer_wms(layer):
-        def flatten_styles(stylename):
-            layer_copy = deepcopy(
-                layer
-            )  #  to prevent the same layer object to be modified each iteration
-            layer_copy["imgformats"] = service["imgformats"]
-            layer_copy["service_url"] = service["url"]
-            layer_copy["service_title"] = service["title"]
-            layer_copy["service_type"] = service["protocol"].split(":")[1].lower()
-            layer_copy["service_abstract"] = service["abstract"]
-            layer_copy["service_md_id"] = service["md_id"]
-            layer_copy["style"] = stylename
-            layer_copy.pop("layers", None)
-            return layer_copy
+        # def flatten_styles(stylename):
+        #     layer_copy = deepcopy(
+        #         layer
+        #     )  #  to prevent the same layer object to be modified each iteration
+        #     layer_copy["imgformats"] = service["imgformats"]
+        #     layer_copy["service_url"] = service["url"]
+        #     layer_copy["service_title"] = service["title"]
+        #     layer_copy["service_type"] = service["protocol"].split(":")[1].lower()
+        #     layer_copy["service_abstract"] = service["abstract"]
+        #     layer_copy["service_md_id"] = service["md_id"]
+        #     layer_copy["style"] = stylename
+        #     layer_copy.pop("layers", None)
+        #     return layer_copy
 
-        styles = layer["styles"]
-        layer.pop("styles", None)
-        return list(map(flatten_styles, styles))
+        layer["imgformats"] = service["imgformats"]
+        layer["service_url"] = service["url"]
+        layer["service_title"] = service["title"]
+        layer["service_type"] = service["protocol"].split(":")[1].lower()
+        layer["service_abstract"] = service["abstract"]
+        layer["service_md_id"] = service["md_id"]
+
+        return layer
+
+        # return list(map(flatten_styles, styles))
 
     def flatten_layer_wcs(layer):
         layer["service_url"] = service["url"]
@@ -592,8 +603,8 @@ def main_layers(args):
         config = [item for sublist in config for item in sublist]
         wms_layers = list(filter(lambda x: isinstance(x, list), config))
         config = list(filter(lambda x: isinstance(x, dict), config))
-        # wms layers are nested one level deeper, due to exploding layers on styles
-        wms_layers = [item for sublist in wms_layers for item in sublist]
+        # # wms layers are nested one level deeper, due to exploding layers on styles
+        # wms_layers = [item for sublist in wms_layers for item in sublist]
         config.extend(wms_layers)
         nr_layers = len(config)
 
