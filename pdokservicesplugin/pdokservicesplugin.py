@@ -115,6 +115,8 @@ class PdokServicesPlugin(object):
             self.dlg.ui.cbx_hmp: LsType.hectometerpaal,
         }
 
+        self.fav_actions = []
+
     def getSettingsValue(self, key, default=""):
         if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
             key = f"{self.SETTINGS_SECTION}{key}"
@@ -132,6 +134,24 @@ class PdokServicesPlugin(object):
             QSettings().setValue(key, QVariant(value))
         else:
             QSettings().setValue(key, value)
+
+    def addFavActionsToToolbarButton(self, nr_of_favs):
+        # first reset existing fav_actions
+        for fav_action in self.fav_actions:
+            self.run_button.menu().removeAction(fav_action)
+        self.fav_actions = []
+
+        # add fav_actions
+        for i in range(1, nr_of_favs + 1):
+            fav_action = QAction(f"Favoriet {i}", self.iface.mainWindow())
+            fav_action.setIcon(self.runIcon)
+            fav_action.triggered.connect(
+                (lambda i: lambda: self.load_favourite(i))(i)
+            )  # Not sure if lambda is required, double lambda is required in order to freeze argument, otherwise always last favourite is added
+            # see https://stackoverflow.com/a/10452866/1763690
+            self.set_favourite_action(fav_action, i)
+            self.run_button.menu().addAction(fav_action)
+            self.fav_actions.append(fav_action)
 
     def initGui(self):
         # Create action that will start plugin configuration
@@ -164,17 +184,15 @@ class PdokServicesPlugin(object):
             "wcs": "top",
         }
 
-        self.favourite_1_action = QAction("Favoriet 1", self.iface.mainWindow())
-        self.favourite_1_action.setIcon(self.runIcon)
-        self.favourite_1_action.triggered.connect(lambda: self.load_favourite(1))
-        self.set_favourite_action(self.favourite_1_action, 1)
-        self.run_button.menu().addAction(self.favourite_1_action)
+        def update_nr_of_favs():
+            nr_of_favs = self.dlg.ui.nr_favs_input.value()
+            QSettings().setValue(f"/{PLUGIN_ID}/nr_of_favs", nr_of_favs)
+            self.addFavActionsToToolbarButton(nr_of_favs)
 
-        self.favourite_2_action = QAction("Favoriet 2", self.iface.mainWindow())
-        self.favourite_2_action.setIcon(self.runIcon)
-        self.favourite_2_action.triggered.connect(lambda: self.load_favourite(2))
-        self.set_favourite_action(self.favourite_2_action, 2)
-        self.run_button.menu().addAction(self.favourite_2_action)
+        self.dlg.ui.nr_favs_input.valueChanged.connect(update_nr_of_favs)
+        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", "2"))
+        self.dlg.ui.nr_favs_input.setValue(nr_of_favs)
+        self.addFavActionsToToolbarButton(nr_of_favs)
 
         self.toolbarSearch = QLineEdit()
         self.toolbarSearch.setMaximumWidth(200)
@@ -845,15 +863,22 @@ class PdokServicesPlugin(object):
 
     def make_favourite(self, position):
         menu = QMenu()
-        create_fav1_action = menu.addAction("Maak Deze Laag Favoriet 1")
-        create_fav2_action = menu.addAction("Maak Deze Laag Favoriet 2")
+
+        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", "3"))
+
+        actions = [
+            menu.addAction(f"Maak Deze Laag Favoriet {x}")
+            for x in range(1, nr_of_favs + 1)
+        ]
         action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
-        if action == create_fav1_action:
-            QSettings().setValue(f"/{PLUGIN_ID}/favourite_1", self.currentLayer)
-            self.set_favourite_action(self.favourite_1_action, 1)
-        elif action == create_fav2_action:
-            QSettings().setValue(f"/{PLUGIN_ID}/favourite_2", self.currentLayer)
-            self.set_favourite_action(self.favourite_2_action, 2)
+
+        if action is not None:
+            index = actions.index(action)
+            if index != -1:
+                QSettings().setValue(
+                    f"/{PLUGIN_ID}/favourite_{index+1}", self.currentLayer
+                )
+                self.set_favourite_action(self.fav_actions[index], index + 1)
 
     def setupfq(self):
         """
