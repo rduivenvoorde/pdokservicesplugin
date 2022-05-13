@@ -557,25 +557,27 @@ class PdokServicesPlugin(object):
 
     def get_selected_style(self):
         selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
-        selected_style = next(
-            (
-                x
-                for x in self.currentLayer["styles"]
-                if x["title"] == selected_style_title
-            ),
-            None,
-        )
-        if selected_style is None:
-            # check if selected_style_title is one of the style names, in case the style in the cap doc does not have a title
-            # style should have at least a name
+        selected_style = None
+        if "styles" in self.currentLayer:
             selected_style = next(
                 (
                     x
                     for x in self.currentLayer["styles"]
-                    if x["name"] == selected_style_title
+                    if x["title"] == selected_style_title
                 ),
                 None,
             )
+            if selected_style is None:
+                # check if selected_style_title is one of the style names, in case the style in the cap doc does not have a title
+                # style should have at least a name
+                selected_style = next(
+                    (
+                        x
+                        for x in self.currentLayer["styles"]
+                        if x["name"] == selected_style_title
+                    ),
+                    None,
+                )
         return selected_style
 
     def create_new_layer(self):
