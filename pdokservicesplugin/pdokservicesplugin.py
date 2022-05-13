@@ -76,7 +76,7 @@ from .lib.http_client import PdokServicesNetworkException
 
 from .locator_filter.pdoklocatieserverfilter import PDOKLocatieserverLocatorFilter
 
-from .lib.constants import PLUGIN_NAME, PLUGIN_ID
+from .lib.constants import PLUGIN_NAME, PLUGIN_ID, DEFAULT_NR_FAVS
 from .lib.locatieserver import (
     suggest_query,
     TypeFilter,
@@ -190,7 +190,7 @@ class PdokServicesPlugin(object):
             self.addFavActionsToToolbarButton(nr_of_favs)
 
         self.dlg.ui.nr_favs_input.valueChanged.connect(update_nr_of_favs)
-        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", "2"))
+        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
         self.dlg.ui.nr_favs_input.setValue(nr_of_favs)
         self.addFavActionsToToolbarButton(nr_of_favs)
 
@@ -453,9 +453,14 @@ class PdokServicesPlugin(object):
             if layer:
                 action.setToolTip(layer["title"].capitalize())
                 title = layer["title"].capitalize()
-                if "style" in layer:
-                    style = layer["style"]
-                    title += f" [{style}]"
+                if "selectedStyle" in layer:
+                    style = layer["selectedStyle"]
+                    style_title = style["name"]
+                    if "title" in style:
+                        style_title = style["title"]
+                    if style_title:
+                        title = f"{title} [{style_title}]"
+
                 if "service_type" in layer:
                     stype = layer["service_type"].upper()
                     title += f" ({stype})"
@@ -550,6 +555,29 @@ class PdokServicesPlugin(object):
         url = f"{location}?{query_escaped_quoted}"
         return url
 
+    def get_selected_style(self):
+        selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
+        selected_style = next(
+            (
+                x
+                for x in self.currentLayer["styles"]
+                if x["title"] == selected_style_title
+            ),
+            None,
+        )
+        if selected_style is None:
+            # check if selected_style_title is one of the style names, in case the style in the cap doc does not have a title
+            # style should have at least a name
+            selected_style = next(
+                (
+                    x
+                    for x in self.currentLayer["styles"]
+                    if x["name"] == selected_style_title
+                ),
+                None,
+            )
+        return selected_style
+
     def create_new_layer(self):
         servicetype = self.currentLayer["service_type"]
         title = self.currentLayer["title"]
@@ -577,31 +605,14 @@ class PdokServicesPlugin(object):
             else:
                 # qgis > 1.8
                 selected_style_name = ""
-                selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
-                selected_style = next(
-                    (
-                        x
-                        for x in self.currentLayer["styles"]
-                        if x["title"] == selected_style_title
-                    ),
-                    None,
-                )
-                if selected_style is None:
-                    # check if selected_style_title is one of the style names, in case the style in the cap doc does not have a title
-                    # style should have at least a name
-                    selected_style = next(
-                        (
-                            x
-                            for x in self.currentLayer["styles"]
-                            if x["name"] == selected_style_title
-                        ),
-                        None,
-                    )
-
+                selected_style = self.get_selected_style()
                 if selected_style is not None:
                     selected_style_name = selected_style["name"]
+                    selected_style_title = selected_style["name"]
+                    if "title" in selected_style:
+                        selected_style_title = selected_style["title"]
+                    title += f" [{selected_style_title}]"
 
-                title += f" [{selected_style_title}]"
                 uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
                 return QgsRasterLayer(uri, title, "wms")
         elif servicetype == "wmts":
@@ -870,9 +881,7 @@ class PdokServicesPlugin(object):
 
     def make_favourite(self, position):
         menu = QMenu()
-
-        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", "3"))
-
+        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
         actions = [
             menu.addAction(f"Maak Deze Laag Favoriet {x}")
             for x in range(1, nr_of_favs + 1)
@@ -882,9 +891,15 @@ class PdokServicesPlugin(object):
         if action is not None:
             index = actions.index(action)
             if index != -1:
-                QSettings().setValue(
-                    f"/{PLUGIN_ID}/favourite_{index+1}", self.currentLayer
-                )
+                current_layer = self.currentLayer
+                selected_style = self.get_selected_style()
+                if selected_style is not None:
+                    current_layer = {
+                        **self.currentLayer,
+                        **{"selectedStyle": selected_style},
+                    }
+
+                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{index+1}", current_layer)
                 self.set_favourite_action(self.fav_actions[index], index + 1)
 
     def setupfq(self):
