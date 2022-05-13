@@ -302,11 +302,15 @@ def get_md_id_from_url(url):
 
 def get_wms_cap(result):
     def convert_layer(lyr):
-        styles = (
-            list(wms[lyr].styles.keys())
-            if len(list(wms[lyr].styles.keys())) > 0
-            else ""
-        )
+        styles = []
+        for style_name in list(wms[lyr].styles.keys()):
+            style_obj = wms[lyr].styles[style_name]
+            style = {"name": style_name}
+            if "title" in style_obj:
+                title = style_obj["title"]
+                style = {**style, **{"title": title}}  # merge dicts
+            styles.append(style)
+
         minscale = (
             wms[lyr].min_scale_denominator.text
             if wms[lyr].min_scale_denominator is not None

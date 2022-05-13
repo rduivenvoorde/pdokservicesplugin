@@ -40,6 +40,7 @@ from qgis.PyQt.QtWidgets import (
     QMessageBox,
     QMenu,
     QToolButton,
+    QCompleter,
 )
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
 from qgis.PyQt.QtCore import QSortFilterProxyModel, QRegExp
@@ -224,6 +225,10 @@ class PdokServicesPlugin(object):
         self.provider = Provider()
         QgsApplication.processingRegistry().addProvider(self.provider)
 
+        # set to hidden when no layer selected
+        self.dlg.ui.layerInfo.setHidden(True)
+        self.dlg.ui.layerOptionsGroupbox.setHidden(True)
+
     def showAndRaise(self):
         self.dlg.show()
         self.dlg.raise_()
@@ -265,7 +270,13 @@ class PdokServicesPlugin(object):
             self.currentLayer = None
             self.dlg.ui.layerInfo.setHtml("")
             self.dlg.ui.comboSelectProj.clear()
+            self.dlg.ui.layerInfo.setHidden(True)
+            self.dlg.ui.layerOptionsGroupbox.setHidden(True)
             return
+
+        self.dlg.ui.layerInfo.setHidden(False)
+        self.dlg.ui.layerOptionsGroupbox.setHidden(False)
+
         # needed to scroll To the selected row incase of using the keyboard / arrows
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
         # itemType holds the data (== column 1)
@@ -281,10 +292,7 @@ class PdokServicesPlugin(object):
         url = self.currentLayer["service_url"]
         title = self.currentLayer["title"]
         abstract_dd = self.get_dd(self.currentLayer["abstract"])
-        style = ""
-        if "style" in self.currentLayer:
-            style = self.currentLayer["style"]
-            title += f" [{style}]"
+
         service_title = (
             self.currentLayer["service_title"]
             if self.currentLayer["service_title"]
@@ -370,7 +378,37 @@ class PdokServicesPlugin(object):
             """
         )
         self.dlg.ui.comboSelectProj.clear()
+        self.dlg.ui.wmsStyleComboBox.clear()
+
+        show_list = {
+            self.dlg.ui.comboSelectProj: ["WMS", "WMTS"],
+            self.dlg.ui.labelCrs: ["WMS", "WMTS"],
+            self.dlg.ui.wmsStyleComboBox: ["WMS"],
+            self.dlg.ui.wmsStyleLabel: ["WMS"],
+        }
+
+        for ui_el in show_list.keys():
+            service_types = show_list[ui_el]
+            ui_el.setHidden(not (stype in service_types))
+
         if stype == "WMS":
+            styles = self.currentLayer["styles"]
+            nr_styles = len(styles)
+            style_str = "styles" if nr_styles > 1 else "style"
+            self.dlg.ui.wmsStyleLabel.setText(
+                f"Style ({nr_styles} {style_str} beschikbaar)"
+            )
+            style_title_names = [
+                x["title"] if "title" in x else x["name"] for x in styles
+            ]
+            self.dlg.ui.wmsStyleComboBox.addItems(style_title_names)
+            self.dlg.ui.wmsStyleComboBox.setCurrentIndex(0)
+            completer = QCompleter(style_title_names, self.dlg.ui.wmsStyleComboBox)
+            completer.setFilterMode(Qt.MatchContains)
+            self.dlg.ui.wmsStyleComboBox.setCompleter(completer)
+            self.dlg.ui.wmsStyleComboBox.setEnabled(
+                nr_styles > 1  # enable if more than one style
+            )
             try:
                 crs = self.currentLayer["crs"]
             except KeyError:
@@ -380,6 +418,7 @@ class PdokServicesPlugin(object):
             for i in range(len(crs)):
                 if crs[i] == "EPSG:28992":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+
         if stype == "WMTS":
             tilematrixsets = self.currentLayer["tilematrixsets"].split(",")
             self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
@@ -519,11 +558,26 @@ class PdokServicesPlugin(object):
                 )
             else:
                 # qgis > 1.8
-                style = ""
-                if "style" in self.currentLayer:
-                    style = self.currentLayer["style"]
-                    title += f" [{style}]"
-                uri = f"crs={crs}&layers={layername}&styles={style}&format={imgformat}&url={url}"
+                selected_style_name = ""
+                selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
+                selected_style = next(
+                    x
+                    for x in self.currentLayer["styles"]
+                    if x["title"] == selected_style_title
+                )
+                if selected_style is None:
+                    # check if selected_style_title is one of the style names, in case no style title defined
+                    selected_style = next(
+                        x
+                        for x in self.currentLayer["styles"]
+                        if x["name"] == selected_style_title
+                    )
+
+                if selected_style is not None:
+                    selected_style_name = selected_style["name"]
+
+                title += f" [{selected_style_title}]"
+                uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
                 return QgsRasterLayer(uri, title, "wms")
         elif servicetype == "wmts":
             if Qgis.QGIS_VERSION_INT < 10900:
@@ -668,19 +722,19 @@ class PdokServicesPlugin(object):
         )
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
-        if "style" in serviceLayer:
-            itemLayername = QStandardItem(
-                f'{serviceLayer["title"]} [{serviceLayer["style"]}]'
+        styles_string = ""
+        if "styles" in serviceLayer:
+            styles_string = " ".join(
+                [" ".join(x.values()) for x in serviceLayer["styles"]]
             )
-            layername = f'{serviceLayer["title"]} [{serviceLayer["style"]}]'
-        else:
-            itemLayername = QStandardItem(str(serviceLayer["title"]))
+
+        itemLayername = QStandardItem(str(serviceLayer["title"]))
         itemLayername.setToolTip(
             f'{serviceLayer["service_type"].upper()} - {serviceLayer["service_title"]}'
         )
         # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
         itemFilter = QStandardItem(
-            f'{serviceLayer["service_type"]} {layername} {serviceLayer["service_title"]} {serviceLayer["service_abstract"]}'
+            f'{serviceLayer["service_type"]} {layername} {serviceLayer["service_title"]} {serviceLayer["service_abstract"]} {styles_string}'
         )
         itemServicetitle = QStandardItem(str(serviceLayer["service_title"]))
         itemServicetitle.setToolTip(
@@ -712,10 +766,17 @@ class PdokServicesPlugin(object):
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
                 self.layers_pdok = json.load(f)
-            self.proxyModel = QSortFilterProxyModel()
+
             self.sourceModel = QStandardItemModel()
-            self.proxyModel.setSourceModel(self.sourceModel)
+
+            self.styleFilter = QSortFilterProxyModel()
+            self.styleFilter.setSourceModel(self.sourceModel)
+            self.styleFilter.setFilterKeyColumn(4)
+
+            self.proxyModel = QSortFilterProxyModel()
+            self.proxyModel.setSourceModel(self.styleFilter)
             self.proxyModel.setFilterKeyColumn(3)
+
             self.dlg.servicesView.setModel(self.proxyModel)
             self.dlg.servicesView.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
@@ -758,7 +819,7 @@ class PdokServicesPlugin(object):
 
         self.sourceModel.setHeaderData(2, Qt.Horizontal, "Service")
         self.sourceModel.setHeaderData(1, Qt.Horizontal, "Type")
-        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Laagnaam [style]")
+        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Laagnaam")
         self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignLeft)
         self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
         self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
