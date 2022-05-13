@@ -3,7 +3,7 @@
 /***************************************************************************
  PdokServicesPluginDialog
                                  A QGIS plugin
- bla
+
                              -------------------
         begin                : 2012-10-11
         copyright            : (C) 2012 by Richard Duivenvoorde
@@ -39,7 +39,7 @@ class PdokServicesPluginDialog(QDialog):
         self.servicesView.setSelectionBehavior(self.servicesView.SelectRows)
         self.servicesView.setAutoScroll(False)
         self.layerSearch = self.ui.layerSearch
-        self.geocoderSearch = self.ui.geocoderSearch
+        self.geocoder_search = self.ui.geocoderSearch
         self.geocoderResultSearch = self.ui.geocoderResultSearch
         self.geocoderResultView = self.ui.geocoderResultView
         self.geocoderResultView.setSelectionMode(
