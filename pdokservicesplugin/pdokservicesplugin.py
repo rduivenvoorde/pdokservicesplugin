@@ -714,7 +714,6 @@ class PdokServicesPlugin(object):
         item = items[0]
         data = item.data(Qt.UserRole)
         lookup_id = data["id"]
-        self.info(f"on_toolbar_suggest_activated: data")
         self.lookup_toolbar_search_and_zoom(lookup_id)
         self.dlg.geocoder_search.setText(suggest_text)
         self.fill_ls_dialog_from_toolbar_search()  # run geocode to populate ls dialog
@@ -730,7 +729,7 @@ class PdokServicesPlugin(object):
             search_text = self.dlg.geocoder_search.text()
             if len(search_text) <= 1:
                 return
-            results = suggest_query(search_text, self.create_type_filter())
+            results = suggest_query(search_text, self.create_type_filter(), 50)
             if len(results) == 0:
                 # ignore, as we are suggesting, maybe more characters will reveal something...
                 return
