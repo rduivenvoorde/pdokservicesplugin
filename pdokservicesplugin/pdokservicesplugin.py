@@ -201,7 +201,7 @@ class PdokServicesPlugin(object):
         self.toolbar_search = QLineEdit()
         self.toolbar_search.setMaximumWidth(200)
         self.toolbar_search.setAlignment(Qt.AlignLeft)
-        self.toolbar_search.setPlaceholderText("PDOK Locatieserver zoek")
+        self.toolbar_search.setPlaceholderText("Zoek in PDOK Locatieserver")
         self.toolbar.addWidget(self.toolbar_search)
         self.timer_toolbar_search = QTimer()
         self.timer_toolbar_search.setSingleShot(True)
@@ -249,7 +249,7 @@ class PdokServicesPlugin(object):
         )
 
         self.dlg.geocoder_search.setPlaceholderText(
-            "PDOK Locatieserver zoek, bv postcode of postcode huisnummer"
+            "Zoek in PDOK Locatieserver, bv postcode of postcode huisnummer"
         )
 
         self.dlg.geocoderResultSearch.textChanged.connect(self.filter_geocoder_result)
