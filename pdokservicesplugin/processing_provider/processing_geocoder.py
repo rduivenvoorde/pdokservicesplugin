@@ -30,7 +30,9 @@ from qgis.core import (
     QgsProcessingParameterBoolean,
     QgsProcessingParameterNumber,
     QgsProcessingParameterFeatureSink,
-    QgsProcessingParameterField,
+    QgsProcessingParameterExpression,
+    QgsExpressionContext,
+    QgsExpression,
     NULL,
 )
 
@@ -170,7 +172,7 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterField(
+            QgsProcessingParameterExpression(
                 self.SRC_FIELD,
                 self.tr("Geocode attribute"),
                 None,
@@ -238,15 +240,15 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             )
         )
 
-    def get_geom(self, get_actual_geom, result_type, data, feedback):
+    def get_geom(self, get_actual_geom, result_type, data):
         """
         Returns a geometry depending on get_actual_geom boolean.
-        If false: return geom based on "centroide_ll" from the data
+        If false: return geom based on "centroide_rd" from the data
         If true: retrieve the actual object from the lookup service and
-        return the geom based on "geometrie_ll" from the lookup response
+        return the geom based on "geometrie_rd" from the lookup response
         """
-        if not get_actual_geom or result_type in ["adres", "postcode"]:
-            wkt_point = data[0]["wkt_geom"]
+        if not get_actual_geom or result_type in [LsType.adres, LsType.postcode]:
+            wkt_point = data[0]["wkt_centroid"]
             return QgsGeometry.fromWkt(wkt_point)
         else:
             ls_id = wkt_point = data[0]["id"]
@@ -272,7 +274,7 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             add_xy_field = parameters[self.ADD_XY_FIELD]
             add_display_name = parameters[self.ADD_DISPLAY_NAME]
             add_score_field = parameters[self.ADD_SCORE_FIELD]
-            src_field = parameters[self.SRC_FIELD]
+            att_expression = parameters[self.SRC_FIELD]
             get_actual_geom = parameters[self.GET_ACTUAL_GEOM]
             add_dummy_geometry = parameters[self.ADD_DUMMY_GEOMETRY]
 
@@ -314,35 +316,30 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             feature_total = input_layer.featureCount()
 
             for feature in input_layer.getFeatures():
-                # TODO: check if src_field value is None if so skip feature
-                src_field_val = feature.attribute(src_field)
-                # feedback.pushInfo(f"src_field_val: {src_field_val}")
+
+                expr = QgsExpression(att_expression)
+                context = QgsExpressionContext()
+                context.setFeature(feature)
+                attribute_val = expr.evaluate(context)
+                # feedback.pushInfo(f"attribute_val: {attribute_val}")
 
                 # Set returned NULL value to None (workaround, cause QGIS does not yet return a None for empty cells)
-                if src_field_val == NULL:
-                    src_field_val = None
-
-                if src_field_val is None:
+                # TODO: add logging for skipped features
+                if attribute_val == NULL:
+                    attribute_val = None
+                if attribute_val is None:
                     continue
-
-                # TODO: error handling from LS lib
-                # maybe raise error:
-                # raise QgsProcessingException(
-                #     f"Unexpected response from HTTP GET {url}, response code: {response.status_code}"
-                # )
 
                 # check if src_field_val matches postcode in format exactly "9090AA 20-a"
                 # TODO: make explicit behind option?
-                match = re.search("^([0-9]{4}[A-Za-z]{2})\s(.*)$", src_field_val)
+                match = re.search("^([0-9]{4}[A-Za-z]{2})\s(.*)$", attribute_val)
                 if match and len(match.groups()) == 2:
                     postal_code = match.group(1)
                     house_nr = match.group(2)
-                    src_field_val = f"postcode:{postal_code} and huisnummer:{house_nr}"
-
-                # feedback.pushInfo(f"src_field: {src_field}")
+                    attribute_val = f"postcode:{postal_code} and huisnummer:{house_nr}"
 
                 data = free_query(
-                    src_field_val, Projection.EPSG_28992, TypeFilter([result_type])
+                    attribute_val, Projection.EPSG_28992, TypeFilter([result_type])
                 )
 
                 geom = None
@@ -354,8 +351,8 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
                         geom = None
                     else:
                         geom = self.get_geom(
-                            get_actual_geom, result_type, data, feedback
-                        )
+                            get_actual_geom, result_type, data
+                        )  # warning do not log geom with feedback.loginfo it will crash the processing run without error...
                         display_name = data[0]["weergavenaam"]
 
                 if add_dummy_geometry and geom is None:
@@ -392,13 +389,11 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
 
                     if add_score_field:
                         new_ft.setAttribute(score_att_name, score)
-
                     new_ft.setGeometry(geom)
                     sink.addFeature(new_ft, QgsFeatureSink.FastInsert)
 
                 feature_counter += 1
                 feedback.setProgress((feature_counter / feature_total) * 100)
-
                 if feedback.isCanceled():
                     return {}
 
@@ -414,7 +409,7 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
                 "while executing HTTP request",
             )
             raise QgsProcessingException(message)
-        except Exception as e:
+        except Exception as ex:
             message = get_processing_error_message(
                 "an unexpected error",
                 self.displayName(),

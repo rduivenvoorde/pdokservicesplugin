@@ -174,6 +174,7 @@ def free_query(
     query_string = f"q={query}&rows={rows}"
     url = f"{SERVICE_ENDPOINT}/free?{query_string}&fq={type_filter}"
     content_obj = get_request_json(url)
+
     result = content_obj["response"]["docs"]
     filter_result = [process_geom_fields(item, proj) for item in result]
     return filter_result
