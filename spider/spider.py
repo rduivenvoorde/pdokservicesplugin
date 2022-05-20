@@ -15,12 +15,12 @@ from owslib.wmts import WebMapTileService
 from owslib.wfs import WebFeatureService
 from owslib.wcs import WebCoverageService
 import warnings
-
+import lxml.etree as etree
 from urllib import parse
 
 CSW_URL = "https://nationaalgeoregister.nl/geonetwork/srv/dut/csw"
 LOG_LEVEL = "INFO"
-PROTOCOLS = ["OGC:WMS", "OGC:WFS", "OGC:WMTS", "OGC:WCS"]
+PROTOCOLS = ["OGC:WMS", "OGC:WFS", "OGC:WMTS", "OGC:WCS", "INSPIRE Atom"]
 
 
 SORTING_RULES = {
@@ -130,13 +130,44 @@ def get_record_by_id(md_id):
 
 def get_protocol_by_ur(url):
     for prot in PROTOCOLS:
+        if prot == "INSPIRE Atom":
+            continue
         # pattern looks like this: '.*\/wms(:?\/|\?).*'
         pattern = re.compile(f'.*\/{prot.split(":")[1].lower()}(:?\/|\?).*')
         m = pattern.match(url)
         if m:
             return prot
+    # TODO check if ATOM
     return ""
 
+def get_service_url(input, uris):
+    service_url = uris[0]["url"]
+    service_url = service_url.partition("?")[0]
+    if (
+        "protocol" not in input
+    ):  # TODO: improve code to extract protocol from retrieved md record
+
+        protocol = get_protocol_by_ur(uris[0]["url"])
+        input["protocol"] = protocol
+    else:
+        protocol = input["protocol"]
+
+    if protocol == "INSPIRE Atom":
+        return service_url
+
+    query_param_svc_type = protocol.split(":")[1]
+    if (
+        "https://geodata.nationaalgeoregister.nl/tiles/service/wmts" in service_url
+    ):  # shorten paths, some wmts services have redundant path elements in service_url
+        service_url = "https://geodata.nationaalgeoregister.nl/tiles/service/wmts"
+    if service_url.endswith(
+        "/WMTSCapabilities.xml"
+    ):  # handle cases for restful wmts url, assume kvp variant is supported
+        service_url = service_url.replace("/WMTSCapabilities.xml", "")
+    service_url = (
+        f"{service_url}?request=GetCapabilities&service={query_param_svc_type}"
+    )
+    return service_url
 
 def get_service_information(input: "dict[str, str]") -> "dict[str, str]":
     """Retrieve service metadata record for input["md_id"] en return title, protocol en service url
@@ -155,40 +186,14 @@ def get_service_information(input: "dict[str, str]") -> "dict[str, str]":
     uris = record.uris
     service_url = ""
     title = record.title
-
     if len(uris) > 0:
-
-        service_url = uris[0]["url"]
-        service_url = service_url.partition("?")[0]
-
-        if (
-            "protocol" not in input
-        ):  # TODO: improve code to extract protocol from retrieved md record
-
-            protocol = get_protocol_by_ur(uris[0]["url"])
-            input["protocol"] = protocol
-        else:
-            protocol = input["protocol"]
-
-        query_param_svc_type = protocol.split(":")[1]
-        if (
-            "https://geodata.nationaalgeoregister.nl/tiles/service/wmts" in service_url
-        ):  # shorten paths, some wmts services have redundant path elements in service_url
-            service_url = "https://geodata.nationaalgeoregister.nl/tiles/service/wmts"
-        if service_url.endswith(
-            "/WMTSCapabilities.xml"
-        ):  # handle cases for restful wmts url, assume kvp variant is supported
-            service_url = service_url.replace("/WMTSCapabilities.xml", "")
-        service_url = (
-            f"{service_url}?request=GetCapabilities&service={query_param_svc_type}"
-        )
+        service_url = get_service_url(input, uris)
     else:
         error_message = (
             f"expected at least 1 service url in service record {md_id}, found 0"
         )
         logging.error(error_message)
     return {"md_id": md_id, "url": service_url, "title": title}
-
 
 async def get_data_asynchronous(results, fun):
     result = []
@@ -213,6 +218,7 @@ def get_cap(result):
         "OGC:WFS": get_wfs_cap,
         "OGC:WCS": get_wcs_cap,
         "OGC:WMTS": get_wmts_cap,
+        "INSPIRE Atom": get_atom_cap,
     }
     result = function_mapping[result["protocol"]](result)
     return result
@@ -356,6 +362,42 @@ def get_wms_cap(result):
         logging.error(f"md-identifier: {md_id} - {e}")
     except Exception:
         message = f"exception while retrieving WMS cap for service md-identifier: {md_id}, url: {url}"
+        logging.exception(message)
+    return result
+
+def get_atom_cap(result):
+    # def convert_dataset(dataset):
+    #     return {
+    #         "name": lyr,
+    #         "title": empty_string_if_none(wmts[lyr].title),
+    #         "abstract": empty_string_if_none(wmts[lyr].abstract),
+    #         "tilematrixsets": ",".join(list(wmts[lyr].tilematrixsetlinks.keys())),
+    #         "imgformats": ",".join(wmts[lyr].formats),
+    #         "dataset_md_id": "",  # pdok wmts services do not advertise dataset md link for now, so left empty since unsure how to access dataset md link with owslib for wmts
+    #     }
+    try:
+        url = result["url"]
+        md_id = result["md_id"]
+        logging.info(f"{md_id} - {url}")
+
+        response = requests.get(url)
+        tree = etree.fromstring(response.content)
+
+        NSMAP = {"atom": "http://www.w3.org/2005/Atom"}
+
+        logging.info(url)
+        title_node = tree.find(".//atom:feed/atom:title", NSMAP)
+        title = title_node.text
+        logging.info(f"title - {title}")
+
+        for child in tree.findall(".//atom:entry", NSMAP):
+            id = child.find("./atom:id",NSMAP)
+            logging.info(f"id - {id.text}")
+
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"md-identifier: {md_id} - {e}")
+    except Exception:
+        message = f"unexpected error occured while retrieving atom service, md-identifier {md_id}, url: {url}"
         logging.exception(message)
     return result
 
