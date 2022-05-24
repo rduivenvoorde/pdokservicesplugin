@@ -20,8 +20,10 @@
  ***************************************************************************/
 """
 from copy import deepcopy
+from inspect import formatannotationrelativeto
 from optparse import check_choice
 import re
+from cv2 import Formatter_FMT_CSV
 from numpy import isin
 from pytz import NonExistentTimeError
 from qgis.PyQt.QtCore import (
@@ -103,7 +105,7 @@ class PdokServicesPlugin(object):
         self.iface.registerLocatorFilter(self.filter)
 
         # initialize plugin directory
-        self.currentLayer = None
+        self.current_layer = None
         self.SETTINGS_SECTION = SETTINGS_SECTIONS
         self.pointer = None
         self.geocoder_source_model = None
@@ -137,34 +139,23 @@ class PdokServicesPlugin(object):
         else:
             QSettings().setValue(key, value)
 
-    def add_fav_actions_to_toolbar_button(self, nr_of_favs):
-        # first reset existing fav_actions
-        for fav_action in self.fav_actions:
-            self.run_button.menu().removeAction(fav_action)
-        self.fav_actions = []
-
-        # add fav_actions
-        for i in range(1, nr_of_favs + 1):
-            fav_action = QAction(f"Favoriet {i}", self.iface.mainWindow())
-            fav_action.setIcon(self.runIcon)
-            fav_action.triggered.connect(
-                (lambda i: lambda: self.load_favourite(i))(i)
-            )  # Not sure if lambda is required, double lambda is required in order to freeze argument, otherwise always last favourite is added
-            # see https://stackoverflow.com/a/10452866/1763690
-            self.set_favourite_action(fav_action, i)
-            self.run_button.menu().addAction(fav_action)
-            self.fav_actions.append(fav_action)
-
     def initGui(self):
         """Create action that will start plugin configuration
 
         Function name should be kept as is, since it is required for a QGIS plugin. So does not conform with pep naming convention.
         """
-        self.runIcon = QIcon(
+        self.run_icon = QIcon(
             os.path.join(self.plugin_dir, "resources", "icon_add_service.svg")
         )
+        self.fav_icon = QIcon(
+            os.path.join(self.plugin_dir, "resources", "pdok_icon_bookmark.svg")
+        )
 
-        self.run_action = QAction(self.runIcon, PLUGIN_NAME, self.iface.mainWindow())
+        self.del_icon = QIcon(
+            os.path.join(self.plugin_dir, "resources", "pdok_icon_delete.svg")
+        )
+
+        self.run_action = QAction(self.run_icon, PLUGIN_NAME, self.iface.mainWindow())
         self.run_button = QToolButton()
         self.run_button.setMenu(QMenu())
         self.run_button.setPopupMode(QToolButton.MenuButtonPopup)
@@ -188,15 +179,7 @@ class PdokServicesPlugin(object):
             "wcs": "top",
         }
 
-        def update_nr_of_favs():
-            nr_of_favs = self.dlg.ui.nr_favs_input.value()
-            QSettings().setValue(f"/{PLUGIN_ID}/nr_of_favs", nr_of_favs)
-            self.add_fav_actions_to_toolbar_button(nr_of_favs)
-
-        self.dlg.ui.nr_favs_input.valueChanged.connect(update_nr_of_favs)
-        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
-        self.dlg.ui.nr_favs_input.setValue(nr_of_favs)
-        self.add_fav_actions_to_toolbar_button(nr_of_favs)
+        self.add_fav_actions_to_toolbar_button()
 
         self.toolbar_search = QLineEdit()
         self.toolbar_search.setMaximumWidth(200)
@@ -222,7 +205,7 @@ class PdokServicesPlugin(object):
         self.iface.addPluginToMenu(f"&{PLUGIN_NAME}", self.run_action)
 
         # about
-        self.about_action = QAction(self.runIcon, "About", self.iface.mainWindow())
+        self.about_action = QAction(self.run_icon, "About", self.iface.mainWindow())
         self.about_action.setWhatsThis(f"{PLUGIN_NAME} About")
         self.iface.addPluginToMenu(f"&{PLUGIN_NAME}", self.about_action)
 
@@ -308,7 +291,7 @@ class PdokServicesPlugin(object):
 
     def show_layer(self, selectedIndexes):
         if len(selectedIndexes) == 0:
-            self.currentLayer = None
+            self.current_layer = None
             self.dlg.ui.layer_info.setHtml("")
             self.dlg.ui.comboSelectProj.clear()
             self.dlg.ui.layer_info.setHidden(True)
@@ -321,39 +304,49 @@ class PdokServicesPlugin(object):
         # needed to scroll To the selected row incase of using the keyboard / arrows
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
         # itemType holds the data (== column 1)
-        self.currentLayer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
-        if isinstance(self.currentLayer, QVariant):
-            self.currentLayer = self.currentLayer.toMap()
+        self.current_layer = self.dlg.servicesView.selectedIndexes()[1].data(
+            Qt.UserRole
+        )
+        if isinstance(self.current_layer, QVariant):
+            self.current_layer = self.current_layer.toMap()
             # QGIS 1.8: QVariants
             currentLayer = {}
-            for key in list(self.currentLayer.keys()):
-                val = self.currentLayer[key]
+            for key in list(self.current_layer.keys()):
+                val = self.current_layer[key]
                 currentLayer[str(key)] = str(val.toString())
-            self.currentLayer = currentLayer
-        url = self.currentLayer["service_url"]
-        title = self.currentLayer["title"]
-        abstract_dd = self.get_dd(self.currentLayer["abstract"])
+            self.current_layer = currentLayer
+
+        self.update_layer_panel()
+
+    def update_layer_panel(self):
+        url = self.current_layer["service_url"]
+        title = self.current_layer["title"]
+        abstract_dd = self.get_dd(self.current_layer["abstract"])
 
         service_title = (
-            self.currentLayer["service_title"]
-            if self.currentLayer["service_title"]
+            self.current_layer["service_title"]
+            if self.current_layer["service_title"]
             else "[service title niet ingevuld]"
         )
-        layername = self.currentLayer["name"]
-        service_abstract_dd = self.get_dd(self.currentLayer["service_abstract"])
-        stype = self.currentLayer["service_type"].upper()
+        layername = self.current_layer["name"]
+        service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
+        stype = self.current_layer["service_type"].upper()
         minscale = ""
-        if "minscale" in self.currentLayer:
-            minscale = self.format_scale_denominator(self.currentLayer["minscale"])
+        if "minscale" in self.current_layer:
+            minscale = self.format_scale_denominator(self.current_layer["minscale"])
         maxscale = ""
-        if "maxscale" in self.currentLayer:
-            maxscale = self.format_scale_denominator(self.currentLayer["maxscale"])
-        service_md_id = self.currentLayer["service_md_id"]
-        dataset_md_id = self.currentLayer["dataset_md_id"]
+        if "maxscale" in self.current_layer:
+            maxscale = self.format_scale_denominator(self.current_layer["maxscale"])
+        service_md_id = self.current_layer["service_md_id"]
+        dataset_md_id = self.current_layer["dataset_md_id"]
         self.dlg.ui.layer_info.setText("")
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.btnLoadLayerTop.setEnabled(True)
         self.dlg.ui.btnLoadLayerBottom.setEnabled(True)
+
+        fav = False
+        if self.pdok_layer_in_favs(self.current_layer) != -1:
+            fav = True
 
         maxscale_string = ""
         if maxscale:
@@ -377,21 +370,16 @@ class PdokServicesPlugin(object):
         layername_key = f"{layername_key_mapping[stype]}"
         dataset_metadata_dd = self.get_dd(
             dataset_md_id,
-            f'<a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
+            f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
         )
-
+        fav_string = ""
+        fav_title = ""
+        if fav:
+            fav_string = '<img style="margin:10px"  src=":/plugins/pdokservicesplugin/resources/bookmark.png" align="left" />&nbsp;&nbsp;'
+            fav_title = "&nbsp;[favoriet]"
         self.dlg.ui.layer_info.setHtml(
             f"""
-            <h2><a href="{url}">{service_title} - {stype}</a></h2>
-            <dl>
-                <dt><b>Service Abstract</b></dt>
-                {service_abstract_dd}
-                <!--<dt><b>Service Url</b></dt>
-                <dd>{url}</dd>-->
-                <dt><b>Service Metadata</b></dt>
-                <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a></dd>
-            </dl>
-            <h3>{layername_key}: {title}</h3>
+            <h2>{fav_string}{layername_key} ({stype}) - {title}</h2>
             <dl>
                 <dt><b>Name</b></dt>
                 <dd>{layername}</a></dd>
@@ -401,6 +389,17 @@ class PdokServicesPlugin(object):
                 {dataset_metadata_dd}
                 {minscale_string}
                 {maxscale_string}
+            </dl>
+            <h3>Service Informatie</h3>
+            <dl>
+                <dt><b>Service Title</b></dt>
+                <dd><a title="Bekijk service capabilities{fav_title}" href="{url}">{service_title}</a></dd>\
+                <dt><b>Service Type</b></dt>
+                <dd>{stype}</dd>
+                <dt><b>Service Abstract</b></dt>
+                {service_abstract_dd}
+                <dt><b>Service Metadata</b></dt>
+                <dd><a title="Bekijk service metadata in NGR"  href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a></dd>
             </dl>
             """
         )
@@ -419,7 +418,7 @@ class PdokServicesPlugin(object):
             ui_el.setHidden(not (stype in service_types))
 
         if stype == "WMS":
-            styles = self.currentLayer["styles"]
+            styles = self.current_layer["styles"]
             nr_styles = len(styles)
             style_str = "styles" if nr_styles > 1 else "style"
             self.dlg.ui.wmsStyleLabel.setText(
@@ -437,7 +436,7 @@ class PdokServicesPlugin(object):
                 nr_styles > 1  # enable if more than one style
             )
             try:
-                crs = self.currentLayer["crs"]
+                crs = self.current_layer["crs"]
             except KeyError:
                 crs = "EPSG:28992"
             crs = crs.split(",")
@@ -447,85 +446,11 @@ class PdokServicesPlugin(object):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
         if stype == "WMTS":
-            tilematrixsets = self.currentLayer["tilematrixsets"].split(",")
+            tilematrixsets = self.current_layer["tilematrixsets"].split(",")
             self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
             for i in range(len(tilematrixsets)):
                 if tilematrixsets[i].startswith("EPSG:28992"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
-
-    def set_favourite_action(self, action, favourite_number):
-        if QSettings().contains(f"/{PLUGIN_ID}/favourite_{favourite_number}"):
-            layer = QSettings().value(
-                f"/{PLUGIN_ID}/favourite_{favourite_number}", None
-            )
-
-            if layer:
-                action.setToolTip(layer["title"].capitalize())
-                title = layer["title"].capitalize()
-                if "selectedStyle" in layer:
-                    style = layer["selectedStyle"]
-                    style_title = style["name"]
-                    if "title" in style:
-                        style_title = style["title"]
-                    if style_title:
-                        title = f"{title} [{style_title}]"
-
-                if "service_type" in layer:
-                    stype = layer["service_type"].upper()
-                    title += f" ({stype})"
-                action.setText(title)
-                action.setIcon(self.runIcon)
-
-    def get_layer_in_pdok_layers(self, lyr):
-        """check for layer equality based on equal
-        - service_md_id
-        - name (layername)
-        - style (in case of WMS layer)
-        returns None if layer not found
-        """
-
-        def predicate(x):
-            if x["service_md_id"] == lyr["service_md_id"] and x["name"] == lyr["name"]:
-                # WMS layer with style
-                if "style" in x and "style" in lyr:
-                    if x["style"] == lyr["style"]:
-                        return True
-                    else:
-                        return False
-                # other layer without style (but with matching layername and service_md_id)
-                return True
-            return False
-
-        return next(filter(predicate, self.layers_pdok), None)
-
-    def load_favourite(self, favourite_number):
-        if QSettings().contains(f"/{PLUGIN_ID}/favourite_{favourite_number}"):
-            saved_layer = QSettings().value(
-                f"/{PLUGIN_ID}/favourite_{favourite_number}", None
-            )
-            # migration code required for change: https://github.com/rduivenvoorde/pdokservicesplugin/commit/a5700dace54250b8f18229939907c3cab39f5297
-            # which changed the schema of the layer config json file
-            migrate_fav = False
-            if "md_id" in saved_layer:
-                saved_layer["service_md_id"] = saved_layer["md_id"]
-                migrate_fav = True
-            if "layers" in saved_layer:
-                saved_layer["name"] = saved_layer["layers"]
-                migrate_fav = True
-            layer = self.get_layer_in_pdok_layers(saved_layer)
-            if migrate_fav:
-                QSettings().setValue(
-                    f"/{PLUGIN_ID}/favourite_{favourite_number}", layer
-                )
-            if layer:
-                self.currentLayer = layer
-                self.load_layer()
-                return
-        self.show_warning(
-            "Maak een Favoriet aan door in de dialoog met services en lagen via het context menu (rechter muisknop) een Favoriet te kiezen...",
-            "Geen Favoriet aanwezig (of verouderd)...",
-        )
-        self.run()
 
     def quote_wmts_url(self, url):
         """
@@ -543,11 +468,11 @@ class PdokServicesPlugin(object):
     def get_selected_style(self):
         selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
         selected_style = None
-        if "styles" in self.currentLayer:
+        if "styles" in self.current_layer:
             selected_style = next(
                 (
                     x
-                    for x in self.currentLayer["styles"]
+                    for x in self.current_layer["styles"]
                     if x["title"] == selected_style_title
                 ),
                 None,
@@ -558,7 +483,7 @@ class PdokServicesPlugin(object):
                 selected_style = next(
                     (
                         x
-                        for x in self.currentLayer["styles"]
+                        for x in self.current_layer["styles"]
                         if x["name"] == selected_style_title
                     ),
                     None,
@@ -566,13 +491,13 @@ class PdokServicesPlugin(object):
         return selected_style
 
     def create_new_layer(self):
-        servicetype = self.currentLayer["service_type"]
-        title = self.currentLayer["title"]
-        layername = self.currentLayer["name"]
-        url = self.currentLayer["service_url"]
+        servicetype = self.current_layer["service_type"]
+        title = self.current_layer["title"]
+        layername = self.current_layer["name"]
+        url = self.current_layer["service_url"]
 
         if servicetype == "wms":
-            imgformat = self.currentLayer["imgformats"].split(",")[0]
+            imgformat = self.current_layer["imgformats"].split(",")[0]
             if self.dlg.ui.comboSelectProj.currentIndex() == -1:
                 crs = "EPSG:28992"
             else:
@@ -616,7 +541,7 @@ class PdokServicesPlugin(object):
                 tilematrixset = "EPSG:28992"
             else:
                 tilematrixset = self.dlg.ui.comboSelectProj.currentText()
-            imgformat = self.currentLayer["imgformats"].split(",")[0]
+            imgformat = self.current_layer["imgformats"].split(",")[0]
             if tilematrixset.startswith("EPSG:"):
                 crs = tilematrixset
                 i = crs.find(":", 5)
@@ -634,8 +559,8 @@ class PdokServicesPlugin(object):
         elif servicetype == "wcs":
             format = "GEOTIFF_FLOAT32"
             # we handcrafted some wcs layers with 2 different image formats: tiff (RGB) and tiff (float32):
-            if "imgformats" in self.currentLayer:
-                format = self.currentLayer["imgformats"].split(",")[0]
+            if "imgformats" in self.current_layer:
+                format = self.current_layer["imgformats"].split(",")[0]
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url}"
             return QgsRasterLayer(uri, title, "wcs")
         else:
@@ -648,9 +573,9 @@ class PdokServicesPlugin(object):
             return
 
     def load_layer(self, tree_location=None):
-        if self.currentLayer == None:
+        if self.current_layer == None:
             return
-        servicetype = self.currentLayer["service_type"]
+        servicetype = self.current_layer["service_type"]
         if tree_location is None:
             tree_location = self.default_tree_locations[servicetype]
         new_layer = self.create_new_layer()
@@ -779,6 +704,8 @@ class PdokServicesPlugin(object):
         regexp.setMinimal(True)
         self.proxyModel.setFilterRegExp(regexp)
 
+        self.proxyModel.insertRow
+
     def add_source_row(self, serviceLayer):
         # you can attache different "data's" to to an QStandarditem
         # default one is the visible one:
@@ -873,7 +800,7 @@ class PdokServicesPlugin(object):
 
             self.dlg.servicesView.setContextMenuPolicy(Qt.CustomContextMenu)
             self.dlg.servicesView.customContextMenuRequested.connect(
-                self.make_favourite
+                self.make_fav_context_menu
             )
 
             # actually I want to load a service when doubleclicked on header
@@ -913,29 +840,6 @@ class PdokServicesPlugin(object):
             )
         self.remove_pointer()
 
-    def make_favourite(self, position):
-        menu = QMenu()
-        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
-        actions = [
-            menu.addAction(f"Maak Deze Laag Favoriet {x}")
-            for x in range(1, nr_of_favs + 1)
-        ]
-        action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
-        if action is not None:
-            index = actions.index(action)
-            if index != -1:
-                current_layer = self.currentLayer
-                selected_style = self.get_selected_style()
-                if selected_style is not None:
-                    current_layer = {
-                        **self.currentLayer,
-                        **{"selectedStyle": selected_style},
-                    }
-                QSettings().setValue(
-                    f"/{PLUGIN_ID}/favourite_{index+1}", current_layer
-                )  # index +1 since favourite settings indexes are 1 based...
-                self.set_favourite_action(self.fav_actions[index], index + 1)
-
     def setup_fq_checkboxes(self):
         """
         Setup the fq checkboxes in the gui, by looking into the settings for the
@@ -969,7 +873,7 @@ class PdokServicesPlugin(object):
 
     def fill_ls_dialog_from_toolbar_search(self):
         self.dlg.geocoder_search.setText(self.toolbar_search.text())
-        self.geocoder_source_model.clear() # otherwise results will be appended in in ls_dialog
+        self.geocoder_source_model.clear()  # otherwise results will be appended in in ls_dialog
         self.ls_dialog_get_suggestions()
 
     def lookup_toolbar_search_and_zoom(self, lookup_id):
@@ -1115,3 +1019,259 @@ class PdokServicesPlugin(object):
             QMessageBox.Ok,
             QMessageBox.Ok,
         )
+
+    ###################
+    # favourites code #
+    ###################
+    # methods:
+    # save_fav_layer_in_settings
+    # get_favs_from_settings
+    # delete_fav_layer_in_settings
+    # make_fav_context_menu
+    # load_fav_layer
+    # get_layer_in_pdok_layers
+    # layer_equals_fav_layer
+    # pdok_layer_in_favs
+    # add_fav_actions_to_toolbar_button
+
+    def save_fav_layer_in_settings(self, fav_layer):
+        nr_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
+        new_fav_i = nr_favs + 1
+        QSettings().setValue(f"/{PLUGIN_ID}/nr_of_favs", new_fav_i)
+        QSettings().setValue(f"/{PLUGIN_ID}/favourite_{new_fav_i}", fav_layer)
+
+    def get_favs_from_settings(self):
+        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
+        return [
+            QSettings().value(f"/{PLUGIN_ID}/favourite_{i}", None)
+            for i in range(1, nr_of_favs + 1)
+        ]
+
+    def delete_fav_layer_in_settings(self, fav_layer_to_delete):
+        fav_layers = self.get_favs_from_settings()
+        nr_of_favs = len(fav_layers)
+        # find index of fav layer to delete
+        fav_del_index = -1
+        for i in range(0, len(fav_layers)):
+            fav_layer = fav_layers[i]
+            if self.layer_equals_fav_layer(fav_layer_to_delete, fav_layer):
+                fav_del_index = i
+                break
+        # delete fav layer if found
+        if fav_del_index != -1:
+            del fav_layers[fav_del_index]
+            # overwrite remaining favs from start to end and remove last
+            # remaining fav
+            for i in range(0, len(fav_layers)):
+                fav_layer = fav_layers[i]
+                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{i+1}", fav_layer)
+            settings = QSettings()
+            settings.remove(f"/{PLUGIN_ID}/favourite_{nr_of_favs}")
+            QSettings().setValue(f"/{PLUGIN_ID}/nr_of_favs", nr_of_favs - 1)
+
+    def move_item_in_list(self, the_list, index, direction):
+        if not direction in [1, -1]:
+            raise ValueError()
+        if index <= 0 and direction == -1:
+            return the_list
+        if index >= len(the_list) - 1 and direction == 1:
+            return the_list
+        pos1 = index
+        pos2 = index + (direction)
+        the_list[pos1], the_list[pos2] = the_list[pos2], the_list[pos1]
+        return the_list
+
+    def change_index_fav_layer_in_settings(self, fav_layer_to_change, index_delta):
+        self.info("change_index_fav_layer_in_settings")
+        fav_layers = self.get_favs_from_settings()
+        # nr_of_favs = len(fav_layers)
+        # find index of fav layer to delete
+        fav_change_index = -1
+        for i in range(0, len(fav_layers)):
+            fav_layer = fav_layers[i]
+            if self.layer_equals_fav_layer(fav_layer_to_change, fav_layer):
+                fav_change_index = i
+                break
+
+        if fav_change_index != -1:
+            fav_layers = self.move_item_in_list(
+                fav_layers, fav_change_index, index_delta
+            )
+            for i in range(0, len(fav_layers)):
+                fav_layer = fav_layers[i]
+                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{i+1}", fav_layer)
+
+    def make_fav_context_menu(self, position):
+        self.info(f"make_favourite")
+        menu = QMenu()
+        if self.current_layer:
+            self.info(f'make_favourite - {self.current_layer["title"]}')
+            fav_index = self.pdok_layer_in_favs(self.current_layer)
+            self.info(f"in_favs - {fav_index}")
+            nr_of_favs = int(
+                QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS)
+            )
+
+            if fav_index != -1:
+
+                up_fav_action = QAction(f"Verplaats favoriet omhoog")
+                down_fav_action = QAction(f"Verplaats favoriet omlaag")
+
+                if fav_index == 0:
+                    up_fav_action.setEnabled(False)
+                if fav_index == (nr_of_favs - 1):
+                    down_fav_action.setEnabled(False)
+
+                delete_fav_action = QAction(f"Verwijder deze laag uit favorieten")
+                delete_fav_action.setIcon(self.del_icon)
+
+                menu.addAction(up_fav_action)
+                menu.addAction(down_fav_action)
+                menu.addAction(delete_fav_action)
+
+                action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
+                if action == delete_fav_action:
+                    # delete layer to favourites with qsettngs
+                    # then update favourite context menu
+                    self.delete_fav_layer_in_settings(self.current_layer)
+                    self.update_layer_panel()
+                    self.add_fav_actions_to_toolbar_button()
+                elif action == up_fav_action:
+                    self.change_index_fav_layer_in_settings(self.current_layer, -1)
+                    self.add_fav_actions_to_toolbar_button()
+                elif action == down_fav_action:
+                    self.change_index_fav_layer_in_settings(self.current_layer, 1)
+                    self.add_fav_actions_to_toolbar_button()
+
+            else:
+                selected_style = self.get_selected_style()
+                if selected_style is not None:
+                    self.current_layer = {
+                        **self.current_layer,
+                        **{"selectedStyle": selected_style},
+                    }
+                add_fav_action = QAction(f"Voeg deze laag toe aan favourieten")
+                add_fav_action.setIcon(self.fav_icon)
+                menu.addAction(add_fav_action)
+                action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
+                if action == add_fav_action:
+                    # save layer to favourites with qsettngs
+                    # then update favourite context menu
+                    self.info("add_fav_action_trigger")
+                    self.save_fav_layer_in_settings(self.current_layer)
+                    self.update_layer_panel()
+                    self.add_fav_actions_to_toolbar_button()
+
+    def load_fav_layer(self, fav_layer):
+        # if QSettings().contains(f"/{PLUGIN_ID}/favourite_{favourite_number}"):
+        if fav_layer:
+            # fav_layer = QSettings().value(
+            #     f"/{PLUGIN_ID}/favourite_{favourite_number}", None
+            # )
+            # migration code required for change: https://github.com/rduivenvoorde/pdokservicesplugin/commit/a5700dace54250b8f18229939907c3cab39f5297
+            # which changed the schema of the layer config json file
+            # migrate_fav = False
+            # if "md_id" in fav_layer:
+            #     fav_layer["service_md_id"] = fav_layer["md_id"]
+            #     migrate_fav = True
+            # if "layers" in fav_layer:
+            #     fav_layer["name"] = fav_layer["layers"]
+            #     migrate_fav = True
+            layer = self.get_layer_in_pdok_layers(fav_layer)
+            # if migrate_fav:
+            #     QSettings().setValue(
+            #         f"/{PLUGIN_ID}/favourite_{favourite_number}", layer
+            #     )
+            if layer:
+                self.current_layer = layer
+                self.load_layer()
+                return
+        self.show_warning(
+            "Maak een Favoriet aan door in de dialoog met services en lagen via het context menu (rechter muisknop) een Favoriet te kiezen...",
+            "Geen Favoriet aanwezig (of verouderd)...",
+        )
+        self.run()
+
+    def get_layer_in_pdok_layers(self, lyr):
+        """
+        returns None if layer not found
+        """
+
+        def predicate(x):
+            return self.layer_equals_fav_layer(lyr, x)
+
+        return next(filter(predicate, self.layers_pdok), None)
+
+    def layer_equals_fav_layer(self, lyr, fav_lyr):
+        """
+        check for layer equality based on equal
+        - service_md_id
+        - name (layername)
+        - style (in case of WMS layer)
+        """
+        if (
+            fav_lyr["service_md_id"] == lyr["service_md_id"]
+            and fav_lyr["name"] == lyr["name"]
+        ):
+            # WMS layer with style
+            if "style" in fav_lyr and "style" in lyr:
+                if fav_lyr["style"] == lyr["style"]:
+                    return True
+                else:
+                    return False
+            # other layer without style (but with matching layername and service_md_id)
+            return True
+        return False
+
+    def pdok_layer_in_favs(self, lyr):
+        def predicate(x):
+            return self.layer_equals_fav_layer(lyr, x)
+
+        fav_layers = self.get_favs_from_settings()
+        # result = next(filter(predicate, fav_layers), None)
+
+        i = next((i for i, v in enumerate(fav_layers) if predicate(v)), -1)
+        return i
+
+    def add_fav_actions_to_toolbar_button(self):
+        # first reset existing fav_actions
+        for fav_action in self.fav_actions:
+            self.run_button.menu().removeAction(fav_action)
+        self.fav_actions = []
+        fav_layers = self.get_favs_from_settings()
+
+        # add fav_actions
+        if len(fav_layers) == 0:
+            fav_action = QAction(f"Maak een favoriet aan in het PDOK Services tabblad")
+            fav_action.setIcon(self.fav_icon)
+            fav_action.setEnabled(False)
+            self.run_button.menu().addAction(fav_action)
+            self.fav_actions.append(fav_action)
+        else:
+            for fav_layer in fav_layers:
+                if fav_layer:
+                    fav_action = QAction()
+                    fav_action.setIcon(self.fav_icon)
+                    fav_action.triggered.connect(
+                        (lambda fav_layer: lambda: self.load_fav_layer(fav_layer))(
+                            fav_layer
+                        )
+                    )  # Double lambda is required in order to freeze argument, otherwise always last favourite is added
+                    # see https://stackoverflow.com/a/10452866/1763690
+
+                    fav_action.setToolTip(fav_layer["title"].capitalize())
+                    title = fav_layer["title"].capitalize()
+                    if "selectedStyle" in fav_layer:
+                        style = fav_layer["selectedStyle"]
+                        style_title = style["name"]
+                        if "title" in style:
+                            style_title = style["title"]
+                        if style_title:
+                            title = f"{title} [{style_title}]"
+
+                    if "service_type" in fav_layer:
+                        stype = fav_layer["service_type"].upper()
+                        title += f" ({stype})"
+                    fav_action.setText(title)
+                self.run_button.menu().addAction(fav_action)
+                self.fav_actions.append(fav_action)

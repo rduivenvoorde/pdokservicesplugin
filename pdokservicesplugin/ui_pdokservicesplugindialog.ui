@@ -1,372 +1,332 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PdokServicesPlugin</class>
- <widget class="QDialog" name="PdokServicesPlugin">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>838</width>
-    <height>944</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>PDOK Services Plugin</string>
-  </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QTabWidget" name="tabWidget">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="currentIndex">
-      <number>1</number>
-     </property>
-     <widget class="QWidget" name="layers_tab">
-      <attribute name="title">
-       <string>PDOK Services</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="1" column="0" colspan="4">
-        <widget class="QTableView" name="servicesView">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="4">
-        <widget class="QTextBrowser" name="layer_info">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>300</height>
-          </size>
-         </property>
-         <property name="openExternalLinks">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QLineEdit" name="layerSearch">
-         <property name="placeholderText">
-          <string>Start met het type service en dan overige termen, bv &quot;wfs cbs provincie&quot;</string>
-         </property>
-         <property name="clearButtonEnabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Zoeken</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="4">
-        <widget class="QGroupBox" name="layer_options_groupbox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string/>
-         </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="1" column="0">
-           <widget class="QLabel" name="wmsStyleLabel">
-            <property name="text">
-             <string>Style</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="wmsStyleComboBox">
-            <property name="editable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="labelCrs">
-            <property name="text">
-             <string>CRS</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="comboSelectProj"/>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="labelAddLayer">
-            <property name="text">
-             <string>Laag toevoegen</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout">
+    <class>PdokServicesPlugin</class>
+    <widget class="QDialog" name="PdokServicesPlugin">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>838</width>
+                <height>944</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>PDOK Services Plugin</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
             <item>
-             <widget class="QPushButton" name="btnLoadLayer">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="toolTip">
-               <string>Boven actieve kaartlaag toevoegen</string>
-              </property>
-              <property name="text">
-               <string>Standaard</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnLoadLayerTop">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="toolTip">
-               <string>Als bovenste kaartlaag toevoegen</string>
-              </property>
-              <property name="text">
-               <string>Boven</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnLoadLayerBottom">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="toolTip">
-               <string>Als onderste kaartlaag toevoegen</string>
-              </property>
-              <property name="text">
-               <string>Onder</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="ls_tab">
-      <attribute name="title">
-       <string>PDOK Locatieserver</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_4">
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Filter Resultaten </string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0" colspan="3">
-        <widget class="QTextBrowser" name="lookupinfo">
-         <property name="openExternalLinks">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1" colspan="2">
-        <widget class="QLineEdit" name="geocoderSearch">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="3">
-        <widget class="QTableView" name="geocoderResultView"/>
-       </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="QLineEdit" name="geocoderResultSearch"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Zoek</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0" colspan="3">
-        <widget class="QGroupBox" name="groupBox_3">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Zoek Type</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="cbx_gem">
-            <property name="text">
-             <string>Gemeente</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="cbx_weg">
-            <property name="text">
-             <string>Weg (BAG openbare ruimte)</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="cbx_wpl">
-            <property name="text">
-             <string>Woonplaats</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="cbx_adr">
-            <property name="text">
-             <string>Adres</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="cbx_pcl">
-            <property name="text">
-             <string>Perceel</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="cbx_hmp">
-            <property name="text">
-             <string>Hectometerpaal</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="cbx_pcd">
-            <property name="text">
-             <string>Postcode</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QPushButton" name="pushButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Toggle All/None</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="settings_tab">
-      <attribute name="title">
-       <string>Instellingen</string>
-      </attribute>
-      <widget class="QWidget" name="formLayoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>791</width>
-         <height>281</height>
-        </rect>
-       </property>
-       <layout class="QFormLayout" name="formLayout">
-        <item row="0" column="1">
-         <widget class="QSpinBox" name="nr_favs_input">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <number>10</number>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="nr_favs_label">
-          <property name="text">
-           <string>Aantal favorieten</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="about_tab">
-      <attribute name="title">
-       <string>OpenGeoGroep en PDOK</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QTextBrowser" name="webView">
-         <property name="html">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+                <widget class="QTabWidget" name="tabWidget">
+                    <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="currentIndex">
+                        <number>1</number>
+                    </property>
+                    <widget class="QWidget" name="layers_tab">
+                        <attribute name="title">
+                            <string>PDOK Services</string>
+                        </attribute>
+                        <layout class="QGridLayout" name="gridLayout_2">
+                            <item row="1" column="0" colspan="4">
+                                <widget class="QTableView" name="servicesView">
+                                    <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>0</width>
+                                            <height>0</height>
+                                        </size>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="2" column="0" colspan="4">
+                                <widget class="QTextBrowser" name="layer_info">
+                                    <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="maximumSize">
+                                        <size>
+                                            <width>16777215</width>
+                                            <height>300</height>
+                                        </size>
+                                    </property>
+                                    <property name="openExternalLinks">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="0" column="2">
+                                <widget class="QLineEdit" name="layerSearch">
+                                    <property name="placeholderText">
+                                        <string>Start met het type service en dan overige termen, bv &quot;wfs cbs provincie&quot;</string>
+                                    </property>
+                                    <property name="clearButtonEnabled">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="0" column="0">
+                                <widget class="QLabel" name="label">
+                                    <property name="text">
+                                        <string>Zoeken</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="0" colspan="4">
+                                <widget class="QGroupBox" name="layer_options_groupbox">
+                                    <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="title">
+                                        <string/>
+                                    </property>
+                                    <layout class="QFormLayout" name="formLayout">
+                                        <item row="1" column="0">
+                                            <widget class="QLabel" name="wmsStyleLabel">
+                                                <property name="text">
+                                                    <string>Style</string>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="1" column="1">
+                                            <widget class="QComboBox" name="wmsStyleComboBox">
+                                                <property name="editable">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="3" column="0">
+                                            <widget class="QLabel" name="labelCrs">
+                                                <property name="text">
+                                                    <string>CRS</string>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="3" column="1">
+                                            <widget class="QComboBox" name="comboSelectProj"/>
+                                        </item>
+                                        <item row="5" column="0">
+                                            <widget class="QLabel" name="labelAddLayer">
+                                                <property name="text">
+                                                    <string>Laag toevoegen</string>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="5" column="1">
+                                            <layout class="QHBoxLayout" name="horizontalLayout">
+                                                <item>
+                                                    <widget class="QPushButton" name="btnLoadLayer">
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
+                                                        <property name="toolTip">
+                                                            <string>Boven actieve kaartlaag toevoegen</string>
+                                                        </property>
+                                                        <property name="text">
+                                                            <string>Standaard</string>
+                                                        </property>
+                                                    </widget>
+                                                </item>
+                                                <item>
+                                                    <widget class="QPushButton" name="btnLoadLayerTop">
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
+                                                        <property name="toolTip">
+                                                            <string>Als bovenste kaartlaag toevoegen</string>
+                                                        </property>
+                                                        <property name="text">
+                                                            <string>Boven</string>
+                                                        </property>
+                                                    </widget>
+                                                </item>
+                                                <item>
+                                                    <widget class="QPushButton" name="btnLoadLayerBottom">
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
+                                                        <property name="toolTip">
+                                                            <string>Als onderste kaartlaag toevoegen</string>
+                                                        </property>
+                                                        <property name="text">
+                                                            <string>Onder</string>
+                                                        </property>
+                                                    </widget>
+                                                </item>
+                                            </layout>
+                                        </item>
+                                    </layout>
+                                </widget>
+                            </item>
+                        </layout>
+                    </widget>
+                    <widget class="QWidget" name="ls_tab">
+                        <attribute name="title">
+                            <string>PDOK Locatieserver</string>
+                        </attribute>
+                        <layout class="QGridLayout" name="gridLayout_4">
+                            <item row="2" column="0">
+                                <widget class="QLabel" name="label_2">
+                                    <property name="text">
+                                        <string>Filter Resultaten </string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="4" column="0" colspan="3">
+                                <widget class="QTextBrowser" name="lookupinfo">
+                                    <property name="openExternalLinks">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="0" column="1" colspan="2">
+                                <widget class="QLineEdit" name="geocoderSearch">
+                                    <property name="text">
+                                        <string/>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="3" column="0" colspan="3">
+                                <widget class="QTableView" name="geocoderResultView"/>
+                            </item>
+                            <item row="2" column="1" colspan="2">
+                                <widget class="QLineEdit" name="geocoderResultSearch"/>
+                            </item>
+                            <item row="0" column="0">
+                                <widget class="QLabel" name="label_6">
+                                    <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="text">
+                                        <string>Zoek</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="1" column="0" colspan="3">
+                                <widget class="QGroupBox" name="groupBox_3">
+                                    <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="title">
+                                        <string>Zoek Type</string>
+                                    </property>
+                                    <layout class="QGridLayout" name="gridLayout_5">
+                                        <item row="0" column="0">
+                                            <widget class="QCheckBox" name="cbx_gem">
+                                                <property name="text">
+                                                    <string>Gemeente</string>
+                                                </property>
+                                                <property name="checked">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="2" column="0">
+                                            <widget class="QCheckBox" name="cbx_weg">
+                                                <property name="text">
+                                                    <string>Weg (BAG openbare ruimte)</string>
+                                                </property>
+                                                <property name="checked">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="1" column="0">
+                                            <widget class="QCheckBox" name="cbx_wpl">
+                                                <property name="text">
+                                                    <string>Woonplaats</string>
+                                                </property>
+                                                <property name="checked">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="0" column="1">
+                                            <widget class="QCheckBox" name="cbx_adr">
+                                                <property name="text">
+                                                    <string>Adres</string>
+                                                </property>
+                                                <property name="checked">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="1" column="1">
+                                            <widget class="QCheckBox" name="cbx_pcl">
+                                                <property name="text">
+                                                    <string>Perceel</string>
+                                                </property>
+                                                <property name="checked">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="2" column="1">
+                                            <widget class="QCheckBox" name="cbx_hmp">
+                                                <property name="text">
+                                                    <string>Hectometerpaal</string>
+                                                </property>
+                                                <property name="checked">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="3" column="0">
+                                            <widget class="QCheckBox" name="cbx_pcd">
+                                                <property name="text">
+                                                    <string>Postcode</string>
+                                                </property>
+                                                <property name="checked">
+                                                    <bool>true</bool>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item row="3" column="1">
+                                            <widget class="QPushButton" name="pushButton">
+                                                <property name="sizePolicy">
+                                                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                                                        <horstretch>0</horstretch>
+                                                        <verstretch>0</verstretch>
+                                                    </sizepolicy>
+                                                </property>
+                                                <property name="text">
+                                                    <string>Toggle All/None</string>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                    </layout>
+                                </widget>
+                            </item>
+                        </layout>
+                    </widget>
+                    <widget class="QWidget" name="about_tab">
+                        <attribute name="title">
+                            <string>OpenGeoGroep en PDOK</string>
+                        </attribute>
+                        <layout class="QGridLayout" name="gridLayout_3">
+                            <item row="0" column="0">
+                                <widget class="QTextBrowser" name="webView">
+                                    <property name="html">
+                                        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
@@ -378,28 +338,28 @@ p, li { white-space: pre-wrap; }
 &lt;h2 style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:600; color:#444444;&quot;&gt;OpenGeoGroep&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h2&gt;
 &lt;h3 style=&quot; margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:large; font-weight:600; color:#444444;&quot;&gt;Anders denken, Anders doen..&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h3&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/resources/ogg.gif&quot; style=&quot;float: left;&quot; /&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;&quot;&gt;De &lt;/span&gt;&lt;a href=&quot;http://www.opengeogroep.nl&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; text-decoration: underline; color:#0000ff;&quot;&gt;OpenGeoGroep&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:296; color:#444444;&quot;&gt; is een commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.&lt;/span&gt; &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="openExternalLinks">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+                                    </property>
+                                    <property name="openExternalLinks">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                            </item>
+                        </layout>
+                    </widget>
+                </widget>
+            </item>
+            <item>
+                <widget class="QDialogButtonBox" name="buttonBox">
+                    <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="standardButtons">
+                        <set>QDialogButtonBox::Close</set>
+                    </property>
+                </widget>
+            </item>
+        </layout>
     </widget>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Close</set>
-     </property>
-    </widget>
-   </item>
-  </layout>
- </widget>
- <resources/>
- <connections/>
+    <resources/>
+    <connections/>
 </ui>
