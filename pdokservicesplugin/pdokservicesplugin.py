@@ -1047,16 +1047,22 @@ class PdokServicesPlugin(object):
             for i in range(1, nr_of_favs + 1)
         ]
 
+    def get_fav_layer_index(self, fav_layer_to_get_index):
+        fav_layers = self.get_favs_from_settings()
+        # find index of fav layer to delete
+        fav_index = -1
+        for i in range(0, len(fav_layers)):
+            fav_layer = fav_layers[i]
+            if self.layer_equals_fav_layer(fav_layer_to_get_index, fav_layer):
+                fav_index = i
+                break
+        return fav_index
+
     def delete_fav_layer_in_settings(self, fav_layer_to_delete):
         fav_layers = self.get_favs_from_settings()
         nr_of_favs = len(fav_layers)
         # find index of fav layer to delete
-        fav_del_index = -1
-        for i in range(0, len(fav_layers)):
-            fav_layer = fav_layers[i]
-            if self.layer_equals_fav_layer(fav_layer_to_delete, fav_layer):
-                fav_del_index = i
-                break
+        fav_del_index = self.get_fav_layer_index(fav_layer_to_delete)
         # delete fav layer if found
         if fav_del_index != -1:
             del fav_layers[fav_del_index]
@@ -1163,25 +1169,22 @@ class PdokServicesPlugin(object):
                     self.add_fav_actions_to_toolbar_button()
 
     def load_fav_layer(self, fav_layer):
-        # if QSettings().contains(f"/{PLUGIN_ID}/favourite_{favourite_number}"):
         if fav_layer:
-            # fav_layer = QSettings().value(
-            #     f"/{PLUGIN_ID}/favourite_{favourite_number}", None
-            # )
             # migration code required for change: https://github.com/rduivenvoorde/pdokservicesplugin/commit/a5700dace54250b8f18229939907c3cab39f5297
             # which changed the schema of the layer config json file
-            # migrate_fav = False
-            # if "md_id" in fav_layer:
-            #     fav_layer["service_md_id"] = fav_layer["md_id"]
-            #     migrate_fav = True
-            # if "layers" in fav_layer:
-            #     fav_layer["name"] = fav_layer["layers"]
-            #     migrate_fav = True
+            fav_layer_index = self.get_fav_layer_index(fav_layer)
+            migrate_fav = False
+            if "md_id" in fav_layer:
+                fav_layer["service_md_id"] = fav_layer["md_id"]
+                migrate_fav = True
+            if "layers" in fav_layer:
+                fav_layer["name"] = fav_layer["layers"]
+                migrate_fav = True
             layer = self.get_layer_in_pdok_layers(fav_layer)
-            # if migrate_fav:
-            #     QSettings().setValue(
-            #         f"/{PLUGIN_ID}/favourite_{favourite_number}", layer
-            #     )
+            if migrate_fav:
+                QSettings().setValue(
+                    f"/{PLUGIN_ID}/favourite_{fav_layer_index+1}", layer
+                )
             if layer:
                 self.current_layer = layer
                 self.load_layer()
