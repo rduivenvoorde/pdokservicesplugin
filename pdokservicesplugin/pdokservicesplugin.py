@@ -59,6 +59,7 @@ import urllib.request, urllib.parse, urllib.error
 import locale
 
 # Initialize Qt resources from file resources.py
+from . import resources_rc
 
 # Import the code for the dialog
 from .pdokservicesplugindialog import PdokServicesPluginDialog

@@ -346,7 +346,6 @@
 &lt;/head&gt;
 
 &lt;body&gt;
-  &lt;h1&gt;QGIS plugin voor PDOK services&lt;/h1&gt;
   &lt;p&gt;
     Deze plugin wordt gemaakt door Richard Duivenvoorde (&lt;a href=&quot;http://www.zuidt.nl&quot;&gt;Zuidt&lt;/a&gt;).
     &lt;br&gt;
@@ -372,7 +371,7 @@
 
   &lt;h2&gt;OpenGeoGroep&lt;/h2&gt;
   &lt;h3&gt;Anders denken, Anders doen..&lt;/h3&gt;
-  &lt;p&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/ogg.gif&quot; align=&quot;left&quot; /&gt;De &lt;a
+  &lt;p&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/resources/ogg.gif&quot; align=&quot;left&quot; /&gt;De &lt;a
       href=&quot;http://www.opengeogroep.nl&quot;&gt;OpenGeoGroep&lt;/a&gt; is een
     commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten
     zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve

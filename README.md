@@ -65,14 +65,16 @@ cd pdokservicesplugin
 xmlstarlet ed -u  ".//widget[@name='webView']/property[@name='html']/string" -v "$(sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&#39;/g' < resources/infotab.html)" ui_pdokservicesplugindialog.ui |\
     xmlstarlet unesc |\
     sponge ui_pdokservicesplugindialog.ui &&\
-        pyuic5 ui_pdokservicesplugindialog.ui -o ui_pdokservicesplugindialog.py
+        pyuic5 ui_pdokservicesplugindialog.ui -o ui_pdokservicesplugindialog.py &&\
+            black ui_pdokservicesplugindialog.py
 ```
 
 Compile `resources_rc.py` file:
 
 ```sh
 cd pdokservicesplugin
-pyrcc5 resources.qrc -o resources_rc.py
+pyrcc5 resources.qrc -o resources_rc.py &&
+    black resources_rc.py
 ```
 
 Create symlink to QGIS plugin directory from repository directory (Windows):
