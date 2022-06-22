@@ -1,7 +1,7 @@
 import os.path
 
 from PyQt5 import QtGui
-from qgis.core import QgsProcessingProvider, QgsMessageLog, Qgis
+from qgis.core import QgsProcessingProvider
 
 from .processing_geocoder import PDOKGeocoder
 from .processing_reverse_geocoder import PDOKReverseGeocoder

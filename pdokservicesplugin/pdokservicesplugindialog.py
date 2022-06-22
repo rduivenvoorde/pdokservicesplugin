@@ -20,9 +20,7 @@
  ***************************************************************************/
 """
 
-from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtWidgets import QDialog
-from qgis.core import *
 from .ui_pdokservicesplugindialog import Ui_PdokServicesPlugin
 
 

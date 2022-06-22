@@ -19,24 +19,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-from copy import deepcopy
-from inspect import formatannotationrelativeto
-from optparse import check_choice
 import re
-from cv2 import Formatter_FMT_CSV
-from numpy import isin
-from pytz import NonExistentTimeError
+from numpy import true_divide
 from qgis.PyQt.QtCore import (
     QSettings,
     QVariant,
-    QFileInfo,
     Qt,
-    QTranslator,
-    QCoreApplication,
-    qVersion,
     QTimer,
-    QStringListModel,
-    QModelIndex,
 )
 from qgis.PyQt.QtWidgets import (
     QAction,
@@ -70,7 +59,6 @@ import urllib.request, urllib.parse, urllib.error
 import locale
 
 # Initialize Qt resources from file resources.py
-from . import resources_rc
 
 # Import the code for the dialog
 from .pdokservicesplugindialog import PdokServicesPluginDialog
@@ -123,7 +111,6 @@ class PdokServicesPlugin(object):
 
         self.provider = Provider()
         QgsApplication.processingRegistry().addProvider(self.provider)
-
 
     def get_settings_value(self, key, default=""):
         if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
@@ -271,7 +258,7 @@ class PdokServicesPlugin(object):
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.run_action)
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.about_action)
             del self.toolbar
-        except Exception as e:
+        except Exception:
             pass
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
@@ -378,7 +365,7 @@ class PdokServicesPlugin(object):
         fav_string = ""
         fav_title = ""
         if fav:
-            fav_string = '<img style="margin:10px"  src=":/plugins/pdokservicesplugin/resources/bookmark.png" align="left" />&nbsp;&nbsp;'
+            fav_string = '<img style="margin:10px" src=":/plugins/pdokservicesplugin/resources/bookmark.png" align="left" />&nbsp;&nbsp;'
             fav_title = "&nbsp;[favoriet]"
         self.dlg.ui.layer_info.setHtml(
             f"""
@@ -1038,17 +1025,21 @@ class PdokServicesPlugin(object):
     # add_fav_actions_to_toolbar_button
 
     def save_fav_layer_in_settings(self, fav_layer):
-        nr_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
-        new_fav_i = nr_favs + 1
-        QSettings().setValue(f"/{PLUGIN_ID}/nr_of_favs", new_fav_i)
+        favs = self.get_favs_from_settings()
+        nr_of_favs = len(favs)
+        new_fav_i = nr_of_favs + 1
         QSettings().setValue(f"/{PLUGIN_ID}/favourite_{new_fav_i}", fav_layer)
 
     def get_favs_from_settings(self):
-        nr_of_favs = int(QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS))
-        return [
-            QSettings().value(f"/{PLUGIN_ID}/favourite_{i}", None)
-            for i in range(1, nr_of_favs + 1)
-        ]
+        favs = []
+        i = 1
+        while True:
+            fav = QSettings().value(f"/{PLUGIN_ID}/favourite_{i}", None)
+            if fav is None:
+                break
+            favs.append(fav)
+            i += 1
+        return favs
 
     def get_fav_layer_index(self, fav_layer_to_get_index):
         fav_layers = self.get_favs_from_settings()
@@ -1076,7 +1067,6 @@ class PdokServicesPlugin(object):
                 QSettings().setValue(f"/{PLUGIN_ID}/favourite_{i+1}", fav_layer)
             settings = QSettings()
             settings.remove(f"/{PLUGIN_ID}/favourite_{nr_of_favs}")
-            QSettings().setValue(f"/{PLUGIN_ID}/nr_of_favs", nr_of_favs - 1)
 
     def move_item_in_list(self, the_list, index, direction):
         if not direction in [1, -1]:
@@ -1093,8 +1083,7 @@ class PdokServicesPlugin(object):
     def change_index_fav_layer_in_settings(self, fav_layer_to_change, index_delta):
         self.info("change_index_fav_layer_in_settings")
         fav_layers = self.get_favs_from_settings()
-        # nr_of_favs = len(fav_layers)
-        # find index of fav layer to delete
+
         fav_change_index = -1
         for i in range(0, len(fav_layers)):
             fav_layer = fav_layers[i]
@@ -1111,15 +1100,14 @@ class PdokServicesPlugin(object):
                 QSettings().setValue(f"/{PLUGIN_ID}/favourite_{i+1}", fav_layer)
 
     def make_fav_context_menu(self, position):
-        self.info(f"make_favourite")
         menu = QMenu()
         if self.current_layer:
             self.info(f'make_favourite - {self.current_layer["title"]}')
+            self.info(f"make_favourite - {self.current_layer}")
+
             fav_index = self.pdok_layer_in_favs(self.current_layer)
-            self.info(f"in_favs - {fav_index}")
-            nr_of_favs = int(
-                QSettings().value(f"/{PLUGIN_ID}/nr_of_favs", DEFAULT_NR_FAVS)
-            )
+            favs = self.get_favs_from_settings()
+            nr_of_favs = len(favs)
 
             if fav_index != -1:
 
@@ -1235,7 +1223,6 @@ class PdokServicesPlugin(object):
 
         fav_layers = self.get_favs_from_settings()
         # result = next(filter(predicate, fav_layers), None)
-
         i = next((i for i, v in enumerate(fav_layers) if predicate(v)), -1)
         return i
 
@@ -1279,5 +1266,5 @@ class PdokServicesPlugin(object):
                         stype = fav_layer["service_type"].upper()
                         title += f" ({stype})"
                     fav_action.setText(title)
-                self.run_button.menu().addAction(fav_action)
-                self.fav_actions.append(fav_action)
+                    self.run_button.menu().addAction(fav_action)
+                    self.fav_actions.append(fav_action)

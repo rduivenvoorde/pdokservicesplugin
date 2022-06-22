@@ -1,4 +1,3 @@
-from email.policy import default
 from enum import Enum
 import json
 from qgis.core import QgsWkbTypes

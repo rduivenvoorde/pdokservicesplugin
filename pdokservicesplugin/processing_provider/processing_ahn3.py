@@ -220,7 +220,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                 "while executing HTTP request",
             )
             raise QgsProcessingException(message)
-        except Exception as e:
+        except Exception:
             message = get_processing_error_message(
                 "an unexpected error",
                 self.displayName(),
@@ -306,7 +306,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                 "while executing HTTP request",
             )
             raise QgsProcessingException(message)
-        except Exception as e:
+        except Exception:
             message = get_processing_error_message(
                 "an unexpected error",
                 self.displayName(),
