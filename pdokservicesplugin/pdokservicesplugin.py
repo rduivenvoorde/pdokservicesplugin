@@ -119,6 +119,10 @@ class PdokServicesPlugin(object):
         }
         self.fav_actions = []
 
+        self.provider = Provider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
+
     def get_settings_value(self, key, default=""):
         if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
             key = f"{self.SETTINGS_SECTION}{key}"
@@ -260,8 +264,6 @@ class PdokServicesPlugin(object):
         for cbx in self.fq_checkboxes.keys():
             cbx.stateChanged.connect(self.ls_dialog_get_suggestions_and_remove_pointer)
         self.run(True)
-        self.provider = Provider()
-        QgsApplication.processingRegistry().addProvider(self.provider)
 
         # set to hidden when no layer selected
         self.dlg.ui.layer_info.setHidden(True)
@@ -288,6 +290,7 @@ class PdokServicesPlugin(object):
             del self.toolbar
         except Exception as e:
             pass
+        QgsApplication.processingRegistry().removeProvider(self.provider)
 
     def get_dd(self, val, val_string=""):
         md_item_empty = "<dd><em>Niet ingevuld</em></dd>"
