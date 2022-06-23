@@ -142,19 +142,19 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         return self.tr(
             textwrap.dedent(
                 """
-                Deze processing tool haalt hoogte data op van de <a href="https://geodata.nationaalgeoregister.nl/ahn3/wcs?service=WCS&request=GetCapabilities">AHN3 WCS</a> service voor elk punt in de inputlaag. De output is een punten laag met het toegevoegde hoogte attribuut. Wanneer voor een locatie in de AHN3 WCS een <tt>NODATA</tt> waarde wordt gevonden is de resulterende waarde in de outputlaag <tt>NULL</tt>.
+                Deze processing tool haalt hoogtedata op van de <a href="https://geodata.nationaalgeoregister.nl/ahn3/wcs?service=WCS&request=GetCapabilities">AHN3 WCS</a> service voor elk punt in de input-laag. De output is een puntenlaag met het toegevoegde hoogte attribuut. Wanneer voor een locatie in de AHN3 WCS een <tt>NODATA</tt> waarde wordt gevonden is de resulterende waarde in de outputlaag <tt>NULL</tt>.
 
 
                 <h3>Parameters</h3>
                 <dl>
                     <dt><b>Input point layer</b><dt>
-                    <dd>inputlaag met punten</dd>
+                    <dd>input-laag met punten</dd>
                     <dt><b>CoverageId:</b></dt>
-                    <dd>coverage om te bevragen, de AHN3 bied verschillende coverages voornaamste verschil is resolutie (5m vs 0.5m) en terrein (dtm) - vs oppervlaktemodel (dsm), zie de <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentatie</a></dd>
+                    <dd>coverage om te bevragen, de AHN3 biedt verschillende coverages; voornaamste verschil is resolutie (5m vs 0.5m) en terrein (dtm) - vs oppervlaktemodel (dsm), zie de <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentatie</a></dd>
                     <dt><b>Attribute name:</b></dt>
                     <dd>attribuutnaam om de hoogte op te slaan in de outputlaag</dd>
                     <dt><b>Output layer:</b></dt>
-                    <dd>outputlaag met hoogte attribuut, projectie hetzelfde als de inputlaag</dd>
+                    <dd>outputlaag met hoogteattribuut, projectie hetzelfde als de inputlaag</dd>
                 </dl>
                 """
             )
