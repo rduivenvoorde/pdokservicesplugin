@@ -120,7 +120,7 @@ def suggest_query(
     return result
 
 
-def convert_to_gj(result_item, proj: Projection):
+def convert_to_geojson(result_item, proj: Projection):
 
     geom_name = get_the_geom(result_item, proj)
     wkt = result_item[geom_name]
@@ -141,9 +141,9 @@ def get_the_geom(result_item, proj):
     geom_name = f"geometrie{geom_suffix}"
     result = {}
     if geom_name in result_item:
-        result = result | {"wkt_geom": result_item[geom_name]}
+        result.update({"wkt_geom": result_item[geom_name]})  # Note: dict.update modifies IN place (no return value)
     centroid_name = f"centroide{geom_suffix}"
-    result = result | {"wkt_centroid": result_item[centroid_name]}
+    result.update({"wkt_centroid": result_item[centroid_name]})  # Note: dict.update modifies IN place (no return value), see https://peps.python.org/pep-0584/
     return result
 
 
@@ -159,7 +159,7 @@ def remove_redundant_geom_fields(result_item, proj: Projection):
 def process_geom_fields(result_item, proj: Projection):
     geoms = get_the_geom(result_item, proj)
     result_item = remove_redundant_geom_fields(result_item, proj)
-    result_item = result_item | geoms
+    result_item.update(geoms)  # Note: dict.update modifies IN place (no return value)
     return result_item
 
 
