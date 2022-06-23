@@ -249,7 +249,10 @@ class PDOKReverseGeocoder(QgsProcessingAlgorithm):
 
                 result = None
                 if len(data) > 0:
-                    if distance_threshold is not None and data[0]["afstand"] > distance_threshold:
+                    if (
+                        distance_threshold is not None
+                        and data[0]["afstand"] > distance_threshold
+                    ):
                         distance = data[0]["afstand"]
                         feedback.pushInfo(
                             f"feature id: {fid} - distance threshold ({distance_threshold}) exceeded: {distance}"

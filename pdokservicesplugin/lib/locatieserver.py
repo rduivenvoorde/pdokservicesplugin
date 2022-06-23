@@ -141,9 +141,13 @@ def get_the_geom(result_item, proj):
     geom_name = f"geometrie{geom_suffix}"
     result = {}
     if geom_name in result_item:
-        result.update({"wkt_geom": result_item[geom_name]})  # Note: dict.update modifies IN place (no return value)
+        result.update(
+            {"wkt_geom": result_item[geom_name]}
+        )  # Note: dict.update modifies IN place (no return value)
     centroid_name = f"centroide{geom_suffix}"
-    result.update({"wkt_centroid": result_item[centroid_name]})  # Note: dict.update modifies IN place (no return value), see https://peps.python.org/pep-0584/
+    result.update(
+        {"wkt_centroid": result_item[centroid_name]}
+    )  # Note: dict.update modifies IN place (no return value), see https://peps.python.org/pep-0584/
     return result
 
 
