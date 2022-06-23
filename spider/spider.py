@@ -395,30 +395,13 @@ def get_wmts_cap(result):
 
 def flatten_service(service):
     def flatten_layer_wms(layer):
-        # def flatten_styles(stylename):
-        #     layer_copy = deepcopy(
-        #         layer
-        #     )  #  to prevent the same layer object to be modified each iteration
-        #     layer_copy["imgformats"] = service["imgformats"]
-        #     layer_copy["service_url"] = service["url"]
-        #     layer_copy["service_title"] = service["title"]
-        #     layer_copy["service_type"] = service["protocol"].split(":")[1].lower()
-        #     layer_copy["service_abstract"] = service["abstract"]
-        #     layer_copy["service_md_id"] = service["md_id"]
-        #     layer_copy["style"] = stylename
-        #     layer_copy.pop("layers", None)
-        #     return layer_copy
-
         layer["imgformats"] = service["imgformats"]
         layer["service_url"] = service["url"]
         layer["service_title"] = service["title"]
         layer["service_type"] = service["protocol"].split(":")[1].lower()
         layer["service_abstract"] = service["abstract"]
         layer["service_md_id"] = service["md_id"]
-
         return layer
-
-        # return list(map(flatten_styles, styles))
 
     def flatten_layer_wcs(layer):
         layer["service_url"] = service["url"]
