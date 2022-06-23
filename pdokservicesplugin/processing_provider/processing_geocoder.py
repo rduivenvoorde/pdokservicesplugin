@@ -107,11 +107,14 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
         return self.tr(
             textwrap.dedent(
                 """
-                Dit is een processing tool die de PDOK LocatieServer geocodeer service bevraagd  voor elke feature in de input laag met het target attribuut. De geometrie uit het antwoord van de geocodeer service zal worden toegevoegd aan de output laag. Lagen zonder geometrieën zoals CSV en XSLX gebaseerd lagen worden ook ondersteund. Bestaande attributen worden overschreven in de output laag. Om op postcode en huisnummer te bevragen dient de input data aan het volgende format te voldoen:
+                Dit is een processing tool die de PDOK-LocatieServer geocodeer-service bevraagt met het geocode-attribuut van elke feature in de input-laag (Input layer).
+                De geometrie uit het antwoord van de geocodeer-service zal worden toegevoegd aan de output-laag.
+                Lagen zonder geometrieën zoals CSV- en Excel/XSLX-gebaseerde lagen worden ook ondersteund.
+                Bestaande attributen worden overschreven in de output-laag. Om op postcode en huisnummer te bevragen dient de input data aan het volgende format te voldoen:
 
                 <pre><code>{postcode} {huisnr}</pre></code>
 
-                Bij voorbeeld: <em><tt>"6821BN 40-2"</tt></em> (zonder aanhalingstekens, merk op dat de huisnummer en postcode gescheiden zijn met een enkele spatie).
+                Bijvoorbeeld: <em><tt>"6821BN 40-2"</tt></em> of <em><tt>"6821 BN 40-2"</tt></em> (zonder aanhalingstekens, merk op dat de huisnummer en postcode gescheiden zijn met een enkele spatie).
 
                 Zie ook de PDOK Locatieserver API <a href="https://github.com/PDOK/locatieserver/wiki/API-Locatieserver">documentatie</a>.
 
@@ -126,15 +129,15 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
                     <dt><b>Target CRS</b></dt>
                     <dd>CRS van de outputlaag</dd>
                     <dt><b>Retrieve actual geometry (instead of centroid)</b> - <em>default value: <tt>false</tt></em></dt>
-                    <dd>daadwerkelijke geometry ophalen in plaats van centroïde indien beschikbaar (hangt af <em>Geocode result type</em>)</dd>
-                    <dt><b>Add x and Y attribute</b> - <em>default value: <tt>false</tt></em></dt>
-                    <dd>voeg <tt>gc_x</tt> and <tt>gc_y</tt> attributen aan de outputlaag die de coördinaten van de centroïde bevatten</dd>
+                    <dd>daadwerkelijke geometry ophalen in plaats van centroïde (indien beschikbaar: hangt af van <em>Geocode result type</em>)</dd>
+                    <dt><b>Add x and y attribute</b> - <em>default value: <tt>false</tt></em></dt>
+                    <dd>voeg <tt>gc_x</tt> and <tt>gc_y</tt> attributen toe aan de output-laag die de coördinaten van de centroïde bevatten</dd>
                     <dt><b>Add <tt>weergavenaam</tt> (display name) attribute</b> - <em>default value: <tt>false</tt></em></dt>
                     <dd>voeg <tt>gc_naam</tt> attribuut toe aan de outputlaag, met het <tt>weergavenaam</tt> veld uit het geocoder resultaat</dd>
                     <dt><b>Add score attribute</b> - <em>default value: <tt>false</tt></em></dt>
                     <dd>voeg <tt>gc_score</tt> attribuut toe aan de outputlaag, met het <tt>score</tt> veld uit het geocoder resultaat</dd>
                     <dt><b>Add dummy geometry</b> - <em>default value: <tt>false</tt></dt>
-                    <dd>voeg dummy features toe (in de buurt van <tt>0,0</tt>) voor niet gevonden locaties, anders worden deze locaties niet meegenomen in het resultaat. Dit kan handig zijn voor het naderhand handmatig verplaatsten van deze features.</dd>
+                    <dd>voeg dummy features toe (in de buurt van <tt>0,0</tt>) voor niet gevonden invoer, anders wordt deze invoer/dit record niet meegenomen in het resultaat. Dit kan handig zijn voor het naderhand handmatig verplaatsten van deze features.</dd>
                     <dt><b>Score threshold [optional]</b></dt>
                     <dd>resultaten van de geocoder bevatten een score, die een indicatie geven van hoe goed het resultaat matcht met de query, resultaten met een score lager dan de score threshold worden achterwege gelaten</dd>
                     <dt><b>Output layer</b></dt>

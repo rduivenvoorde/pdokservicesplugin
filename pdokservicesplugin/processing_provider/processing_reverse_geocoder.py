@@ -102,20 +102,20 @@ class PDOKReverseGeocoder(QgsProcessingAlgorithm):
         return self.tr(
             textwrap.dedent(
                 """
-                Deze processing tool bevraagd de PDOK Locatieserver reverse geocoder service voor elk punt in de inputlaag and voegt het geselecteerde veld uit het resultaat van de reverse geocoder service toe aan dit punt. 
+                Deze processing tool bevraagt de PDOK-Locatieserver reverse-geocoder-service voor elk punt in de input-laag and voegt het geselecteerde veld uit het resultaat van de reverse-geocoder-service toe aan dit punt. 
                 
                 Zie ook de PDOK Locatieserver reverse geocoding API <a href="https://github.com/PDOK/locatieserver/wiki/API-Reverse-Geocoder">documentatie</a>
                 
                 <h3>Parameters</h3>
                 <dl>
                     <dt><b>Input point layer</b></dt>
-                    <dd>voor elke feature in de input laag wordt de reverse geocoder service bevraagd</dd>
+                    <dd>voor elke feature in de input-laag wordt de reverse-geocoder-service bevraagd</dd>
                     <dt><b>Fields</b> - <em>default value: <tt>weergavenaam</tt></em></dt>
-                    <dd>velden (kommagescheiden lijst) uit het reverse geocoder resultaat om toe te voegen aan de inputlaag, default is <tt>weergavenaam</tt> (N.B. in de outputlaag wordt het veld <tt>weergavenaam</tt> hernoemd naar <tt>weergavenaam_{result_type}</tt>)</dd>
+                    <dd>velden (kommagescheiden lijst) uit het reverse-geocoder-resultaat om toe te voegen aan de inputlaag, default is <tt>weergavenaam</tt> (N.B. in de output-laag wordt het veld <tt>weergavenaam</tt> hernoemd naar <tt>weergavenaam_{result_type}</tt>)</dd>
                     <dt><b>Result type</b> - <em>default value: <tt>adres</tt></em></dt>
-                    <dd>Locatieserver result type om te bevragen</dd>
+                    <dd>Op te bevragen Locatieserver result-type (adres, buurt etc) </dd>
                     <dt><b>Score threshold [optional]</b></dt>
-                    <dd>resultaten van de geocoder bevatten een score, die een indicatie geven van hoe goed het resultaat matcht met de query, resultaten met een score lager dan de score threshold worden achterwege gelaten</dd>
+                    <dd>resultaten van de geocoder bevatten een score die een indicatie geven van hoe goed het resultaat matcht met de query, resultaten met een score lager dan de score threshold worden achterwege gelaten</dd>
                     <dt><b>Output point layer</b></dt>
                     <dd>outputlaag met het resultaat van de geocoder met de toegevoegde attributen van het reverse geocoder resultaat, projectie hetzelfde als de inputlaag</dd>
                 </dl>
