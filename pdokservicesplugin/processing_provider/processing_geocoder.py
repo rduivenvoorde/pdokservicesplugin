@@ -259,6 +259,7 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             return QgsGeometry.fromWkt(wkt_geom)
 
     def processAlgorithm(self, parameters, context, feedback):
+
         feedback.setProgress(0)
         try:
             # read out parameters

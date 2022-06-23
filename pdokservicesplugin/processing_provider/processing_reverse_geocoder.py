@@ -250,13 +250,14 @@ class PDOKReverseGeocoder(QgsProcessingAlgorithm):
                 result = None
                 if len(data) > 0:
                     if (
-                        distance_threshold != None
+                        distance_threshold is not None
                         and data[0]["afstand"] > distance_threshold
                     ):
                         distance = data[0]["afstand"]
                         feedback.pushInfo(
                             f"feature id: {fid} - distance threshold ({distance_threshold}) exceeded: {distance}"
                         )
+                        continue  # we will NOT add this feature to the output! Go to next feature...
                     else:
                         result = {}
                         for key in field_mapping:
@@ -291,16 +292,16 @@ class PDOKReverseGeocoder(QgsProcessingAlgorithm):
             results = {}
             results[self.OUTPUT] = dest_id
             return results
-        except PdokServicesNetworkException as ex:
+        except PdokServicesNetworkException as pdok_ex:
             message = get_processing_error_message(
                 "an error",
                 self.displayName(),
-                ex,
+                pdok_ex,
                 traceback.format_exc(),
                 "while executing HTTP request",
             )
             raise QgsProcessingException(message)
-        except Exception:
+        except Exception as ex:
             message = get_processing_error_message(
                 "an unexpected error",
                 self.displayName(),
