@@ -690,11 +690,9 @@ class PdokServicesPlugin(object):
         string = ""
         for s in strlist:
             string += f"{s}.*"
-        self.info(f"zoektekst: {string}")
         regexp = QRegExp(string, Qt.CaseInsensitive)
         regexp.setMinimal(True)
         self.proxyModel.setFilterRegExp(regexp)
-
         self.proxyModel.insertRow
 
     def add_source_row(self, serviceLayer):
@@ -1082,9 +1080,7 @@ class PdokServicesPlugin(object):
         return the_list
 
     def change_index_fav_layer_in_settings(self, fav_layer_to_change, index_delta):
-        self.info("change_index_fav_layer_in_settings")
         fav_layers = self.get_favs_from_settings()
-
         fav_change_index = -1
         for i in range(0, len(fav_layers)):
             fav_layer = fav_layers[i]
@@ -1103,9 +1099,6 @@ class PdokServicesPlugin(object):
     def make_fav_context_menu(self, position):
         menu = QMenu()
         if self.current_layer:
-            self.info(f'make_favourite - {self.current_layer["title"]}')
-            self.info(f"make_favourite - {self.current_layer}")
-
             fav_index = self.pdok_layer_in_favs(self.current_layer)
             favs = self.get_favs_from_settings()
             nr_of_favs = len(favs)
@@ -1155,16 +1148,14 @@ class PdokServicesPlugin(object):
                 if action == add_fav_action:
                     # save layer to favourites with qsettngs
                     # then update favourite context menu
-                    self.info("add_fav_action_trigger")
                     self.save_fav_layer_in_settings(self.current_layer)
                     self.update_layer_panel()
                     self.add_fav_actions_to_toolbar_button()
 
-    def load_fav_layer(self, fav_layer):
+    def load_fav_layer(self, fav_layer, index):
         if fav_layer:
             # migration code required for change: https://github.com/rduivenvoorde/pdokservicesplugin/commit/a5700dace54250b8f18229939907c3cab39f5297
             # which changed the schema of the layer config json file
-            fav_layer_index = self.get_fav_layer_index(fav_layer)
             migrate_fav = False
             if "md_id" in fav_layer:
                 fav_layer["service_md_id"] = fav_layer["md_id"]
@@ -1174,9 +1165,7 @@ class PdokServicesPlugin(object):
                 migrate_fav = True
             layer = self.get_layer_in_pdok_layers(fav_layer)
             if migrate_fav:
-                QSettings().setValue(
-                    f"/{PLUGIN_ID}/favourite_{fav_layer_index+1}", layer
-                )
+                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{index}", layer)
             if layer:
                 self.current_layer = layer
                 self.load_layer()
@@ -1242,14 +1231,17 @@ class PdokServicesPlugin(object):
             self.run_button.menu().addAction(fav_action)
             self.fav_actions.append(fav_action)
         else:
+            i = 1
             for fav_layer in fav_layers:
                 if fav_layer:
                     fav_action = QAction()
                     fav_action.setIcon(self.fav_icon)
                     fav_action.triggered.connect(
-                        (lambda fav_layer: lambda: self.load_fav_layer(fav_layer))(
-                            fav_layer
-                        )
+                        (
+                            lambda fav_layer, i: lambda: self.load_fav_layer(
+                                fav_layer, i
+                            )
+                        )(fav_layer, i)
                     )  # Double lambda is required in order to freeze argument, otherwise always last favourite is added
                     # see https://stackoverflow.com/a/10452866/1763690
 
@@ -1269,3 +1261,4 @@ class PdokServicesPlugin(object):
                     fav_action.setText(title)
                     self.run_button.menu().addAction(fav_action)
                     self.fav_actions.append(fav_action)
+                    i += 1
