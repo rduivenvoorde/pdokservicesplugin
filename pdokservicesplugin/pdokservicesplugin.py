@@ -116,20 +116,13 @@ class PdokServicesPlugin(object):
     def get_settings_value(self, key, default=""):
         if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
             key = f"{self.SETTINGS_SECTION}{key}"
-            if Qgis.QGIS_VERSION_INT < 10900:  # qgis <= 1.8
-                return str(QSettings().value(key).toString())
-            else:
-                return str(QSettings().value(key))
+            return str(QSettings().value(key))
         else:
             return default
 
     def set_settings_value(self, key, value):
         key = f"{self.SETTINGS_SECTION}{key}"
-        if Qgis.QGIS_VERSION_INT < 10900:
-            # qgis <= 1.8
-            QSettings().setValue(key, QVariant(value))
-        else:
-            QSettings().setValue(key, value)
+        QSettings().setValue(key, QVariant(value))
 
     def initGui(self):
         """Create action that will start plugin configuration
@@ -298,15 +291,6 @@ class PdokServicesPlugin(object):
         self.current_layer = self.dlg.servicesView.selectedIndexes()[1].data(
             Qt.UserRole
         )
-        if isinstance(self.current_layer, QVariant):
-            self.current_layer = self.current_layer.toMap()
-            # QGIS 1.8: QVariants
-            currentLayer = {}
-            for key in list(self.current_layer.keys()):
-                val = self.current_layer[key]
-                currentLayer[str(key)] = str(val.toString())
-            self.current_layer = currentLayer
-
         self.update_layer_panel()
 
     def update_layer_panel(self):
@@ -493,31 +477,18 @@ class PdokServicesPlugin(object):
                 crs = "EPSG:28992"
             else:
                 crs = self.dlg.ui.comboSelectProj.currentText()
-            if Qgis.QGIS_VERSION_INT < 10900:
-                # qgis <= 1.8
-                uri = url
-                self.iface.addRasterLayer(
-                    uri,
-                    title,
-                    "wms",
-                    [layername],
-                    [""],
-                    imgformat,
-                    crs,
-                )
-            else:
-                # qgis > 1.8
-                selected_style_name = ""
-                selected_style = self.get_selected_style()
-                if selected_style is not None:
-                    selected_style_name = selected_style["name"]
-                    selected_style_title = selected_style["name"]
-                    if "title" in selected_style:
-                        selected_style_title = selected_style["title"]
-                    title += f" [{selected_style_title}]"
 
-                uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
-                return QgsRasterLayer(uri, title, "wms")
+            selected_style_name = ""
+            selected_style = self.get_selected_style()
+            if selected_style is not None:
+                selected_style_name = selected_style["name"]
+                selected_style_title = selected_style["name"]
+                if "title" in selected_style:
+                    selected_style_title = selected_style["title"]
+                title += f" [{selected_style_title}]"
+
+            uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
+            return QgsRasterLayer(uri, title, "wms")
         elif servicetype == "wmts":
             if Qgis.QGIS_VERSION_INT < 10900:
                 self.show_warning(
@@ -740,13 +711,7 @@ class PdokServicesPlugin(object):
 
         # last viewed/selected tab
         if QSettings().contains(f"/{PLUGIN_ID}/currenttab"):
-            if Qgis.QGIS_VERSION_INT < 10900:
-                # qgis <= 1.8
-                self.dlg.tabs.widget(
-                    QSettings().value(f"/{PLUGIN_ID}/currenttab").toInt()[0]
-                )
-            else:
-                self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
+            self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
 
         if self.services_loaded == False:
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
@@ -816,17 +781,7 @@ class PdokServicesPlugin(object):
         # show the dialog ?
         if not hiddenDialog:
             self.dlg.show()
-        # Run the dialog event loop
-        # result = self.dlg.exec_()
-        if Qgis.QGIS_VERSION_INT < 10900:
-            # qgis <= 1.8
-            QSettings().setValue(
-                f"/{PLUGIN_ID}/currenttab", QVariant(self.dlg.tabs.currentIndex())
-            )
-        else:
-            QSettings().setValue(
-                f"/{PLUGIN_ID}/currenttab", self.dlg.tabs.currentIndex()
-            )
+        QSettings().setValue(f"/{PLUGIN_ID}/currenttab", self.dlg.tabs.currentIndex())
         self.remove_pointer()
 
     def setup_fq_checkboxes(self):
@@ -1008,20 +963,6 @@ class PdokServicesPlugin(object):
             QMessageBox.Ok,
             QMessageBox.Ok,
         )
-
-    ###################
-    # favourites code #
-    ###################
-    # methods:
-    # save_fav_layer_in_settings
-    # get_favs_from_settings
-    # delete_fav_layer_in_settings
-    # make_fav_context_menu
-    # load_fav_layer
-    # get_layer_in_pdok_layers
-    # layer_equals_fav_layer
-    # pdok_layer_in_favs
-    # add_fav_actions_to_toolbar_button
 
     def save_fav_layer_in_settings(self, fav_layer):
         favs = self.get_favs_from_settings()
