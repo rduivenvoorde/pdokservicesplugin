@@ -50,6 +50,10 @@ from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
     QgsLayerTreeLayer,
+    QgsMapLayer,
+    QgsFillSymbol,
+    QgsLineSymbol,
+    QgsMarkerSymbol,
 )
 from qgis.gui import QgsVertexMarker
 import textwrap
@@ -57,6 +61,8 @@ import json
 import os
 import urllib.request, urllib.parse, urllib.error
 import locale
+
+import qgis.utils
 
 # Initialize Qt resources from file resources.py
 from . import resources_rc
@@ -97,6 +103,7 @@ class PdokServicesPlugin(object):
         self.current_layer = None
         self.SETTINGS_SECTION = SETTINGS_SECTIONS
         self.pointer = None
+        self.ls_result_layer = None
         self.geocoder_source_model = None
 
         self.fq_checkboxes = {
@@ -248,7 +255,10 @@ class PdokServicesPlugin(object):
 
     def unload(self):
         try:  # using try except here because plugin could be unloaded during development: gracefully fail
-            self.remove_pointer()
+            if self.show_ls_feature():
+                self.remove_ls_result_layer()
+            else:
+                self.remove_pointer()
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.run_action)
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.about_action)
             del self.toolbar
@@ -595,6 +605,7 @@ class PdokServicesPlugin(object):
         return
 
     def on_toolbar_suggest_activated(self, suggest_text):
+        self.remove_pointer_or_layer()
         items = self.model.findItems(suggest_text)
         if len(items) == 0:  # check should not be necessary
             return
@@ -606,7 +617,7 @@ class PdokServicesPlugin(object):
         self.fill_ls_dialog_from_toolbar_search()  # run geocode to populate ls dialog
 
     def ls_dialog_get_suggestions_and_remove_pointer(self):
-        self.remove_pointer()
+        self.remove_pointer_or_layer()
         self.geocoder_source_model.clear()
         self.ls_dialog_get_suggestions()
 
@@ -644,7 +655,7 @@ class PdokServicesPlugin(object):
         """
         clean the input and remove the pointer
         """
-        self.remove_pointer()
+        self.remove_pointer_or_layer()
         if self.geocoder_source_model is not None:
             self.geocoder_source_model.clear()
         if self.dlg.geocoder_search is not None:
@@ -782,7 +793,7 @@ class PdokServicesPlugin(object):
         if not hiddenDialog:
             self.dlg.show()
         QSettings().setValue(f"/{PLUGIN_ID}/currenttab", self.dlg.tabs.currentIndex())
-        self.remove_pointer()
+        self.remove_pointer_or_layer()
 
     def setup_fq_checkboxes(self):
         """
@@ -837,6 +848,40 @@ class PdokServicesPlugin(object):
             return
         self.zoom_to_result(data)
 
+    def semver_greater_or_equal_then(self, a, b):
+        """_summary_
+
+        Args:
+            a (str): semver string with three components
+            b (str): semver string with three components
+
+        Returns:
+            bool: indicating semver a is greater or equal to semver b
+        """
+        regex_pattern = "^[0-9]+\.[0-9]+\.[0-9]+$"
+        if not re.search(regex_pattern, a) or not re.search(regex_pattern, b):
+            raise ValueError(
+                "input semver_greater_than not conforming to semver string with three components"
+            )
+        a_list = [int(x) for x in a.split(".")]
+        b_list = [int(x) for x in b.split(".")]
+
+        for (a_val, b_val) in zip(a_list, b_list):
+            if a_val > b_val:
+                return True
+        return a_list == b_list
+
+    def show_ls_feature(self):
+        """qgis supports "hidden" layers from QGIS version 3.18.0 and higher, see https://gis.stackexchange.com/a/230804. So only show locatie server feature instead of centroid from 3.18.0 and higher.
+
+        Returns:
+            bool: boolean indicating whether qgis supports "hidden" layers
+        """
+        semversion = qgis.utils.Qgis.QGIS_VERSION.split("-")[0]
+        if self.semver_greater_or_equal_then(semversion, "3.18.0"):
+            return True
+        return False
+
     def zoom_to_result(self, data):
         # just always transform from 28992 to mapcanvas crs
         crs = self.iface.mapCanvas().mapSettings().destinationCrs()
@@ -845,6 +890,7 @@ class PdokServicesPlugin(object):
 
         adrestekst = "{} - {}".format(data["type"], data["weergavenaam"])
         adrestekst_lower = adrestekst.lower()
+        show_ls_feature = self.show_ls_feature()
 
         zoom_dict = {
             "adres": 794,
@@ -863,12 +909,63 @@ class PdokServicesPlugin(object):
             ):  # maybe find better way to infer return type?
                 z = zoom_dict[z_type]
 
-        centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
-        centroid.transform(crsTransform)
-        center = centroid.asPoint()
-        self.set_pointer(center)
         geom = QgsGeometry.fromWkt(data["wkt_geom"])
         geom.transform(crsTransform)
+
+        if show_ls_feature:
+            stroke_width = 0.6
+            color = "red"
+
+            geom_wkt = geom.asWkt()
+            self.ls_result_layer = QgsVectorLayer(
+                f"?query=SELECT ST_GeomFromText('{geom_wkt}')", "result", "virtual"
+            )
+            self.ls_result_layer.setFlags(QgsMapLayer.Private)
+
+            def apply_line_symbol(layer):
+                print(layer.renderer().symbol().symbolLayers()[0].properties())
+
+                line_symbol = QgsLineSymbol.createSimple(
+                    {"line_style": "dash", "color": color, "line_width": stroke_width}
+                )
+                # layer.renderer().symbol().setColor(QColor("red"))
+                # layer.renderer().symbol().setWidth(stroke_width)
+                layer.renderer().setSymbol(line_symbol)
+
+            def apply_polygon_symbol(layer):
+                fill_symbol = QgsFillSymbol.createSimple(
+                    {
+                        "color": None,
+                        "color_border": color,
+                        "width_border": stroke_width,
+                        "style": "no",
+                        "style_border": "dash",
+                    }
+                )
+                layer.renderer().setSymbol(fill_symbol)
+
+            def apply_point_symbol(layer):
+                symbol = QgsMarkerSymbol.createSimple(
+                    {"color": color, "name": "circle", "size": "3.0"}
+                )
+                layer.renderer().setSymbol(symbol)
+
+            styles = {
+                1: apply_line_symbol,
+                2: apply_polygon_symbol,
+                0: apply_point_symbol,
+            }
+            style_func = styles[self.ls_result_layer.renderer().symbol().type()]
+            style_func(self.ls_result_layer)
+
+            QgsProject.instance().addMapLayer(self.ls_result_layer)
+            self.clean_action.setEnabled(True)
+        else:
+            centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
+            centroid.transform(crsTransform)
+            center = centroid.asPoint()
+            self.set_pointer(center)
+
         geom_bbox = geom.boundingBox()
         rect = QgsRectangle(geom_bbox)
         self.iface.mapCanvas().zoomToFeatureExtent(rect)
@@ -898,8 +995,14 @@ class PdokServicesPlugin(object):
             result_list = f"{result_list}<li><b>{key}:</b> {val}</li>"
         self.dlg.ui.lookupinfo.setHtml(f"<lu>{result_list}</lu>")
 
+    def remove_pointer_or_layer(self):
+        if self.show_ls_feature():
+            self.remove_ls_result_layer()
+        else:
+            self.remove_pointer()
+
     def lookup_dialog_search(self):
-        self.remove_pointer()
+        self.remove_pointer_or_layer()
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
         if (
             not "wkt_centroid" in data
@@ -930,6 +1033,13 @@ class PdokServicesPlugin(object):
         self.pointer.setPenWidth(2)
         self.pointer.setCenter(point)
         self.clean_action.setEnabled(True)
+
+    def remove_ls_result_layer(self):
+        if self.ls_result_layer is not None:
+            QgsProject.instance().removeMapLayer(self.ls_result_layer)
+            self.clean_action.setEnabled(False)
+            self.ls_result_layer = None
+            self.iface.mapCanvas().refresh()
 
     def remove_pointer(self):
         if self.pointer is not None and self.pointer.scene() is not None:
