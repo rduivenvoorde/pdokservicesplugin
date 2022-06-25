@@ -923,13 +923,9 @@ class PdokServicesPlugin(object):
             self.ls_result_layer.setFlags(QgsMapLayer.Private)
 
             def apply_line_symbol(layer):
-                print(layer.renderer().symbol().symbolLayers()[0].properties())
-
                 line_symbol = QgsLineSymbol.createSimple(
                     {"line_style": "dash", "color": color, "line_width": stroke_width}
                 )
-                # layer.renderer().symbol().setColor(QColor("red"))
-                # layer.renderer().symbol().setWidth(stroke_width)
                 layer.renderer().setSymbol(line_symbol)
 
             def apply_polygon_symbol(layer):
@@ -951,13 +947,12 @@ class PdokServicesPlugin(object):
                 layer.renderer().setSymbol(symbol)
 
             styles = {
+                0: apply_point_symbol,
                 1: apply_line_symbol,
                 2: apply_polygon_symbol,
-                0: apply_point_symbol,
             }
             style_func = styles[self.ls_result_layer.renderer().symbol().type()]
             style_func(self.ls_result_layer)
-
             QgsProject.instance().addMapLayer(self.ls_result_layer)
             self.clean_action.setEnabled(True)
         else:
@@ -969,7 +964,7 @@ class PdokServicesPlugin(object):
         geom_bbox = geom.boundingBox()
         rect = QgsRectangle(geom_bbox)
         self.iface.mapCanvas().zoomToFeatureExtent(rect)
-        # zoom to a point feature is actually setting a point rectangle and then zoom
+        # for point features it is required to zoom to predefined zoomlevel depending on return type
         if re.match(r"^POINT", data["wkt_geom"]):
             self.iface.mapCanvas().zoomScale(z)
         self.iface.mapCanvas().refresh()
