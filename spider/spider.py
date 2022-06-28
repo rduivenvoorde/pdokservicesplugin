@@ -186,6 +186,7 @@ def get_service_information(input: "dict[str, str]") -> "dict[str, str]":
     uris = record.uris
     service_url = ""
     title = record.title
+    abstract = record.abstract
     if len(uris) > 0:
         service_url = get_service_url(input, uris)
     else:
@@ -193,7 +194,7 @@ def get_service_information(input: "dict[str, str]") -> "dict[str, str]":
             f"expected at least 1 service url in service record {md_id}, found 0"
         )
         logging.error(error_message)
-    return {"md_id": md_id, "url": service_url, "title": title}
+    return {"md_id": md_id, "url": service_url, "title": title, "abstract": abstract}
 
 async def get_data_asynchronous(results, fun):
     result = []
