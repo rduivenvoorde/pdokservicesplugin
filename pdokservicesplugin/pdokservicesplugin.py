@@ -20,6 +20,7 @@
  ***************************************************************************/
 """
 import re
+from threading import Timer
 from numpy import true_divide
 from qgis.PyQt.QtCore import (
     QSettings,
@@ -54,6 +55,8 @@ from qgis.core import (
     QgsFillSymbol,
     QgsLineSymbol,
     QgsMarkerSymbol,
+    QgsWkbTypes,
+    QgsFeature,
 )
 from qgis.gui import QgsVertexMarker
 import textwrap
@@ -86,6 +89,8 @@ from .lib.locatieserver import (
     Projection,
 )
 
+RESULT_LAYER_ID = "559ba896-6a17-41ac-85e7-3dbd44e33a65"
+
 
 class PdokServicesPlugin(object):
     def __init__(self, iface):
@@ -102,6 +107,8 @@ class PdokServicesPlugin(object):
         # initialize plugin directory
         self.current_layer = None
         self.SETTINGS_SECTION = SETTINGS_SECTIONS
+        self.clean_timer = None
+
         self.pointer = None
         self.ls_result_layer = None
         self.geocoder_source_model = None
@@ -119,6 +126,14 @@ class PdokServicesPlugin(object):
 
         self.provider = Provider()
         QgsApplication.processingRegistry().addProvider(self.provider)
+
+        # QgsProject.instance().writeProject.connect(self.remove_ls_result_layer) # causes in memory layer to appear in project upon opening again
+        QgsProject.instance().readProject.connect(
+            self.remove_ls_result_layer
+        )  # reset ls search bar when loading a new project
+        QgsProject.instance().cleared.connect(
+            self.remove_ls_result_layer
+        )  # reset ls search bar when clearing project
 
     def get_settings_value(self, key, default=""):
         if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
@@ -190,7 +205,7 @@ class PdokServicesPlugin(object):
         eraser_icon = QIcon(
             os.path.join(self.plugin_dir, "resources", "icon_remove_cross.svg")
         )
-        self.clean_action = QAction(eraser_icon, "Cleanup", self.erase_address())
+        self.clean_action = QAction(eraser_icon, "Cleanup")
         self.toolbar.addAction(self.clean_action)
         self.clean_action.triggered.connect(self.erase_address)
         self.clean_action.setEnabled(False)
@@ -262,8 +277,8 @@ class PdokServicesPlugin(object):
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.run_action)
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.about_action)
             del self.toolbar
-        except Exception:
-            pass
+        except Exception as e:
+            self.info(str(e))
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
     def get_dd(self, val, val_string=""):
@@ -619,6 +634,18 @@ class PdokServicesPlugin(object):
         self.dlg.geocoder_search.setText(suggest_text)
         self.fill_ls_dialog_from_toolbar_search()  # run geocode to populate ls dialog
 
+        self.clean_timer = (
+            QTimer()
+        )  # something is causing the project to be marked dirty after calling fill_ls_dialog_from_toolbar_search which adds the ls_search_result_layer, calling setDirty(False) directly after it does not work, therefore a timer with 1 ms delay
+        self.clean_timer.setSingleShot(True)
+        self.clean_timer.setInterval(1)
+        self.clean_timer.timeout.connect(self.set_clean)
+        self.clean_timer.start()
+
+    def set_clean(self):
+        QgsProject.instance().setDirty(False)
+        self.clean_timer = None
+
     def ls_dialog_get_suggestions_and_remove_pointer(self):
         self.remove_pointer_or_layer()
         self.geocoder_source_model.clear()
@@ -861,7 +888,7 @@ class PdokServicesPlugin(object):
         Returns:
             bool: indicating semver a is greater or equal to semver b
         """
-        regex_pattern = "^[0-9]+\.[0-9]+\.[0-9]+$"
+        regex_pattern = r"^[0-9]+\.[0-9]+\.[0-9]+$"
         if not re.search(regex_pattern, a) or not re.search(regex_pattern, b):
             raise ValueError(
                 "input semver_greater_than not conforming to semver string with three components"
@@ -880,10 +907,11 @@ class PdokServicesPlugin(object):
         Returns:
             bool: boolean indicating whether qgis supports "hidden" layers
         """
+        result = False
         semversion = qgis.utils.Qgis.QGIS_VERSION.split("-")[0]
         if self.semver_greater_or_equal_then(semversion, "3.18.0"):
-            return True
-        return False
+            result = True
+        return result
 
     def zoom_to_result(self, data):
         # just always transform from 28992 to mapcanvas crs
@@ -891,6 +919,7 @@ class PdokServicesPlugin(object):
         crs28992 = QgsCoordinateReferenceSystem.fromEpsgId(28992)
         crsTransform = QgsCoordinateTransform(crs28992, crs, QgsProject.instance())
 
+        crs_id = crs.authid().lower()
         adrestekst = "{} - {}".format(data["type"], data["weergavenaam"])
         adrestekst_lower = adrestekst.lower()
         show_ls_feature = self.show_ls_feature()
@@ -919,11 +948,29 @@ class PdokServicesPlugin(object):
             stroke_width = 0.6
             color = "red"
 
-            geom_wkt = geom.asWkt()
-            self.ls_result_layer = QgsVectorLayer(
-                f"?query=SELECT ST_GeomFromText('{geom_wkt}')", "result", "virtual"
-            )
+            geom_type = geom.type()
+
+            geom_type_dict = {
+                QgsWkbTypes.PointGeometry: "point",
+                QgsWkbTypes.LineGeometry: "linestring",
+                QgsWkbTypes.PolygonGeometry: "polygon",
+            }
+            if geom_type not in geom_type_dict:
+                self.info(
+                    f"unexpected geomtype return by ls: {geom_type}"
+                )  # TODO: better error handling
+                return
+
+            geom_type_str = geom_type_dict[geom_type]
+            uri = f"{geom_type_str}?crs={crs_id}"
+            feature = QgsFeature()
+            feature.setGeometry(geom)
+
+            self.ls_result_layer = QgsVectorLayer(uri, "", "memory")
+            self.ls_result_layer.dataProvider().addFeatures([feature])
+
             self.ls_result_layer.setFlags(QgsMapLayer.Private)
+            self.ls_result_layer.setCustomProperty("skipMemoryLayersCheck", 1)
 
             def apply_line_symbol(layer):
                 line_symbol = QgsLineSymbol.createSimple(
@@ -966,10 +1013,12 @@ class PdokServicesPlugin(object):
 
         geom_bbox = geom.boundingBox()
         rect = QgsRectangle(geom_bbox)
+        rect.scale(1.5)  # zoom to bigger extent for context
         self.iface.mapCanvas().zoomToFeatureExtent(rect)
         # for point features it is required to zoom to predefined zoomlevel depending on return type
         if re.match(r"^POINT", data["wkt_geom"]):
             self.iface.mapCanvas().zoomScale(z)
+        self.iface.mapCanvas().refresh()
         self.iface.mapCanvas().refresh()
 
     def fill_lookup_info(self, data):
@@ -1033,11 +1082,21 @@ class PdokServicesPlugin(object):
         self.clean_action.setEnabled(True)
 
     def remove_ls_result_layer(self):
-        if self.ls_result_layer is not None:
-            QgsProject.instance().removeMapLayer(self.ls_result_layer)
-            self.clean_action.setEnabled(False)
-            self.ls_result_layer = None
-            self.iface.mapCanvas().refresh()
+        try:
+            if self.ls_result_layer is not None:
+                proj = QgsProject.instance()
+                proj.removeMapLayer(self.ls_result_layer)
+        except RuntimeError:  # removing ls_result_layer result in a RuntimeError "wrapped C/C++ object of type QgsVectorLayer has been deleted" error when reloading the project or loading another project
+            pass
+
+        self.ls_result_layer = None
+        self.clean_action.setEnabled(False)
+        if self.toolbar_search is not None:
+            try:
+                self.toolbar_search.clear()
+            except RuntimeError:  # clearing toolbar_search results in a RuntimeError "wrapped C/C++ object of type QLineEdit has been deleted" error when reloading the project or loading another project
+                pass
+        self.iface.mapCanvas().refresh()
 
     def remove_pointer(self):
         if self.pointer is not None and self.pointer.scene() is not None:
@@ -1091,7 +1150,6 @@ class PdokServicesPlugin(object):
 
     def get_fav_layer_index(self, fav_layer_to_get_index):
         fav_layers = self.get_favs_from_settings()
-        # find index of fav layer to delete
         fav_index = -1
         for i in range(0, len(fav_layers)):
             fav_layer = fav_layers[i]
@@ -1103,9 +1161,7 @@ class PdokServicesPlugin(object):
     def delete_fav_layer_in_settings(self, fav_layer_to_delete):
         fav_layers = self.get_favs_from_settings()
         nr_of_favs = len(fav_layers)
-        # find index of fav layer to delete
         fav_del_index = self.get_fav_layer_index(fav_layer_to_delete)
-        # delete fav layer if found
         if fav_del_index != -1:
             del fav_layers[fav_del_index]
             # overwrite remaining favs from start to end and remove last
@@ -1264,7 +1320,6 @@ class PdokServicesPlugin(object):
             return self.layer_equals_fav_layer(lyr, x)
 
         fav_layers = self.get_favs_from_settings()
-        # result = next(filter(predicate, fav_layers), None)
         i = next((i for i, v in enumerate(fav_layers) if predicate(v)), -1)
         return i
 
