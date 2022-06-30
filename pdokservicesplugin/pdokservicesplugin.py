@@ -489,7 +489,10 @@ class PdokServicesPlugin(object):
                 crs = self.dlg.ui.comboSelectProj.currentText()
 
             selected_style_name = ""
-            selected_style = self.get_selected_style()
+            if "selectedStyle" in self.current_layer:
+                selected_style = self.current_layer["selectedStyle"]
+            else:
+                selected_style = self.get_selected_style()
             if selected_style is not None:
                 selected_style_name = selected_style["name"]
                 selected_style_title = selected_style["name"]
@@ -1210,6 +1213,9 @@ class PdokServicesPlugin(object):
                 fav_layer["name"] = fav_layer["layers"]
                 migrate_fav = True
             layer = self.get_layer_in_pdok_layers(fav_layer)
+
+            if "selectedStyle" in fav_layer:
+                layer["selectedStyle"] = fav_layer["selectedStyle"]
             if migrate_fav:
                 QSettings().setValue(f"/{PLUGIN_ID}/favourite_{index}", layer)
             if layer:
