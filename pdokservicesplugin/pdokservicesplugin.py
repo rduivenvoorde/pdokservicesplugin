@@ -975,6 +975,8 @@ class PdokServicesPlugin(object):
 
     def lookup_dialog_search(self):
         self.remove_pointer_or_layer()
+        if len(self.dlg.geocoderResultView.selectedIndexes()) == 0:
+            return
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
         if (
             not "wkt_centroid" in data
