@@ -49,6 +49,7 @@ from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
     QgsLayerTreeLayer,
+    QgsWkbTypes,
 )
 from qgis.gui import QgsVertexMarker
 import textwrap
@@ -908,10 +909,29 @@ class PdokServicesPlugin(object):
 
         geom = QgsGeometry.fromWkt(data["wkt_geom"])
         geom.transform(crsTransform)
+        geom_type = geom.type()
+
+        geom_type_dict = {
+            QgsWkbTypes.PointGeometry: "point",
+            QgsWkbTypes.LineGeometry: "linestring",
+            QgsWkbTypes.PolygonGeometry: "polygon",
+        }
+        if geom_type not in geom_type_dict:
+            self.info(
+                f"unexpected geomtype return by ls: {geom_type}"
+            )  # TODO: better error handling
+            return
+        if geom_type == QgsWkbTypes.PolygonGeometry:
+            # flashGeometries will flash a opaque polygon... let's create a linestring from it so it is less obnoxious
+            geom = geom.convertToType(QgsWkbTypes.LineGeometry, destMultipart=True)
 
         if show_ls_feature:
-            # TODO
-            pass
+            self.iface.mapCanvas().flashGeometries(
+                [geom],
+                startColor=QColor('#ff0000'),
+                endColor=QColor('#FFFF00'),
+                flashes=10
+            )
         else:
             centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
             centroid.transform(crsTransform)
