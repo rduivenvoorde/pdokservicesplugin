@@ -20,7 +20,6 @@
  ***************************************************************************/
 """
 import re
-from numpy import true_divide
 from qgis.PyQt.QtCore import (
     QSettings,
     QVariant,
@@ -50,10 +49,7 @@ from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
     QgsLayerTreeLayer,
-    QgsMapLayer,
-    QgsFillSymbol,
-    QgsLineSymbol,
-    QgsMarkerSymbol,
+    QgsWkbTypes,
 )
 from qgis.gui import QgsVertexMarker
 import textwrap
@@ -103,7 +99,6 @@ class PdokServicesPlugin(object):
         self.current_layer = None
         self.SETTINGS_SECTION = SETTINGS_SECTIONS
         self.pointer = None
-        self.ls_result_layer = None
         self.geocoder_source_model = None
 
         self.fq_checkboxes = {
@@ -256,7 +251,7 @@ class PdokServicesPlugin(object):
     def unload(self):
         try:  # using try except here because plugin could be unloaded during development: gracefully fail
             if self.show_ls_feature():
-                self.remove_ls_result_layer()
+                pass
             else:
                 self.remove_pointer()
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.run_action)
@@ -914,50 +909,29 @@ class PdokServicesPlugin(object):
 
         geom = QgsGeometry.fromWkt(data["wkt_geom"])
         geom.transform(crsTransform)
+        geom_type = geom.type()
+
+        geom_type_dict = {
+            QgsWkbTypes.PointGeometry: "point",
+            QgsWkbTypes.LineGeometry: "linestring",
+            QgsWkbTypes.PolygonGeometry: "polygon",
+        }
+        if geom_type not in geom_type_dict:
+            self.info(
+                f"unexpected geomtype return by ls: {geom_type}"
+            )  # TODO: better error handling
+            return
+        if geom_type == QgsWkbTypes.PolygonGeometry:
+            # flashGeometries will flash a opaque polygon... let's create a linestring from it so it is less obnoxious
+            geom = geom.convertToType(QgsWkbTypes.LineGeometry, destMultipart=True)
 
         if show_ls_feature:
-            stroke_width = 0.6
-            color = "red"
-
-            geom_wkt = geom.asWkt()
-            self.ls_result_layer = QgsVectorLayer(
-                f"?query=SELECT ST_GeomFromText('{geom_wkt}')", "result", "virtual"
+            self.iface.mapCanvas().flashGeometries(
+                [geom],
+                startColor=QColor('#ff0000'),
+                endColor=QColor('#FFFF00'),
+                flashes=10
             )
-            self.ls_result_layer.setFlags(QgsMapLayer.Private)
-
-            def apply_line_symbol(layer):
-                line_symbol = QgsLineSymbol.createSimple(
-                    {"line_style": "dash", "color": color, "line_width": stroke_width}
-                )
-                layer.renderer().setSymbol(line_symbol)
-
-            def apply_polygon_symbol(layer):
-                fill_symbol = QgsFillSymbol.createSimple(
-                    {
-                        "color": None,
-                        "color_border": color,
-                        "width_border": stroke_width,
-                        "style": "no",
-                        "style_border": "dash",
-                    }
-                )
-                layer.renderer().setSymbol(fill_symbol)
-
-            def apply_point_symbol(layer):
-                symbol = QgsMarkerSymbol.createSimple(
-                    {"color": color, "name": "circle", "size": "3.0"}
-                )
-                layer.renderer().setSymbol(symbol)
-
-            styles = {
-                0: apply_point_symbol,
-                1: apply_line_symbol,
-                2: apply_polygon_symbol,
-            }
-            style_func = styles[self.ls_result_layer.renderer().symbol().type()]
-            style_func(self.ls_result_layer)
-            QgsProject.instance().addMapLayer(self.ls_result_layer)
-            self.clean_action.setEnabled(True)
         else:
             centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
             centroid.transform(crsTransform)
@@ -995,12 +969,14 @@ class PdokServicesPlugin(object):
 
     def remove_pointer_or_layer(self):
         if self.show_ls_feature():
-            self.remove_ls_result_layer()
+            pass
         else:
             self.remove_pointer()
 
     def lookup_dialog_search(self):
         self.remove_pointer_or_layer()
+        if len(self.dlg.geocoderResultView.selectedIndexes()) == 0:
+            return
         data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
         if (
             not "wkt_centroid" in data
@@ -1031,13 +1007,6 @@ class PdokServicesPlugin(object):
         self.pointer.setPenWidth(2)
         self.pointer.setCenter(point)
         self.clean_action.setEnabled(True)
-
-    def remove_ls_result_layer(self):
-        if self.ls_result_layer is not None:
-            QgsProject.instance().removeMapLayer(self.ls_result_layer)
-            self.clean_action.setEnabled(False)
-            self.ls_result_layer = None
-            self.iface.mapCanvas().refresh()
 
     def remove_pointer(self):
         if self.pointer is not None and self.pointer.scene() is not None:
