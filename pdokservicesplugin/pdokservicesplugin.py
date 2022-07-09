@@ -166,6 +166,13 @@ class PdokServicesPlugin(object):
         self.add_fav_actions_to_toolbar_button()
 
         self.toolbar_search = QLineEdit()
+
+        def toolbar_search_mouse_event():
+            self.toolbar_search.selectAll()
+            self.timer_toolbar_search.start()
+
+        self.toolbar_search.mousePressEvent = lambda _ : toolbar_search_mouse_event()
+
         self.toolbar_search.setMaximumWidth(200)
         self.toolbar_search.setAlignment(Qt.AlignLeft)
         self.toolbar_search.setPlaceholderText("Zoek in PDOK Locatieserver")
@@ -182,7 +189,10 @@ class PdokServicesPlugin(object):
             os.path.join(self.plugin_dir, "resources", "icon_remove_cross.svg")
         )
         self.clean_ls_search_action = QAction(eraser_icon, "Cleanup", self.erase_address())
-        self.toolbar.addAction(self.clean_ls_search_action)
+
+        if not self.show_ls_feature():
+            self.toolbar.addAction(self.clean_ls_search_action)
+
         self.clean_ls_search_action.triggered.connect(self.erase_address)
         self.clean_ls_search_action.setEnabled(False)
         self.iface.addPluginToMenu(f"&{PLUGIN_NAME}", self.run_action)
