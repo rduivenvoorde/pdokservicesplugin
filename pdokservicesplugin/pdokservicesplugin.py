@@ -19,8 +19,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-import re
-from numpy import true_divide
 from qgis.PyQt.QtCore import (
     QSettings,
     QVariant,
@@ -56,13 +54,14 @@ from qgis.core import (
     QgsMarkerSymbol,
 )
 from qgis.gui import QgsVertexMarker
+import qgis.utils
+
 import textwrap
 import json
 import os
 import urllib.request, urllib.parse, urllib.error
 import locale
-
-import qgis.utils
+import re
 
 # Initialize Qt resources from file resources.py
 from . import resources_rc
@@ -92,14 +91,11 @@ class PdokServicesPlugin(object):
         # Save reference to the QGIS interface
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
-        # services dialog
         self.dlg = PdokServicesPluginDialog(parent=self.iface.mainWindow())
 
-        # locator filter
         self.filter = PDOKLocatieserverLocatorFilter(self.iface)
         self.iface.registerLocatorFilter(self.filter)
 
-        # initialize plugin directory
         self.current_layer = None
         self.SETTINGS_SECTION = SETTINGS_SECTIONS
         self.pointer = None
@@ -154,7 +150,7 @@ class PdokServicesPlugin(object):
         self.run_button.setDefaultAction(self.run_action)
 
         self.services_loaded = False
-        # connect the action to the run method
+
         self.run_action.triggered.connect(self.run)
         self.setup_fq_checkboxes()
 
@@ -163,7 +159,7 @@ class PdokServicesPlugin(object):
         self.toolbar.setObjectName(PLUGIN_NAME)
         self.toolbar.addWidget(self.run_button)
 
-        # Set default loading behaviour
+        # Set default layer loading behaviour
         self.default_tree_locations = {
             "wms": "top",
             "wmts": "bottom",
@@ -186,17 +182,15 @@ class PdokServicesPlugin(object):
             lambda: self.timer_toolbar_search.start()
         )
 
-        # address/point cleanup
         eraser_icon = QIcon(
             os.path.join(self.plugin_dir, "resources", "icon_remove_cross.svg")
         )
-        self.clean_action = QAction(eraser_icon, "Cleanup", self.erase_address())
-        self.toolbar.addAction(self.clean_action)
-        self.clean_action.triggered.connect(self.erase_address)
-        self.clean_action.setEnabled(False)
+        self.clean_ls_search_action = QAction(eraser_icon, "Cleanup", self.erase_address())
+        self.toolbar.addAction(self.clean_ls_search_action)
+        self.clean_ls_search_action.triggered.connect(self.erase_address)
+        self.clean_ls_search_action.setEnabled(False)
         self.iface.addPluginToMenu(f"&{PLUGIN_NAME}", self.run_action)
 
-        # about
         self.about_action = QAction(self.run_icon, "About", self.iface.mainWindow())
         self.about_action.setWhatsThis(f"{PLUGIN_NAME} About")
         self.iface.addPluginToMenu(f"&{PLUGIN_NAME}", self.about_action)
@@ -255,9 +249,7 @@ class PdokServicesPlugin(object):
 
     def unload(self):
         try:  # using try except here because plugin could be unloaded during development: gracefully fail
-            if self.show_ls_feature():
-                self.remove_ls_result_layer()
-            else:
+            if not self.show_ls_feature():
                 self.remove_pointer()
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.run_action)
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.about_action)
@@ -852,7 +844,7 @@ class PdokServicesPlugin(object):
         self.zoom_to_result(data)
 
     def semver_greater_or_equal_then(self, a, b):
-        """_summary_
+        """check if semver string a is greather or equal then b
 
         Args:
             a (str): semver string with three components
@@ -966,6 +958,7 @@ class PdokServicesPlugin(object):
 
         geom_bbox = geom.boundingBox()
         rect = QgsRectangle(geom_bbox)
+        rect.scale(1.2)
         self.iface.mapCanvas().zoomToFeatureExtent(rect)
         # for point features it is required to zoom to predefined zoomlevel depending on return type
         if re.match(r"^POINT", data["wkt_geom"]):
@@ -994,9 +987,7 @@ class PdokServicesPlugin(object):
         self.dlg.ui.lookupinfo.setHtml(f"<lu>{result_list}</lu>")
 
     def remove_pointer_or_layer(self):
-        if self.show_ls_feature():
-            self.remove_ls_result_layer()
-        else:
+        if not self.show_ls_feature():
             self.remove_pointer()
 
     def lookup_dialog_search(self):
@@ -1030,7 +1021,7 @@ class PdokServicesPlugin(object):
         self.pointer.setIconSize(10)
         self.pointer.setPenWidth(2)
         self.pointer.setCenter(point)
-        self.clean_action.setEnabled(True)
+        self.clean_ls_search_action.setEnabled(True)
 
     def remove_ls_result_layer(self):
         if self.ls_result_layer is not None:
@@ -1043,7 +1034,7 @@ class PdokServicesPlugin(object):
         if self.pointer is not None and self.pointer.scene() is not None:
             self.iface.mapCanvas().scene().removeItem(self.pointer)
             self.pointer = None
-            self.clean_action.setEnabled(False)
+            self.clean_ls_search_action.setEnabled(False)
 
     def info(self, msg=""):
         QgsMessageLog.logMessage("{}".format(msg), "PDOK-services Plugin", Qgis.Info)
@@ -1264,7 +1255,6 @@ class PdokServicesPlugin(object):
             return self.layer_equals_fav_layer(lyr, x)
 
         fav_layers = self.get_favs_from_settings()
-        # result = next(filter(predicate, fav_layers), None)
         i = next((i for i, v in enumerate(fav_layers) if predicate(v)), -1)
         return i
 
