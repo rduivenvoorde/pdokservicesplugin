@@ -471,7 +471,7 @@ def main_services(args):
     with cm:
         protocol_list = PROTOCOLS
         if protocols:
-            protocol_list = protocol_list.split(",")
+            protocol_list = protocols.split(",")
 
         csw_results = list(
             map(
