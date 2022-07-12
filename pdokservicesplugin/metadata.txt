@@ -15,6 +15,8 @@ author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    4.0.0   (07-2022) Rather huge rewrite, adding (Reverse) Geocoder and WCS Algorithms thanks to Anton and Raymond
+    3.7.4   (04-2022) Update Url's via spiders script, Thanks Anton, Raymond
     3.7.3   (01-2022) Feature: search with words in layerlist (eg: 'wfs prov'), new url's via script from Nationaal Georegister (thanks Raymond and Anton)
     3.7.2   (11-2021) Fix #45 (kadastralekaart wfs) thanks Mathijs
     3.7.1   (10-2021) Update Url's Thanks Edward, Raymond, Anton; small fixes in wmts handling

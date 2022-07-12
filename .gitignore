@@ -1,6 +1,7 @@
 *.pyc
 .idea
 pycharm-debug-py3k.egg
+repo
 .vscode
 __pycache__
 pdokservicesplugin/resources/infotab.html.escaped
