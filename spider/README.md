@@ -33,15 +33,21 @@ and run:
 
 Spider has two subcommands: `layers` and `services`:
 
-- `layers` will output a JSON document will all layers of all PDOK services, with some additional service metadata
-- `services` will output a JSON document will all PDOK services, containing `md_id`, `title`, `url` and `protocol` of service.
+- `layers` will output a JSON document will all layers of all PDOK services, with some additional service metadata (to be used in the plugin as layers-pdok.json)
+- `services` will output a JSON document will all PDOK services, containing `md_id`, `title`, `url` and `protocol` of service (to be used as ??)
 
 Example to create a valid/full pdok.json usable in (old) pdokservicesplugin:
 
 ```sh
 # -n  tries to retrieve 250 services of every protocol (WMS,WFS etc)
 # use sort flag, to ensure popular services are on top of service list
-./spider.py -n 10 --sort pdok.json
+./spider.py layers -n 250 --sort pdok.json
+# ALL stuff is on 1 line, to visually check the json:
+jq . pdok.json
+# or (to keep it readable)
+jq . pdok.json > layers-pdok.json
+# move it to resources/layers-pdok.json
+mv pdok.json ../pdokservicesplugin/resources/layers-pdok.json
 ```
 
 ## Output Example
