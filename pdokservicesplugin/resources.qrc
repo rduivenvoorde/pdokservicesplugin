@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="/plugins/pdokservicesplugin">
+    <file>resources/ogg.gif</file>
+    <file>resources/pdok.png</file>
+    <file>resources/bookmark.png</file>
+    <file>resources/icon_remove_cross.svg</file>
+  </qresource>
+</RCC>
