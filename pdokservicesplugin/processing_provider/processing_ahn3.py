@@ -37,6 +37,9 @@ from pdokservicesplugin.lib.util import (
     get_processing_error_message,
 )
 
+import logging
+log = logging.getLogger(__name__)
+
 from ..lib.http_client import get_request_bytes, PdokServicesNetworkException
 
 # util methods for unpacking wcs response
@@ -173,6 +176,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             self.cap_url = f"{self.wcs_url}?request=GetCapabilities&service=WCS"
             _xml_bytes = get_request_bytes(self.cap_url)
             self.wcs = WebCoverageService_2_0_1(self.wcs_url, _xml_bytes, None)
+
             _coverages = list(self.wcs.contents.keys())
 
             for cov in _coverages:
@@ -211,27 +215,23 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             self.addParameter(
                 QgsProcessingParameterFeatureSink(self.OUTPUT, self.tr("Output layer"))
             )
-        except PdokServicesNetworkException as ex:
-            message = get_processing_error_message(
-                "an error",
-                self.displayName(),
-                ex,
-                traceback.format_exc(),
-                "while executing HTTP request",
-            )
-            raise QgsProcessingException(message)
-        except Exception:
-            message = get_processing_error_message(
-                "an unexpected error",
-                self.displayName(),
-                ex,
-                traceback.format_exc(),
-            )
-            raise QgsProcessingException(
-                message
-            )  # not sure if this is the correct way to raise errors here
+        except Exception as e:
+            # IF there is a network issue, the init of the algo would fail during the startup of QGIS, raising an exception
+            # see: https://github.com/rduivenvoorde/pdokservicesplugin/issues/79
+            # I choose to (silently) fail here, to be able to raise a QgsProcessingException when the user actually tries
+            # to USE the algorithm
+            log.debug(e)
+            pass
+
 
     def processAlgorithm(self, parameters, context, feedback):
+        # see above, it is possible that initing of the algo failed, we check here and let user know...
+        if parameters == {}:
+            raise QgsProcessingException("Er is iets misgegaan met het initialiseren van de input parameters.<br/>"
+                                         "Misschien geen (werkende) internet verbinding?<br/>"
+                                         "Dan kan namelijk de AHN service niet worden bereikt...<br/>"
+                                         "Raadpleeg ook de MessageLog.")
+
         try:
             # read out parameters
             input_layer = self.parameterAsVectorLayer(parameters, self.INPUT, context)
@@ -305,12 +305,12 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                 traceback.format_exc(),
                 "while executing HTTP request",
             )
-            raise QgsProcessingException(message)
-        except Exception:
+            raise QgsProcessingException('KAAS 1')
+        except Exception as e:
             message = get_processing_error_message(
                 "an unexpected error",
                 self.displayName(),
-                ex,
+                e,
                 traceback.format_exc(),
             )
             raise QgsProcessingException(message)
