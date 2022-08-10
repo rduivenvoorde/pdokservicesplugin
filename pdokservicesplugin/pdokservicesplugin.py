@@ -861,7 +861,7 @@ class PdokServicesPlugin(object):
         Returns:
             bool: indicating semver a is greater or equal to semver b
         """
-        regex_pattern = "^[0-9]+\.[0-9]+\.[0-9]+$"
+        regex_pattern = r"^[0-9]+\.[0-9]+\.[0-9]+$"
         if not re.search(regex_pattern, a) or not re.search(regex_pattern, b):
             raise ValueError(
                 "input semver_greater_than not conforming to semver string with three components"
