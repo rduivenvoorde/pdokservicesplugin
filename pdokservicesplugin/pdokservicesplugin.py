@@ -277,9 +277,6 @@ class PdokServicesPlugin(object):
     def format_scale_denominator(self, val):
         if val == "" or not val.isnumeric():
             return ""
-        locale.setlocale(
-            locale.LC_ALL, "nl_NL"
-        )  # enforce dutch locale, to ensure 1000 seperators is "."
         scale_formatted = locale.format_string("%d", int(float(val)), grouping=True)
         return f"1:{scale_formatted}"
 
