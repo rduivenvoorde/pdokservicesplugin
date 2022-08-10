@@ -224,11 +224,21 @@ def empty_string_if_none(input_str):
 
 def get_wcs_cap(result):
     def convert_layer(lyr):
+
+        # return {
+        #     "title": empty_string_if_none(wcs[lyr].title),
+        #     "abstract": empty_string_if_none(wcs[lyr].abstract),
+        #     "name": wcs[lyr].id,
+        #     "dataset_md_id": "",  # pdok wcs services do not advertise dataset md link for now, so left empty since unsure how to access dataset md link with owslib for wcs
+        # }
+
+        # for now re-use the layer id's for everything. Proper fix would be to retrieve those from a DescribeCoverages request I think...
         return {
-            "title": empty_string_if_none(wcs[lyr].title),
-            "abstract": empty_string_if_none(wcs[lyr].abstract),
+            "title": wcs[lyr].id,
+            "abstract": wcs[lyr].id,
             "name": wcs[lyr].id,
-            "dataset_md_id": "",  # pdok wcs services do not advertise dataset md link for now, so left empty since unsure how to access dataset md link with owslib for wcs
+            "dataset_md_id": "",
+            # pdok wcs services do not advertise dataset md link for now, so left empty since unsure how to access dataset md link with owslib for wcs
         }
 
     try:
