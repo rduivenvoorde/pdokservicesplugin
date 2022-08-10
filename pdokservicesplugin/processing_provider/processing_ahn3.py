@@ -305,7 +305,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                 traceback.format_exc(),
                 "while executing HTTP request",
             )
-            raise QgsProcessingException('KAAS 1')
+            raise QgsProcessingException(message)
         except Exception as e:
             message = get_processing_error_message(
                 "an unexpected error",
