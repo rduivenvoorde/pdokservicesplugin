@@ -59,6 +59,8 @@ import os
 import urllib.request, urllib.parse, urllib.error
 import locale
 import re
+import logging
+log = logging.getLogger(__name__)
 
 # Initialize Qt resources from file resources.py
 from . import resources_rc
@@ -1216,6 +1218,17 @@ class PdokServicesPlugin(object):
         - name (layername)
         - style (in case of WMS layer)
         """
+        # fix #77: names of keys have been changed, so IF there is an old set, forget about it here, sorry
+        if "service_md_id" not in fav_lyr:
+            if "md_id" in fav_lyr:
+                # local migration
+                fav_lyr["service_md_id"] = fav_lyr["md_id"]
+                # thinking I could maybe 'fix' the settings I thought to get the fav_layer_index here, BUT
+                # not possible because that function itself calls layer_equals_fav_layer => too much recursion
+                #log.debug(f'fav_layer index?: {self.get_fav_layer_index(fav_lyr)}')
+            else:
+                # unable to 'fix' ...
+                return False
         if (
             fav_lyr["service_md_id"] == lyr["service_md_id"]
             and fav_lyr["name"] == lyr["name"]
