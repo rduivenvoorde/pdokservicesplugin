@@ -1218,7 +1218,7 @@ class PdokServicesPlugin(object):
         - name (layername)
         - style (in case of WMS layer)
         """
-        # fix #77: names of keys have been changed, so IF there is an old set, forget about it here, sorry
+        # fix #77: names of keys have been changed, so IF there is an old set, try to fix
         if "service_md_id" not in fav_lyr:
             if "md_id" in fav_lyr:
                 # local migration
