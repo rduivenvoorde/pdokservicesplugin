@@ -10,11 +10,12 @@ about=Nederlands:
         - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://data.pdok.nl
         - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://data.pdok.nl ophalen.
 
-version=4.1.0
+version=4.1.1
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    4.1.1   (08-2022) Fix issue with older QGIS versions
     4.1.0   (08-2022) New Layer list and Fix (startup) issues #77 #78 #79 #80 #81 #83
     4.0.0   (07-2022) Rather huge rewrite, adding (Reverse) Geocoder and WCS Algorithms thanks to Anton and Raymond
     3.7.4   (04-2022) Update Url's via spiders script, Thanks Anton, Raymond

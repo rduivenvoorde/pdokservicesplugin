@@ -67,7 +67,7 @@ class QgisLogHandler(logging.StreamHandler):
         """
 
         self.level_to_qgis = {
-            0: Qgis.MessageLevel.NoLevel,
+            0: Qgis.MessageLevel.Info,
             10: Qgis.MessageLevel.Info,
             20: Qgis.MessageLevel.Info,
             30: Qgis.MessageLevel.Warning,
