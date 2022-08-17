@@ -7,4 +7,5 @@ __pycache__
 pdokservicesplugin/resources/infotab.html.escaped
 symbology-style.db
 user-history.db
-
+venv/
+spider/*.json
