@@ -75,7 +75,6 @@ from .lib.http_client import PdokServicesNetworkException
 
 from .locator_filter.pdoklocatieserverfilter import PDOKLocatieserverLocatorFilter
 
-from .lib.constants import PLUGIN_NAME, PLUGIN_ID, DEFAULT_NR_FAVS, SETTINGS_SECTIONS
 from .lib.locatieserver import (
     suggest_query,
     TypeFilter,
@@ -85,11 +84,19 @@ from .lib.locatieserver import (
     Projection,
 )
 
+from .settings_manager import SettingsManager
+from .bookmark_manager import BookmarkManager
+
+PLUGIN_NAME = "PDOK Services Plugin"
+
 
 class PdokServicesPlugin(object):
     def __init__(self, iface):
         # Save reference to the QGIS interface
         self.iface = iface
+        self.settings_manager = SettingsManager()
+        self.bookmark_manager = BookmarkManager()
+
         self.plugin_dir = os.path.dirname(__file__)
         self.dlg = PdokServicesPluginDialog(parent=self.iface.mainWindow())
 
@@ -97,7 +104,7 @@ class PdokServicesPlugin(object):
         self.iface.registerLocatorFilter(self.filter)
 
         self.current_layer = None
-        self.SETTINGS_SECTION = SETTINGS_SECTIONS
+
         self.pointer = None
         self.geocoder_source_model = None
 
@@ -116,15 +123,14 @@ class PdokServicesPlugin(object):
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def get_settings_value(self, key, default=""):
-        if QSettings().contains(f"{self.SETTINGS_SECTION}{key}"):
-            key = f"{self.SETTINGS_SECTION}{key}"
-            return str(QSettings().value(key))
-        else:
+        value = self.settings_manager.get_setting(key)
+        logging.debug(value)
+        if value is None:
             return default
+        return value
 
     def set_settings_value(self, key, value):
-        key = f"{self.SETTINGS_SECTION}{key}"
-        QSettings().setValue(key, QVariant(value))
+        self.settings_manager.store_setting(key, value)
 
     def initGui(self):
         """Create action that will start plugin configuration
@@ -207,13 +213,6 @@ class PdokServicesPlugin(object):
         self.iface.addPluginToMenu(f"&{PLUGIN_NAME}", self.about_action)
 
         self.about_action.triggered.connect(self.about)
-        self.dlg.ui.btnLoadLayer.clicked.connect(lambda: self.load_layer("default"))
-        self.dlg.ui.btnLoadLayerTop.clicked.connect(lambda: self.load_layer("top"))
-        self.dlg.ui.btnLoadLayerBottom.clicked.connect(
-            lambda: self.load_layer("bottom")
-        )
-
-        self.dlg.ui.pushButton.clicked.connect(self.toggle_all_fq_checkboxes)
 
         self.dlg.geocoder_search.returnPressed.connect(
             self.ls_dialog_get_suggestions_and_remove_pointer
@@ -292,6 +291,7 @@ class PdokServicesPlugin(object):
             self.dlg.ui.layer_options_groupbox.setHidden(True)
             return
 
+        self.dlg.ui.pushButton.clicked.connect(self.toggle_all_fq_checkboxes)
         self.dlg.ui.layer_info.setHidden(False)
         self.dlg.ui.layer_options_groupbox.setHidden(False)
 
@@ -301,36 +301,60 @@ class PdokServicesPlugin(object):
         self.current_layer = self.dlg.servicesView.selectedIndexes()[1].data(
             Qt.UserRole
         )
-        self.update_layer_panel()
+        layer = self.current_layer
 
-    def update_layer_panel(self):
-        url = self.current_layer["service_url"]
-        title = self.current_layer["title"]
-        abstract_dd = self.get_dd(self.current_layer["abstract"])
+        def reconnect(signal, newhandler):
+            try:
+                signal.disconnect()
+            except TypeError:
+                pass
+            signal.connect(newhandler)
+
+        reconnect(
+            self.dlg.ui.btnLoadLayer.clicked,
+            (lambda layer: lambda: self.load_layer(layer, "default"))(layer),
+        )
+        reconnect(
+            self.dlg.ui.btnLoadLayerTop.clicked,
+            (lambda layer: lambda: self.load_layer(layer, "top"))(layer),
+        )
+        reconnect(
+            self.dlg.ui.btnLoadLayerBottom.clicked,
+            (lambda layer: lambda: self.load_layer(layer, "bottom"))(layer),
+        )
+
+        self.update_layer_panel(layer)
+
+    def update_layer_panel(self, layer):
+        # layer = self.current_layer
+
+        url = layer["service_url"]
+        title = layer["title"]
+        abstract_dd = self.get_dd(layer["abstract"])
 
         service_title = (
-            self.current_layer["service_title"]
-            if self.current_layer["service_title"]
+            layer["service_title"]
+            if layer["service_title"]
             else "[service title niet ingevuld]"
         )
-        layername = self.current_layer["name"]
-        service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
-        stype = self.current_layer["service_type"].upper()
+        layername = layer["name"]
+        service_abstract_dd = self.get_dd(layer["service_abstract"])
+        stype = layer["service_type"].upper()
         minscale = ""
-        if "minscale" in self.current_layer:
-            minscale = self.format_scale_denominator(self.current_layer["minscale"])
+        if "minscale" in layer:
+            minscale = self.format_scale_denominator(layer["minscale"])
         maxscale = ""
-        if "maxscale" in self.current_layer:
-            maxscale = self.format_scale_denominator(self.current_layer["maxscale"])
-        service_md_id = self.current_layer["service_md_id"]
-        dataset_md_id = self.current_layer["dataset_md_id"]
+        if "maxscale" in layer:
+            maxscale = self.format_scale_denominator(layer["maxscale"])
+        service_md_id = layer["service_md_id"]
+        dataset_md_id = layer["dataset_md_id"]
         self.dlg.ui.layer_info.setText("")
         self.dlg.ui.btnLoadLayer.setEnabled(True)
         self.dlg.ui.btnLoadLayerTop.setEnabled(True)
         self.dlg.ui.btnLoadLayerBottom.setEnabled(True)
 
         fav = False
-        if self.pdok_layer_in_favs(self.current_layer) != -1:
+        if self.bookmark_manager.pdok_layer_in_bookmarks(layer) != -1:
             fav = True
 
         maxscale_string = ""
@@ -403,7 +427,7 @@ class PdokServicesPlugin(object):
             ui_el.setHidden(not (stype in service_types))
 
         if stype == "WMS":
-            styles = self.current_layer["styles"]
+            styles = layer["styles"]
             nr_styles = len(styles)
             style_str = "styles" if nr_styles > 1 else "style"
             self.dlg.ui.wmsStyleLabel.setText(
@@ -421,7 +445,7 @@ class PdokServicesPlugin(object):
                 nr_styles > 1  # enable if more than one style
             )
             try:
-                crs = self.current_layer["crs"]
+                crs = layer["crs"]
             except KeyError:
                 crs = "EPSG:28992"
             crs = crs.split(",")
@@ -431,7 +455,7 @@ class PdokServicesPlugin(object):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
         if stype == "WMTS":
-            tilematrixsets = self.current_layer["tilematrixsets"].split(",")
+            tilematrixsets = layer["tilematrixsets"].split(",")
             self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
             for i in range(len(tilematrixsets)):
                 if tilematrixsets[i].startswith("EPSG:28992"):
@@ -451,112 +475,107 @@ class PdokServicesPlugin(object):
         return url
 
     def get_selected_style(self):
+        layer = self.current_layer
+
         selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
         selected_style = None
-        if "styles" in self.current_layer:
+        if "styles" in layer:
             selected_style = next(
-                (
-                    x
-                    for x in self.current_layer["styles"]
-                    if x["title"] == selected_style_title
-                ),
+                (x for x in layer["styles"] if x["title"] == selected_style_title),
                 None,
             )
             if selected_style is None:
                 # check if selected_style_title is one of the style names, in case the style in the cap doc does not have a title
                 # style should have at least a name
                 selected_style = next(
-                    (
-                        x
-                        for x in self.current_layer["styles"]
-                        if x["name"] == selected_style_title
-                    ),
+                    (x for x in layer["styles"] if x["name"] == selected_style_title),
                     None,
                 )
         return selected_style
 
-    def create_new_layer(self):
-        servicetype = self.current_layer["service_type"]
-        title = self.current_layer["title"]
-        layername = self.current_layer["name"]
-        url = self.current_layer["service_url"]
+    # TODO: differentiate between map_layers (layers created in qgis) and config_layers (layers as defined in application config)
+    def load_layer(self, layer, tree_location=None):
+        def create_new_layer():
+            servicetype = layer["service_type"]
+            title = layer["title"]
+            layername = layer["name"]
+            url = layer["service_url"]
 
-        if servicetype == "wms":
-            imgformat = self.current_layer["imgformats"].split(",")[0]
-            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                crs = "EPSG:28992"
+            if servicetype == "wms":
+                imgformat = layer["imgformats"].split(",")[0]
+                if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+                    crs = "EPSG:28992"
+                else:
+                    crs = self.dlg.ui.comboSelectProj.currentText()
+
+                selected_style_name = ""
+                if "selectedStyle" in layer:
+                    selected_style = layer["selectedStyle"]
+                else:
+                    selected_style = self.get_selected_style()
+                if selected_style is not None:
+                    selected_style_name = selected_style["name"]
+                    selected_style_title = selected_style["name"]
+                    if "title" in selected_style:
+                        selected_style_title = selected_style["title"]
+                    title += f" [{selected_style_title}]"
+
+                uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
+                return QgsRasterLayer(uri, title, "wms")
+            elif servicetype == "wmts":
+                if Qgis.QGIS_VERSION_INT < 10900:
+                    self.show_warning(
+                        f"""Sorry, dit type layer: '{servicetype.upper()}'
+                        kan niet worden geladen in deze versie van QGIS.
+                        Misschien kunt u QGIS 2.0 installeren (die kan het WEL)?
+                        Of is de laag niet ook beschikbaar als wms of wfs?"""
+                    )
+                    return None
+                url = self.quote_wmts_url(url)
+                if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+                    tilematrixset = "EPSG:28992"
+                else:
+                    tilematrixset = self.dlg.ui.comboSelectProj.currentText()
+                imgformat = layer["imgformats"].split(",")[0]
+                if tilematrixset.startswith("EPSG:"):
+                    crs = tilematrixset
+                    i = crs.find(":", 5)
+                    if i > -1:
+                        crs = crs[:i]
+                elif tilematrixset.startswith("OGC:1.0"):
+                    crs = "EPSG:3857"
+                uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
+                return QgsRasterLayer(
+                    uri, title, "wms"
+                )  # `wms` is correct, zie ook quote_wmts_url
+            elif servicetype == "wfs":
+                uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
+                return QgsVectorLayer(uri, title, "wfs")
+            elif servicetype == "wcs":
+                # HACK to be able to make WCS working for now:
+                # 1) fixed format to "GEOTIFF_FLOAT32"
+                # 2) remove the '?request=getcapabiliteis....' part from the url
+                # But service is rather slow, maybe better to remove the WCS part from the plugin?q
+                # normally you would do a DescribeCoverage to find out about the format etc etc
+                format = "GEOTIFF_FLOAT32"
+                uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
+                # log.debug(f'WCS uri: {uri}')
+                return QgsRasterLayer(uri, title, "wcs")
             else:
-                crs = self.dlg.ui.comboSelectProj.currentText()
-
-            selected_style_name = ""
-            if "selectedStyle" in self.current_layer:
-                selected_style = self.current_layer["selectedStyle"]
-            else:
-                selected_style = self.get_selected_style()
-            if selected_style is not None:
-                selected_style_name = selected_style["name"]
-                selected_style_title = selected_style["name"]
-                if "title" in selected_style:
-                    selected_style_title = selected_style["title"]
-                title += f" [{selected_style_title}]"
-
-            uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
-            return QgsRasterLayer(uri, title, "wms")
-        elif servicetype == "wmts":
-            if Qgis.QGIS_VERSION_INT < 10900:
                 self.show_warning(
-                    f"""Sorry, dit type layer: '{servicetype.upper()}'
-                    kan niet worden geladen in deze versie van QGIS.
-                    Misschien kunt u QGIS 2.0 installeren (die kan het WEL)?
-                    Of is de laag niet ook beschikbaar als wms of wfs?"""
+                    f"""Sorry, dit type laag: '{servicetype.upper()}'
+                    kan niet worden geladen door de plugin of door QGIS.
+                    Is het niet beschikbaar als wms, wmts of wfs?
+                    """
                 )
-                return None
-            url = self.quote_wmts_url(url)
-            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                tilematrixset = "EPSG:28992"
-            else:
-                tilematrixset = self.dlg.ui.comboSelectProj.currentText()
-            imgformat = self.current_layer["imgformats"].split(",")[0]
-            if tilematrixset.startswith("EPSG:"):
-                crs = tilematrixset
-                i = crs.find(":", 5)
-                if i > -1:
-                    crs = crs[:i]
-            elif tilematrixset.startswith("OGC:1.0"):
-                crs = "EPSG:3857"
-            uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
-            return QgsRasterLayer(
-                uri, title, "wms"
-            )  # `wms` is correct, zie ook quote_wmts_url
-        elif servicetype == "wfs":
-            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
-            return QgsVectorLayer(uri, title, "wfs")
-        elif servicetype == "wcs":
-            # HACK to be able to make WCS working for now:
-            # 1) fixed format to "GEOTIFF_FLOAT32"
-            # 2) remove the '?request=getcapabiliteis....' part from the url
-            # But service is rather slow, maybe better to remove the WCS part from the plugin?q
-            # normally you would do a DescribeCoverage to find out about the format etc etc
-            format = "GEOTIFF_FLOAT32"
-            uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
-            # log.debug(f'WCS uri: {uri}')
-            return QgsRasterLayer(uri, title, "wcs")
-        else:
-            self.show_warning(
-                f"""Sorry, dit type laag: '{servicetype.upper()}'
-                kan niet worden geladen door de plugin of door QGIS.
-                Is het niet beschikbaar als wms, wmts of wfs?
-                """
-            )
-            return
+                return
 
-    def load_layer(self, tree_location=None):
-        if self.current_layer == None:
+        if layer == None:
             return
-        servicetype = self.current_layer["service_type"]
+        servicetype = layer["service_type"]
         if tree_location is None:
             tree_location = self.default_tree_locations[servicetype]
-        new_layer = self.create_new_layer()
+        new_layer = create_new_layer()
         if new_layer is None:
             return
         self.add_layer(new_layer, tree_location)
@@ -727,8 +746,10 @@ class PdokServicesPlugin(object):
         # pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True)
 
         # last viewed/selected tab
-        if QSettings().contains(f"/{PLUGIN_ID}/currenttab"):
-            self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
+
+        current_tab = self.settings_manager.get_setting("currenttab")
+        if current_tab is not None:
+            self.dlg.tabs.widget(int(current_tab))
 
         if self.services_loaded == False:
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
@@ -765,13 +786,19 @@ class PdokServicesPlugin(object):
             self.dlg.servicesView.selectionModel().selectionChanged.connect(
                 self.show_layer
             )
+
             self.dlg.servicesView.doubleClicked.connect(
-                lambda: self.load_layer(None)
+                lambda: self.load_layer(
+                    self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole),
+                    "default",
+                )
             )  # Using lambda here to prevent sending signal parameters to the loadService() function
 
             self.dlg.servicesView.setContextMenuPolicy(Qt.CustomContextMenu)
             self.dlg.servicesView.customContextMenuRequested.connect(
-                self.make_fav_context_menu
+                lambda pos: self.make_fav_context_menu(
+                    pos, self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
+                )
             )
 
             # actually I want to load a service when doubleclicked on header
@@ -798,7 +825,7 @@ class PdokServicesPlugin(object):
         # show the dialog ?
         if not hiddenDialog:
             self.dlg.show()
-        QSettings().setValue(f"/{PLUGIN_ID}/currenttab", self.dlg.tabs.currentIndex())
+        self.settings_manager.store_setting("currenttab", self.dlg.tabs.currentIndex())
         self.remove_pointer_or_layer()
 
     def setup_fq_checkboxes(self):
@@ -1048,84 +1075,13 @@ class PdokServicesPlugin(object):
             QMessageBox.Ok,
         )
 
-    def save_fav_layer_in_settings(self, fav_layer):
-        favs = self.get_favs_from_settings()
-        nr_of_favs = len(favs)
-        new_fav_i = nr_of_favs + 1
-        QSettings().setValue(f"/{PLUGIN_ID}/favourite_{new_fav_i}", fav_layer)
-
-    def get_favs_from_settings(self):
-        favs = []
-        i = 1
-        while True:
-            fav = QSettings().value(f"/{PLUGIN_ID}/favourite_{i}", None)
-            if fav is None:
-                break
-            favs.append(fav)
-            i += 1
-        return favs
-
-    def get_fav_layer_index(self, fav_layer_to_get_index):
-        fav_layers = self.get_favs_from_settings()
-        # find index of fav layer to delete
-        fav_index = -1
-        for i in range(0, len(fav_layers)):
-            fav_layer = fav_layers[i]
-            if self.layer_equals_fav_layer(fav_layer_to_get_index, fav_layer):
-                fav_index = i
-                break
-        return fav_index
-
-    def delete_fav_layer_in_settings(self, fav_layer_to_delete):
-        fav_layers = self.get_favs_from_settings()
-        nr_of_favs = len(fav_layers)
-        # find index of fav layer to delete
-        fav_del_index = self.get_fav_layer_index(fav_layer_to_delete)
-        # delete fav layer if found
-        if fav_del_index != -1:
-            del fav_layers[fav_del_index]
-            # overwrite remaining favs from start to end and remove last
-            # remaining fav
-            for i in range(0, len(fav_layers)):
-                fav_layer = fav_layers[i]
-                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{i+1}", fav_layer)
-            settings = QSettings()
-            settings.remove(f"/{PLUGIN_ID}/favourite_{nr_of_favs}")
-
-    def move_item_in_list(self, the_list, index, direction):
-        if not direction in [1, -1]:
-            raise ValueError()
-        if index <= 0 and direction == -1:
-            return the_list
-        if index >= len(the_list) - 1 and direction == 1:
-            return the_list
-        pos1 = index
-        pos2 = index + (direction)
-        the_list[pos1], the_list[pos2] = the_list[pos2], the_list[pos1]
-        return the_list
-
-    def change_index_fav_layer_in_settings(self, fav_layer_to_change, index_delta):
-        fav_layers = self.get_favs_from_settings()
-        fav_change_index = -1
-        for i in range(0, len(fav_layers)):
-            fav_layer = fav_layers[i]
-            if self.layer_equals_fav_layer(fav_layer_to_change, fav_layer):
-                fav_change_index = i
-                break
-
-        if fav_change_index != -1:
-            fav_layers = self.move_item_in_list(
-                fav_layers, fav_change_index, index_delta
-            )
-            for i in range(0, len(fav_layers)):
-                fav_layer = fav_layers[i]
-                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{i+1}", fav_layer)
-
-    def make_fav_context_menu(self, position):
+    def make_fav_context_menu(self, position, layer):
         menu = QMenu()
-        if self.current_layer:
-            fav_index = self.pdok_layer_in_favs(self.current_layer)
-            favs = self.get_favs_from_settings()
+        # layer = self.current_layer
+        log.debug(f"make_fav_context_menu: {layer}")
+        if layer:
+            fav_index = self.bookmark_manager.pdok_layer_in_bookmarks(layer)
+            favs = self.bookmark_manager.get_bookmarks()
             nr_of_favs = len(favs)
 
             if fav_index != -1:
@@ -1149,23 +1105,25 @@ class PdokServicesPlugin(object):
                 if action == delete_fav_action:
                     # delete layer to favourites with qsettngs
                     # then update favourite context menu
-                    self.delete_fav_layer_in_settings(self.current_layer)
-                    self.update_layer_panel()
+                    self.bookmark_manager.delete_bookmark(layer)
+                    self.update_layer_panel(layer)
                     self.add_fav_actions_to_toolbar_button()
                 elif action == up_fav_action:
-                    self.change_index_fav_layer_in_settings(self.current_layer, -1)
+                    self.bookmark_manager.change_bookmark_index(layer, -1)
                     self.add_fav_actions_to_toolbar_button()
                 elif action == down_fav_action:
-                    self.change_index_fav_layer_in_settings(self.current_layer, 1)
+                    self.bookmark_manager.change_bookmark_index(layer, 1)
                     self.add_fav_actions_to_toolbar_button()
 
             else:
                 selected_style = self.get_selected_style()
                 if selected_style is not None:
-                    self.current_layer = {
-                        **self.current_layer,
+                    layer = {
+                        **layer,
                         **{"selectedStyle": selected_style},
                     }
+                    self.current_layer = layer  # update self.current_layer since
+
                 add_fav_action = QAction(f"Voeg deze laag toe aan favourieten")
                 add_fav_action.setIcon(self.fav_icon)
                 menu.addAction(add_fav_action)
@@ -1173,11 +1131,11 @@ class PdokServicesPlugin(object):
                 if action == add_fav_action:
                     # save layer to favourites with qsettngs
                     # then update favourite context menu
-                    self.save_fav_layer_in_settings(self.current_layer)
-                    self.update_layer_panel()
+                    self.bookmark_manager.save_bookmark(layer)
+                    self.update_layer_panel(layer)
                     self.add_fav_actions_to_toolbar_button()
 
-    def load_fav_layer(self, fav_layer, index):
+    def add_bookmark_to_map(self, fav_layer, index):
         if fav_layer:
             # migration code required for change: https://github.com/rduivenvoorde/pdokservicesplugin/commit/a5700dace54250b8f18229939907c3cab39f5297
             # which changed the schema of the layer config json file
@@ -1193,10 +1151,10 @@ class PdokServicesPlugin(object):
             if "selectedStyle" in fav_layer:
                 layer["selectedStyle"] = fav_layer["selectedStyle"]
             if migrate_fav:
-                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{index}", layer)
+                self.bookmark_manager.save_bookmark(layer, index)
             if layer:
                 self.current_layer = layer
-                self.load_layer()
+                self.load_layer(layer)
                 return
         self.show_warning(
             "Maak een Favoriet aan door in de dialoog met services en lagen via het context menu (rechter muisknop) een Favoriet te kiezen...",
@@ -1210,56 +1168,16 @@ class PdokServicesPlugin(object):
         """
 
         def predicate(x):
-            return self.layer_equals_fav_layer(lyr, x)
+            return self.bookmark_manager.layer_equals_bookmark(lyr, x)
 
         return next(filter(predicate, self.layers_pdok), None)
-
-    def layer_equals_fav_layer(self, lyr, fav_lyr):
-        """
-        check for layer equality based on equal
-        - service_md_id
-        - name (layername)
-        - style (in case of WMS layer)
-        """
-        # fix #77: names of keys have been changed, so IF there is an old set, try to fix
-        if "service_md_id" not in fav_lyr:
-            if "md_id" in fav_lyr:
-                # local migration
-                fav_lyr["service_md_id"] = fav_lyr["md_id"]
-                # thinking I could maybe 'fix' the settings I thought to get the fav_layer_index here, BUT
-                # not possible because that function itself calls layer_equals_fav_layer => too much recursion
-                # log.debug(f'fav_layer index?: {self.get_fav_layer_index(fav_lyr)}')
-            else:
-                # unable to 'fix' ...
-                return False
-        if (
-            fav_lyr["service_md_id"] == lyr["service_md_id"]
-            and fav_lyr["name"] == lyr["name"]
-        ):
-            # WMS layer with style
-            if "style" in fav_lyr and "style" in lyr:
-                if fav_lyr["style"] == lyr["style"]:
-                    return True
-                else:
-                    return False
-            # other layer without style (but with matching layername and service_md_id)
-            return True
-        return False
-
-    def pdok_layer_in_favs(self, lyr):
-        def predicate(x):
-            return self.layer_equals_fav_layer(lyr, x)
-
-        fav_layers = self.get_favs_from_settings()
-        i = next((i for i, v in enumerate(fav_layers) if predicate(v)), -1)
-        return i
 
     def add_fav_actions_to_toolbar_button(self):
         # first reset existing fav_actions
         for fav_action in self.fav_actions:
             self.run_button.menu().removeAction(fav_action)
         self.fav_actions = []
-        fav_layers = self.get_favs_from_settings()
+        fav_layers = self.bookmark_manager.get_bookmarks()
 
         # add fav_actions
         if len(fav_layers) == 0:
@@ -1276,7 +1194,7 @@ class PdokServicesPlugin(object):
                     fav_action.setIcon(self.fav_icon)
                     fav_action.triggered.connect(
                         (
-                            lambda fav_layer, i: lambda: self.load_fav_layer(
+                            lambda fav_layer, i: lambda: self.add_bookmark_to_map(
                                 fav_layer, i
                             )
                         )(fav_layer, i)
