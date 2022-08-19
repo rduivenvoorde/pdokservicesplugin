@@ -79,7 +79,6 @@ class BookmarkManager:
         # find index of fav layer to delete
         bookmark_del_index = self.get_bookmark_index(bookmark)
         # delete fav layer if found
-        log.debug(f"bookmark_del_index: {bookmark_del_index}")
         if bookmark_del_index != -1:
             del bookmarks[bookmark_del_index]
             # overwrite remaining favs from start to end and remove last

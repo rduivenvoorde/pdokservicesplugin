@@ -1102,6 +1102,7 @@ class PdokServicesPlugin(object):
                 menu.addAction(delete_fav_action)
 
                 action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
+                log.debug(f"make_fav_context_menu: {action}")
                 if action == delete_fav_action:
                     # delete layer to favourites with qsettngs
                     # then update favourite context menu

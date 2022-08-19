@@ -19,8 +19,8 @@ class SettingsManager:
         value = qsettings.value(key)
         qsettings.endGroup()
         if value:
-            log.debug(f"{self.SETTING_GROUP}/{key}")
-            log.debug(value)
+            # log.debug(f"{self.SETTING_GROUP}/{key}")
+            # log.debug(value)
             return value
         return None
 
