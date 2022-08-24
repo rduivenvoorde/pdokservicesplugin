@@ -1,3 +1,4 @@
+from this import d
 from .settings_manager import SettingsManager
 
 import logging
@@ -11,8 +12,8 @@ class BookmarkManager:
 
     def save_bookmark(self, bookmark, i=-1):
         if i == -1:
-            bookmarks = self.get_bookmarks()
-            nr_of_bookmarks = len(bookmarks)
+            stored_bookmarks = self.get_bookmarks()
+            nr_of_bookmarks = len(stored_bookmarks)
             new_bm_i = nr_of_bookmarks + 1
         else:
             new_bm_i = i
@@ -30,17 +31,21 @@ class BookmarkManager:
         return bookmarks
 
     def get_bookmark_index(self, bookmark):
-        bookmarks = self.get_bookmarks()
+        """
+        Return 0-based index of bookmark in stored bookmarks list.
+        """
+        stored_bookmarks = self.get_bookmarks()
         # find index of fav layer to delete
+        logging.debug(f"nr of bookmarks: {len(stored_bookmarks)}")
         bookmark_index = -1
-        for i in range(0, len(bookmarks)):
-            bookmark = bookmarks[i]
-            if self.layer_equals_bookmark(bookmark, bookmark):
+        for i in range(0, len(stored_bookmarks)):
+            stored_bookmark = stored_bookmarks[i]
+            if self.bookmarks_equal(stored_bookmark, bookmark):
                 bookmark_index = i
                 break
         return bookmark_index
 
-    def layer_equals_bookmark(self, lyr, bookmark):
+    def bookmarks_equal(self, lyr, bookmark):
         """
         check for layer equality based on equal
         - service_md_id
@@ -73,24 +78,24 @@ class BookmarkManager:
         return False
 
     def delete_bookmark(self, bookmark):
-        log.debug("delete_bookmark")
+
         bookmarks = self.get_bookmarks()
         nr_of_bookmarks = len(bookmarks)
+
         # find index of fav layer to delete
         bookmark_del_index = self.get_bookmark_index(bookmark)
-        # delete fav layer if found
+        # delete fav layer if bookmark
         if bookmark_del_index != -1:
             del bookmarks[bookmark_del_index]
             # overwrite remaining favs from start to end and remove last
             # remaining fav
-            for i in range(0, len(bookmarks)):
-                bookmark = bookmarks[i]
-                self.settings_manager.store_setting(f"favourite_{i+1}", bookmark)
+            self.store_bookmarks(bookmarks)
+            # TODO: verwijder overtollige bookmarks in store_bookmarks method
             self.settings_manager.delete_setting(f"favourite_{nr_of_bookmarks}")
 
     def pdok_layer_in_bookmarks(self, lyr):
         def predicate(x):
-            return self.layer_equals_bookmark(lyr, x)
+            return self.bookmarks_equal(lyr, x)
 
         fav_layers = self.get_bookmarks()
         i = next((i for i, v in enumerate(fav_layers) if predicate(v)), -1)
@@ -108,19 +113,15 @@ class BookmarkManager:
         the_list[pos1], the_list[pos2] = the_list[pos2], the_list[pos1]
         return the_list
 
-    def change_bookmark_index(self, bookmark, index_delta):
-        bookmarks = self.get_bookmarks()
-        bookmark_change_index = -1
+    def store_bookmarks(self, bookmarks):
         for i in range(0, len(bookmarks)):
-            bookmark = bookmarks[i]
-            if self.layer_equals_bookmark(bookmark, bookmark):
-                bookmark_change_index = i
-                break
+            bookmark_to_store = bookmarks[i]
+            self.settings_manager.store_setting(f"favourite_{i+1}", bookmark_to_store)
 
-        if bookmark_change_index != -1:
-            bookmarks = self.move_item_in_list(
-                bookmarks, bookmark_change_index, index_delta
+    def change_bookmark_index(self, bookmark, index_delta):
+        bookmark_index = self.get_bookmark_index(bookmark)
+        if bookmark_index != -1:
+            stored_bookmarks = self.move_item_in_list(
+                stored_bookmarks, bookmark_index, index_delta
             )
-            for i in range(0, len(bookmarks)):
-                bookmark = bookmarks[i]
-                self.settings_manager.store_setting(f"favourite_{i+1}", bookmark)
+            self.store_bookmarks(stored_bookmarks)

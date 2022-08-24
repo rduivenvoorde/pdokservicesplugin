@@ -16,7 +16,7 @@ class DataItemProvider(QgsDataItemProvider):
         QgsDataItemProvider.__init__(self)
 
     def name(self):
-        return "MapTilerProvider"
+        return "PdokProvider"
 
     def capabilities(self):
         return QgsDataProvider.Net

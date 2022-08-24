@@ -102,9 +102,6 @@ class PdokServicesPlugin(object):
 
         self.filter = PDOKLocatieserverLocatorFilter(self.iface)
         self.iface.registerLocatorFilter(self.filter)
-
-        self.current_layer = None
-
         self.pointer = None
         self.geocoder_source_model = None
 
@@ -284,7 +281,6 @@ class PdokServicesPlugin(object):
 
     def show_layer(self, selectedIndexes):
         if len(selectedIndexes) == 0:
-            self.current_layer = None
             self.dlg.ui.layer_info.setHtml("")
             self.dlg.ui.comboSelectProj.clear()
             self.dlg.ui.layer_info.setHidden(True)
@@ -298,10 +294,7 @@ class PdokServicesPlugin(object):
         # needed to scroll To the selected row incase of using the keyboard / arrows
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
         # itemType holds the data (== column 1)
-        self.current_layer = self.dlg.servicesView.selectedIndexes()[1].data(
-            Qt.UserRole
-        )
-        layer = self.current_layer
+        layer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
 
         def reconnect(signal, newhandler):
             try:
@@ -322,12 +315,9 @@ class PdokServicesPlugin(object):
             self.dlg.ui.btnLoadLayerBottom.clicked,
             (lambda layer: lambda: self.load_layer(layer, "bottom"))(layer),
         )
-
         self.update_layer_panel(layer)
 
     def update_layer_panel(self, layer):
-        # layer = self.current_layer
-
         url = layer["service_url"]
         title = layer["title"]
         abstract_dd = self.get_dd(layer["abstract"])
@@ -475,7 +465,7 @@ class PdokServicesPlugin(object):
         return url
 
     def get_selected_style(self):
-        layer = self.current_layer
+        layer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
 
         selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
         selected_style = None
@@ -1077,7 +1067,7 @@ class PdokServicesPlugin(object):
 
     def make_fav_context_menu(self, position, layer):
         menu = QMenu()
-        # layer = self.current_layer
+        layer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
         log.debug(f"make_fav_context_menu: {layer}")
         if layer:
             fav_index = self.bookmark_manager.pdok_layer_in_bookmarks(layer)
@@ -1123,9 +1113,8 @@ class PdokServicesPlugin(object):
                         **layer,
                         **{"selectedStyle": selected_style},
                     }
-                    self.current_layer = layer  # update self.current_layer since
 
-                add_fav_action = QAction(f"Voeg deze laag toe aan favourieten")
+                add_fav_action = QAction(f"Voeg deze laag toe aan favorieten")
                 add_fav_action.setIcon(self.fav_icon)
                 menu.addAction(add_fav_action)
                 action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
@@ -1154,7 +1143,6 @@ class PdokServicesPlugin(object):
             if migrate_fav:
                 self.bookmark_manager.save_bookmark(layer, index)
             if layer:
-                self.current_layer = layer
                 self.load_layer(layer)
                 return
         self.show_warning(
@@ -1169,7 +1157,7 @@ class PdokServicesPlugin(object):
         """
 
         def predicate(x):
-            return self.bookmark_manager.layer_equals_bookmark(lyr, x)
+            return self.bookmark_manager.bookmarks_equal(lyr, x)
 
         return next(filter(predicate, self.layers_pdok), None)
 
