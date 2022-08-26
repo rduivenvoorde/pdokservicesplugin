@@ -43,6 +43,19 @@ class LayerManager:
         url = f"{location}?{query_escaped_quoted}"
         return url
 
+    def get_bookmark_title(self, pdok_config_layer):
+        title = pdok_config_layer["title"]
+        if pdok_config_layer["service_type"] == "wms":
+            if "selectedStyle" in pdok_config_layer:
+                selected_style = pdok_config_layer["selectedStyle"]
+                if selected_style is not None:
+                    selected_style_title = selected_style["name"]
+                    if "title" in selected_style:
+                        selected_style_title = selected_style["title"]
+                title = f'{pdok_config_layer["title"]} [{selected_style_title}]'
+        stype = pdok_config_layer["service_type"].upper()
+        return f"{title} ({stype})"
+
     def _create_qgsmaplayer_from_pdok_layer(
         self, pdok_config_layer, crs
     ) -> QgsMapLayer:
@@ -62,10 +75,8 @@ class LayerManager:
                 _selected_style = pdok_config_layer["selectedStyle"]
             if _selected_style is not None:
                 selected_style_name = _selected_style["name"]
-                selected_style_title = _selected_style["name"]
-                if "title" in _selected_style:
-                    selected_style_title = _selected_style["title"]
-                _title = f"{title} [{selected_style_title}]"
+
+            _title = self.get_bookmark_title(pdok_config_layer)
             uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
             return QgsRasterLayer(uri, _title, "wms")
 

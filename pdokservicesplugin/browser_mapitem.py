@@ -19,7 +19,7 @@ IMGS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "imgs")
 
 
 class MapDataItem(QgsDataItem):
-    def __init__(self, parent, layer_manager, title, pdok_layer_config):
+    def __init__(self, parent, layer_manager, title, pdok_layer_config, index):
         QgsDataItem.__init__(
             self, QgsDataItem.Custom, parent, title, "/Pdok/layers/" + title
         )
@@ -28,11 +28,12 @@ class MapDataItem(QgsDataItem):
         self.setIcon(QIcon(icon_path))
 
         self.populate()  # set to treat Item as not-folder-like
-
+        self._index = index
         self._parent = parent
         self._layer_manager = layer_manager
         self._title = title
         self._pdok_layer_config = pdok_layer_config
+        self.setSortKey("_index")
 
     def handleDoubleClick(self):
         self._add_layer_to_canvas()
@@ -40,13 +41,14 @@ class MapDataItem(QgsDataItem):
 
     def actions(self, parent):
         actions = []
-        add_raster_action = QAction(QIcon(), "Add layer", parent)
+        add_raster_action = QAction(QIcon(), "Add bookmark to map", parent)
         add_raster_action.triggered.connect(lambda: self._add_layer_to_canvas())
         actions.append(add_raster_action)
         return actions
 
     def _add_layer_to_canvas(self):
         logging.debug("_add_layer_to_canvas")
+        # TODO: check if bookmark is present in layer config
         self._layer_manager.load_layer(self._pdok_layer_config)
 
     def _delete(self):

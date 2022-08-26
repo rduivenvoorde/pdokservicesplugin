@@ -257,6 +257,12 @@ class PdokServicesPlugin(object):
             self.iface.mainWindow(), f"{PLUGIN_NAME} - About", infoString
         )
 
+    def refreshDip(self):
+        QgsApplication.instance().dataItemProviderRegistry().removeProvider(self.dip)
+        self.dip = None
+        self.dip = DataItemProvider(self.layer_manager)
+        QgsApplication.instance().dataItemProviderRegistry().addProvider(self.dip)
+
     def unload(self):
         try:  # using try except here because plugin could be unloaded during development: gracefully fail
             if not self.show_ls_feature():
@@ -998,6 +1004,7 @@ class PdokServicesPlugin(object):
                 elif action == down_fav_action:
                     self.bookmark_manager.change_bookmark_index(layer, 1)
                     self.add_fav_actions_to_toolbar_button()
+                self.refreshDip()
 
             else:
                 selected_style = self.get_selected_style()
@@ -1017,6 +1024,7 @@ class PdokServicesPlugin(object):
                     self.bookmark_manager.save_bookmark(layer)
                     self.update_layer_panel(layer)
                     self.add_fav_actions_to_toolbar_button()
+                    self.refreshDip()
 
     def add_bookmark_to_map(self, bookmark):
         if not bookmark:

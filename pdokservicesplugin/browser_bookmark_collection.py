@@ -6,7 +6,7 @@ from qgis.core import *
 
 from .browser_mapitem import MapDataItem
 from .bookmark_manager import BookmarkManager
-
+from .constants import PLUGIN_NAME
 
 import logging
 
@@ -35,7 +35,9 @@ class DataItemProvider(QgsDataItemProvider):
 
 class RootCollection(QgsDataCollectionItem):
     def __init__(self, layer_manager):
-        QgsDataCollectionItem.__init__(self, None, "PDOK", "/PDOK")
+        QgsDataCollectionItem.__init__(
+            self, None, f"{PLUGIN_NAME} - Favorieten", "/PDOK"
+        )
 
         self._layer_manager = layer_manager
         self.setIcon(QIcon(os.path.join(IMGS_PATH, "icon_pdok.svg")))
@@ -46,11 +48,13 @@ class RootCollection(QgsDataCollectionItem):
         bookmark_manager = BookmarkManager()
         bookmarks = bookmark_manager.get_bookmarks()
 
+        index = 0
         for bookmark in bookmarks:
-            title = f'{bookmark["service_md_id"]}/{bookmark["name"]}'
-            md_item = MapDataItem(self, self._layer_manager, title, bookmark)
+            title = self._layer_manager.get_bookmark_title(bookmark)
+            md_item = MapDataItem(self, self._layer_manager, title, bookmark, index)
             sip.transferto(md_item, self)
             children.append(md_item)
+            index += 1
 
         return children
 
