@@ -61,6 +61,11 @@ import locale
 import re
 import logging
 
+from .pdok_layer import LayerManager
+
+from .util import show_error, show_warning, info
+
+
 log = logging.getLogger(__name__)
 
 # Initialize Qt resources from file resources.py
@@ -87,7 +92,8 @@ from .lib.locatieserver import (
 from .settings_manager import SettingsManager
 from .bookmark_manager import BookmarkManager
 
-PLUGIN_NAME = "PDOK Services Plugin"
+from .constants import PLUGIN_NAME
+from .browser_bookmark_collection import DataItemProvider
 
 
 class PdokServicesPlugin(object):
@@ -96,6 +102,8 @@ class PdokServicesPlugin(object):
         self.iface = iface
         self.settings_manager = SettingsManager()
         self.bookmark_manager = BookmarkManager()
+
+        self.layer_manager = LayerManager(iface)
 
         self.plugin_dir = os.path.dirname(__file__)
         self.dlg = PdokServicesPluginDialog(parent=self.iface.mainWindow())
@@ -145,6 +153,9 @@ class PdokServicesPlugin(object):
             os.path.join(self.plugin_dir, "resources", "pdok_icon_delete.svg")
         )
 
+        self.dip = DataItemProvider(self.layer_manager)
+        QgsApplication.instance().dataItemProviderRegistry().addProvider(self.dip)
+
         self.run_action = QAction(self.run_icon, PLUGIN_NAME, self.iface.mainWindow())
         self.run_button = QToolButton()
         self.run_button.setMenu(QMenu())
@@ -160,14 +171,6 @@ class PdokServicesPlugin(object):
         self.toolbar = self.iface.addToolBar(PLUGIN_NAME)
         self.toolbar.setObjectName(PLUGIN_NAME)
         self.toolbar.addWidget(self.run_button)
-
-        # Set default layer loading behaviour
-        self.default_tree_locations = {
-            "wms": "top",
-            "wmts": "bottom",
-            "wfs": "top",
-            "wcs": "top",
-        }
 
         self.add_fav_actions_to_toolbar_button()
 
@@ -261,9 +264,14 @@ class PdokServicesPlugin(object):
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.run_action)
             self.iface.removePluginMenu(f"&{PLUGIN_NAME}", self.about_action)
             del self.toolbar
+
+            QgsApplication.instance().dataItemProviderRegistry().removeProvider(
+                self.dip
+            )
+            self.dip = None
+            QgsApplication.processingRegistry().removeProvider(self.provider)
         except Exception:
             pass
-        QgsApplication.processingRegistry().removeProvider(self.provider)
 
     def get_dd(self, val, val_string=""):
         md_item_empty = "<dd><em>Niet ingevuld</em></dd>"
@@ -294,7 +302,13 @@ class PdokServicesPlugin(object):
         # needed to scroll To the selected row incase of using the keyboard / arrows
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
         # itemType holds the data (== column 1)
-        layer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
+        pdok_layer_config = self.get_selected_pdok_layer_config()
+        crs = self.get_crs()
+
+        if "selectedStyle" not in pdok_layer_config:
+            selected_style = self.get_selected_style()
+            if selected_style is not None:
+                pdok_layer_config["selectedStyle"] = selected_style
 
         def reconnect(signal, newhandler):
             try:
@@ -305,17 +319,29 @@ class PdokServicesPlugin(object):
 
         reconnect(
             self.dlg.ui.btnLoadLayer.clicked,
-            (lambda layer: lambda: self.load_layer(layer, "default"))(layer),
+            (
+                lambda layer_config, crs: lambda: self.layer_manager.load_layer(
+                    layer_config, crs, "default"
+                )
+            )(pdok_layer_config, crs),
         )
         reconnect(
             self.dlg.ui.btnLoadLayerTop.clicked,
-            (lambda layer: lambda: self.load_layer(layer, "top"))(layer),
+            (
+                lambda layer_config, crs: lambda: self.layer_manager.load_layer(
+                    layer_config, crs, "top"
+                )
+            )(pdok_layer_config, crs),
         )
         reconnect(
             self.dlg.ui.btnLoadLayerBottom.clicked,
-            (lambda layer: lambda: self.load_layer(layer, "bottom"))(layer),
+            (
+                lambda layer_config, crs: lambda: self.layer_manager.load_layer(
+                    layer_config, crs, "bottom"
+                )
+            )(pdok_layer_config, crs),
         )
-        self.update_layer_panel(layer)
+        self.update_layer_panel(pdok_layer_config)
 
     def update_layer_panel(self, layer):
         url = layer["service_url"]
@@ -451,22 +477,11 @@ class PdokServicesPlugin(object):
                 if tilematrixsets[i].startswith("EPSG:28992"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-    def quote_wmts_url(self, url):
-        """
-        Quoten wmts url is nodig omdat qgis de query param `SERVICE=WMS` erachter plakt als je de wmts url niet quote.
-        Dit vermoedelijk omdat de wmts laag wordt toegevoegd mbv de wms provider: `return QgsRasterLayer(uri, title, "wms")`.
-        Wat op basis van de documentatie wel de manier is om een wmts laag toe te voegen.
-        """
-        parse_result = urllib.parse.urlparse(url)
-        location = f"{parse_result.scheme}://{parse_result.netloc}/{parse_result.path}"
-        query = parse_result.query
-        query_escaped_quoted = urllib.parse.quote_plus(query)
-        url = f"{location}?{query_escaped_quoted}"
-        return url
-
     def get_selected_style(self):
-        layer = self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
-
+        indices = self.dlg.servicesView.selectedIndexes()
+        layer = indices[1].data(Qt.UserRole) if len(indices) > 2 else None
+        if layer is None:
+            return
         selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
         selected_style = None
         if "styles" in layer:
@@ -483,110 +498,11 @@ class PdokServicesPlugin(object):
                 )
         return selected_style
 
-    # TODO: differentiate between map_layers (layers created in qgis) and config_layers (layers as defined in application config)
-    def load_layer(self, layer, tree_location=None):
-        def create_new_layer():
-            servicetype = layer["service_type"]
-            title = layer["title"]
-            layername = layer["name"]
-            url = layer["service_url"]
-
-            if servicetype == "wms":
-                imgformat = layer["imgformats"].split(",")[0]
-                if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                    crs = "EPSG:28992"
-                else:
-                    crs = self.dlg.ui.comboSelectProj.currentText()
-
-                selected_style_name = ""
-                if "selectedStyle" in layer:
-                    selected_style = layer["selectedStyle"]
-                else:
-                    selected_style = self.get_selected_style()
-                if selected_style is not None:
-                    selected_style_name = selected_style["name"]
-                    selected_style_title = selected_style["name"]
-                    if "title" in selected_style:
-                        selected_style_title = selected_style["title"]
-                    title += f" [{selected_style_title}]"
-
-                uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
-                return QgsRasterLayer(uri, title, "wms")
-            elif servicetype == "wmts":
-                if Qgis.QGIS_VERSION_INT < 10900:
-                    self.show_warning(
-                        f"""Sorry, dit type layer: '{servicetype.upper()}'
-                        kan niet worden geladen in deze versie van QGIS.
-                        Misschien kunt u QGIS 2.0 installeren (die kan het WEL)?
-                        Of is de laag niet ook beschikbaar als wms of wfs?"""
-                    )
-                    return None
-                url = self.quote_wmts_url(url)
-                if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                    tilematrixset = "EPSG:28992"
-                else:
-                    tilematrixset = self.dlg.ui.comboSelectProj.currentText()
-                imgformat = layer["imgformats"].split(",")[0]
-                if tilematrixset.startswith("EPSG:"):
-                    crs = tilematrixset
-                    i = crs.find(":", 5)
-                    if i > -1:
-                        crs = crs[:i]
-                elif tilematrixset.startswith("OGC:1.0"):
-                    crs = "EPSG:3857"
-                uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
-                return QgsRasterLayer(
-                    uri, title, "wms"
-                )  # `wms` is correct, zie ook quote_wmts_url
-            elif servicetype == "wfs":
-                uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
-                return QgsVectorLayer(uri, title, "wfs")
-            elif servicetype == "wcs":
-                # HACK to be able to make WCS working for now:
-                # 1) fixed format to "GEOTIFF_FLOAT32"
-                # 2) remove the '?request=getcapabiliteis....' part from the url
-                # But service is rather slow, maybe better to remove the WCS part from the plugin?q
-                # normally you would do a DescribeCoverage to find out about the format etc etc
-                format = "GEOTIFF_FLOAT32"
-                uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
-                # log.debug(f'WCS uri: {uri}')
-                return QgsRasterLayer(uri, title, "wcs")
-            else:
-                self.show_warning(
-                    f"""Sorry, dit type laag: '{servicetype.upper()}'
-                    kan niet worden geladen door de plugin of door QGIS.
-                    Is het niet beschikbaar als wms, wmts of wfs?
-                    """
-                )
-                return
-
-        if layer == None:
-            return
-        servicetype = layer["service_type"]
-        if tree_location is None:
-            tree_location = self.default_tree_locations[servicetype]
-        new_layer = create_new_layer()
-        if new_layer is None:
-            return
-        self.add_layer(new_layer, tree_location)
-
-    def add_layer(self, new_layer, tree_location="default"):
-        """Adds a QgsLayer to the project and layer tree.
-        tree_location can be 'default', 'top', 'bottom'
-        """
-        if tree_location not in ["default", "top", "bottom"]:
-            # TODO: proper error handling
-            return
-        if tree_location == "default":
-            QgsProject.instance().addMapLayer(new_layer, True)
-            return
-        QgsProject.instance().addMapLayer(new_layer, False)
-        new_layer_tree_layer = QgsLayerTreeLayer(new_layer)
-        layer_tree = self.iface.layerTreeCanvasBridge().rootGroup()
-        if tree_location == "top":
-            layer_tree.insertChildNode(0, new_layer_tree_layer)
-        if tree_location == "bottom":
-            layer_tree.insertChildNode(-1, new_layer_tree_layer)
+    def get_crs(self):
+        crs = "EPSG:28992"
+        if self.dlg.ui.comboSelectProj.currentIndex() != -1:
+            crs = self.dlg.ui.comboSelectProj.currentText()
+        return crs
 
     def filter_geocoder_result(self, string):
         self.dlg.geocoderResultView.selectRow(0)
@@ -660,11 +576,11 @@ class PdokServicesPlugin(object):
             self.dlg.geocoderResultView.resizeColumnsToContents()
             self.dlg.geocoderResultView.horizontalHeader().setStretchLastSection(True)
         except PdokServicesNetworkException as ex:
-            title = f"{PLUGIN_NAME} - HTTP Request Error"
+            title = f"HTTP Request Error"
             message = f"""an error occured while executing HTTP request, error:
                     {str(ex)}
                     """
-            self.show_error(message, title)
+            show_error(message, title)
 
     def erase_address(self):
         """
@@ -778,8 +694,9 @@ class PdokServicesPlugin(object):
             )
 
             self.dlg.servicesView.doubleClicked.connect(
-                lambda: self.load_layer(
-                    self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole),
+                lambda: self.layer_manager.load_layer(
+                    self.get_selected_pdok_layer_config(),
+                    self.get_crs(),
                     "default",
                 )
             )  # Using lambda here to prevent sending signal parameters to the loadService() function
@@ -817,6 +734,9 @@ class PdokServicesPlugin(object):
             self.dlg.show()
         self.settings_manager.store_setting("currenttab", self.dlg.tabs.currentIndex())
         self.remove_pointer_or_layer()
+
+    def get_selected_pdok_layer_config(self):
+        return self.dlg.servicesView.selectedIndexes()[1].data(Qt.UserRole)
 
     def setup_fq_checkboxes(self):
         """
@@ -859,14 +779,14 @@ class PdokServicesPlugin(object):
         try:
             data = lookup_object(lookup_id, Projection.EPSG_28992)
         except PdokServicesNetworkException as ex:
-            title = f"{PLUGIN_NAME} - HTTP Request Error"
+            title = f"HTTP Request Error"
             message = textwrap.dedent(
                 f"""an error occured while executing HTTP request, error:
 
                 {str(ex)}
                 """
             )
-            self.show_error(message, title)
+            show_error(message, title)
         if data is None:
             return
         self.zoom_to_result(data)
@@ -942,7 +862,7 @@ class PdokServicesPlugin(object):
             QgsWkbTypes.PolygonGeometry: "polygon",
         }
         if geom_type not in geom_type_dict:
-            self.info(
+            info(
                 f"unexpected geomtype return by ls: {geom_type}"
             )  # TODO: better error handling
             return
@@ -1010,14 +930,14 @@ class PdokServicesPlugin(object):
             try:
                 data = lookup_object(lookup_id, Projection.EPSG_28992)
             except PdokServicesNetworkException as ex:
-                title = f"{PLUGIN_NAME} - HTTP Request Error"
+                title = f"HTTP Request Error"
                 message = textwrap.dedent(
                     f"""an error occured while executing HTTP request, error:
 
                     {str(ex)}
                     """
                 )
-                self.show_error(message, title)
+                show_error(message, title)
             if data is None:
                 return
         self.fill_lookup_info(data)
@@ -1037,33 +957,6 @@ class PdokServicesPlugin(object):
             self.iface.mapCanvas().scene().removeItem(self.pointer)
             self.pointer = None
             self.clean_ls_search_action.setEnabled(False)
-
-    def info(self, msg=""):
-        QgsMessageLog.logMessage("{}".format(msg), "PDOK-services Plugin", Qgis.Info)
-
-    def show_error(self, message, title="PDOK plugin"):
-        message = textwrap.dedent(
-            message
-        )  # textwrap.dedent nodig want anders leading whitespace issue, zie https://stackoverflow.com/a/1412728/1763690
-        QMessageBox.critical(
-            self.iface.mainWindow(),
-            title,
-            (message),
-            QMessageBox.Ok,
-            QMessageBox.Ok,
-        )
-
-    def show_warning(self, message, title="PDOK plugin"):
-        message = textwrap.dedent(
-            message
-        )  # textwrap.dedent nodig want anders leading whitespace issue, zie https://stackoverflow.com/a/1412728/1763690
-        QMessageBox.warning(
-            self.iface.mainWindow(),
-            title,
-            (message),
-            QMessageBox.Ok,
-            QMessageBox.Ok,
-        )
 
     def make_fav_context_menu(self, position, layer):
         menu = QMenu()
@@ -1125,31 +1018,15 @@ class PdokServicesPlugin(object):
                     self.update_layer_panel(layer)
                     self.add_fav_actions_to_toolbar_button()
 
-    def add_bookmark_to_map(self, fav_layer, index):
-        if fav_layer:
-            # migration code required for change: https://github.com/rduivenvoorde/pdokservicesplugin/commit/a5700dace54250b8f18229939907c3cab39f5297
-            # which changed the schema of the layer config json file
-            migrate_fav = False
-            if "md_id" in fav_layer:
-                fav_layer["service_md_id"] = fav_layer["md_id"]
-                migrate_fav = True
-            if "layers" in fav_layer:
-                fav_layer["name"] = fav_layer["layers"]
-                migrate_fav = True
-            layer = self.get_layer_in_pdok_layers(fav_layer)
-
-            if "selectedStyle" in fav_layer:
-                layer["selectedStyle"] = fav_layer["selectedStyle"]
-            if migrate_fav:
-                self.bookmark_manager.save_bookmark(layer, index)
-            if layer:
-                self.load_layer(layer)
-                return
-        self.show_warning(
-            "Maak een Favoriet aan door in de dialoog met services en lagen via het context menu (rechter muisknop) een Favoriet te kiezen...",
-            "Geen Favoriet aanwezig (of verouderd)...",
-        )
-        self.run()
+    def add_bookmark_to_map(self, bookmark):
+        if not bookmark:
+            return
+        pdok_layer_config = self.get_layer_in_pdok_layers(bookmark)
+        if not pdok_layer_config:
+            return
+        if "selectedStyle" in bookmark:
+            pdok_layer_config["selectedStyle"] = bookmark["selectedStyle"]
+        self.layer_manager.load_layer(pdok_layer_config)
 
     def get_layer_in_pdok_layers(self, lyr):
         """
@@ -1176,17 +1053,14 @@ class PdokServicesPlugin(object):
             self.run_button.menu().addAction(fav_action)
             self.fav_actions.append(fav_action)
         else:
-            i = 1
             for fav_layer in fav_layers:
                 if fav_layer:
                     fav_action = QAction()
                     fav_action.setIcon(self.fav_icon)
                     fav_action.triggered.connect(
-                        (
-                            lambda fav_layer, i: lambda: self.add_bookmark_to_map(
-                                fav_layer, i
-                            )
-                        )(fav_layer, i)
+                        (lambda fav_layer: lambda: self.add_bookmark_to_map(fav_layer))(
+                            fav_layer
+                        )
                     )  # Double lambda is required in order to freeze argument, otherwise always last favourite is added
                     # see https://stackoverflow.com/a/10452866/1763690
 
@@ -1206,4 +1080,3 @@ class PdokServicesPlugin(object):
                     fav_action.setText(title)
                     self.run_button.menu().addAction(fav_action)
                     self.fav_actions.append(fav_action)
-                    i += 1
