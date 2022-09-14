@@ -6,6 +6,9 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 import itertools
 from contextlib import nullcontext
+from types import MethodType
+import warnings
+from urllib import parse
 import re
 import requests
 from copy import deepcopy
@@ -13,10 +16,8 @@ from owslib.csw import CatalogueServiceWeb
 from owslib.wms import WebMapService
 from owslib.wmts import WebMapTileService
 from owslib.wfs import WebFeatureService
-from owslib.wcs import WebCoverageService
-import warnings
+from owslib.wcs import WebCoverageService, wcs110
 
-from urllib import parse
 
 CSW_URL = "https://nationaalgeoregister.nl/geonetwork/srv/dut/csw"
 LOG_LEVEL = "INFO"
@@ -224,28 +225,27 @@ def empty_string_if_none(input_str):
 
 def get_wcs_cap(result):
     def convert_layer(lyr):
-
-        # return {
-        #     "title": empty_string_if_none(wcs[lyr].title),
-        #     "abstract": empty_string_if_none(wcs[lyr].abstract),
-        #     "name": wcs[lyr].id,
-        #     "dataset_md_id": "",  # pdok wcs services do not advertise dataset md link for now, so left empty since unsure how to access dataset md link with owslib for wcs
-        # }
-
-        # for now re-use the layer id's for everything. Proper fix would be to retrieve those from a DescribeCoverages request I think...
         return {
-            "title": wcs[lyr].id,
-            "abstract": wcs[lyr].id,
+            "title": empty_string_if_none(wcs[lyr].title),
+            "abstract": empty_string_if_none(wcs[lyr].abstract),
             "name": wcs[lyr].id,
-            "dataset_md_id": "",
-            # pdok wcs services do not advertise dataset md link for now, so left empty since unsure how to access dataset md link with owslib for wcs
+            "dataset_md_id": "",  # pdok wcs services do not advertise dataset md link for now, so left empty since unsure how to access dataset md link with owslib for wcs
         }
+
+    def OWS(cls, tag):
+        print("Namespaces_1_1_0_fix", "{http://www.opengis.net/ows/1.1}" + tag)
+        return "{http://www.opengis.net/ows/1.1}" + tag
 
     try:
         url = result["url"]
         md_id = result["md_id"]
         logging.info(f"{md_id} - {url}")
-        wcs = WebCoverageService(url, version="2.0.1")
+        # monkeypatch OWS method to fix namespace issue
+        # owslib is using a different namespace url than mapserver is in cap doc
+        wcs110.Namespaces_1_1_0.OWS = MethodType(OWS, wcs110.Namespaces_1_1_0)
+
+        # use version=1.1.0 since that cap doc list title and abstract for coverage
+        wcs = WebCoverageService(url, version="1.1.0")
         keywords = wcs.identification.keywords
         getcoverage_op = next(
             (x for x in wcs.operations if x.name == "GetCoverage"), None
