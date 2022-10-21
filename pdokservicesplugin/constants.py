@@ -1,1 +1,1 @@
-PLUGIN_NAME = "PDOK Services Plugin"
+PLUGIN_NAME = "PDOK Services"

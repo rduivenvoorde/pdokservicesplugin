@@ -121,6 +121,7 @@ class BookmarkManager:
     def change_bookmark_index(self, bookmark, index_delta):
         bookmark_index = self.get_bookmark_index(bookmark)
         if bookmark_index != -1:
+            stored_bookmarks = self.get_bookmarks()
             stored_bookmarks = self.move_item_in_list(
                 stored_bookmarks, bookmark_index, index_delta
             )

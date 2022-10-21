@@ -24,6 +24,7 @@ from qgis.core import (
     Qgis,
 )
 import logging
+from .constants import PLUGIN_NAME
 
 """
 The name of logger we use in this plugin.

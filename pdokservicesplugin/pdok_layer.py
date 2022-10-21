@@ -117,7 +117,7 @@ class LayerManager:
 
         if service_type not in ["wcs", "wms", "wfs", "wmts"]:
             raise ServiceTypeNotSupportedException(
-                f"service type {service_type} is not supported by the PDOK Services Plugin"
+                f"service type {service_type} is not supported by {PLUGIN_NAME}"
             )
 
         fun = _func_dict()[service_type]
