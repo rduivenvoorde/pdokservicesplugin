@@ -79,3 +79,21 @@ Create symlink to QGIS plugin directory from repository directory (Windows):
 Rem maak eenv QGIS profiel aan met de naam "pdokplugin-develop"
 mklink /d "%APPDATA%\QGIS\QGIS3\profiles\pdokplugin-develop\python\plugins\pdokservicesplugin" "%REPODIR%\pdokservicesplugin"
 ```
+
+### Update PDOK Layer Config File
+
+To update the [PDOK layers config file](./pdokservicesplugin/resources/layers-pdok.json) run the [`spider/update-pdok-layers.sh`](spider/update-pdok-layers.sh) Bash script. The bash script runs a docker container running 
+[pdok/ngr-services-spider](https://github.com/pdok/ngr-services-spider). 
+
+Run script without arguments to update PDOK layers configuration file:
+
+```sh
+spider/update-pdok-layers.sh
+```
+
+To inspect the options to the script run:
+
+
+```sh
+spider/update-pdok-layers.sh -h
+```
