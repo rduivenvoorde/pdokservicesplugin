@@ -1,2 +1,2 @@
-OWSLib==0.23.0
+OWSLib==0.28.1
 requests==2.25.0
