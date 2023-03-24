@@ -33,9 +33,17 @@ def get_reply(url):
     return reply
 
 
-def get_request_bytes(url) -> bytes:
+def get_request_bytes(url, expected_content_type: str = None) -> bytes:
     reply = get_reply(url)
-    return bytes(reply.content())
+
+    if expected_content_type:
+        content_type = str(reply.rawHeader(b"Content-Type"), encoding="utf-8")
+        if content_type != expected_content_type:
+            raise Exception(
+                f"unexpected Content-Type of response {content_type}, expected Content-Type {expected_content_type}. Request url: {url}"
+            )
+    result = bytes(reply.content())
+    return result
 
 
 def get_request_text(url) -> str:

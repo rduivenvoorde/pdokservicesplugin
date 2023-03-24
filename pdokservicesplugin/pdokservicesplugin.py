@@ -60,6 +60,7 @@ import urllib.request, urllib.parse, urllib.error
 import locale
 import re
 import logging
+
 log = logging.getLogger(__name__)
 
 # Initialize Qt resources from file resources.py
@@ -173,7 +174,7 @@ class PdokServicesPlugin(object):
             self.toolbar_search.selectAll()
             self.timer_toolbar_search.start()
 
-        self.toolbar_search.mousePressEvent = lambda _ : toolbar_search_mouse_event()
+        self.toolbar_search.mousePressEvent = lambda _: toolbar_search_mouse_event()
 
         self.toolbar_search.setMaximumWidth(200)
         self.toolbar_search.setAlignment(Qt.AlignLeft)
@@ -190,7 +191,9 @@ class PdokServicesPlugin(object):
         eraser_icon = QIcon(
             os.path.join(self.plugin_dir, "resources", "icon_remove_cross.svg")
         )
-        self.clean_ls_search_action = QAction(eraser_icon, "Cleanup", self.erase_address())
+        self.clean_ls_search_action = QAction(
+            eraser_icon, "Cleanup", self.erase_address()
+        )
 
         if not self.show_ls_feature():
             self.toolbar.addAction(self.clean_ls_search_action)
@@ -536,7 +539,7 @@ class PdokServicesPlugin(object):
             # normally you would do a DescribeCoverage to find out about the format etc etc
             format = "GEOTIFF_FLOAT32"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
-            #log.debug(f'WCS uri: {uri}')
+            # log.debug(f'WCS uri: {uri}')
             return QgsRasterLayer(uri, title, "wcs")
         else:
             self.show_warning(
@@ -933,9 +936,9 @@ class PdokServicesPlugin(object):
         if show_ls_feature:
             self.iface.mapCanvas().flashGeometries(
                 [geom],
-                startColor=QColor('#ff0000'),
-                endColor=QColor('#FFFF00'),
-                flashes=10
+                startColor=QColor("#ff0000"),
+                endColor=QColor("#FFFF00"),
+                flashes=10,
             )
         else:
             centroid = QgsGeometry.fromWkt(data["wkt_centroid"])
@@ -1225,7 +1228,7 @@ class PdokServicesPlugin(object):
                 fav_lyr["service_md_id"] = fav_lyr["md_id"]
                 # thinking I could maybe 'fix' the settings I thought to get the fav_layer_index here, BUT
                 # not possible because that function itself calls layer_equals_fav_layer => too much recursion
-                #log.debug(f'fav_layer index?: {self.get_fav_layer_index(fav_lyr)}')
+                # log.debug(f'fav_layer index?: {self.get_fav_layer_index(fav_lyr)}')
             else:
                 # unable to 'fix' ...
                 return False

@@ -38,58 +38,10 @@ from pdokservicesplugin.lib.util import (
 )
 
 import logging
+
 log = logging.getLogger(__name__)
 
 from ..lib.http_client import get_request_bytes, PdokServicesNetworkException
-
-# util methods for unpacking wcs response
-
-
-def get_boundary(response):
-    pattern = b"^\r\n(--.*)\r\n"
-    m = re.search(pattern, response)
-    if m:
-        return m.group(1)
-    return ""
-
-
-def split_on_find(content, bound):
-    point = content.find(bound)
-    return content[:point], content[point + len(bound) :]
-
-
-def encode_with(string, encoding):
-    if not (string is None or isinstance(string, bytes)):
-        return string.encode(encoding)
-    return string
-
-
-def header_parser(string, encoding):
-    string = string.decode(encoding)
-    headers = email.parser.HeaderParser().parsestr(string).items()
-    return ((encode_with(k, encoding), encode_with(v, encoding)) for k, v in headers)
-
-
-def parse_response(content):
-    encoding = "utf-8"
-    sep = get_boundary(content)
-    parts = content.split(b"".join((b"\r\n", sep)))
-    parts = parts[1:-1]
-    result = []
-    for part in parts:
-        if b"\r\n\r\n" in part:
-            first, body = split_on_find(part, b"\r\n\r\n")
-            headers = header_parser(first.lstrip(), encoding)
-            headers = CaseInsensitiveDict(headers)
-            item = {}
-            item["headers"] = headers
-            item["content"] = body
-            result.append(item)
-    return result
-
-
-# end - util methods for unpacking wcs response
-# TODO: move code to lib folder
 
 
 class PDOKWCSTool(QgsProcessingAlgorithm):
@@ -223,14 +175,15 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             log.debug(e)
             pass
 
-
     def processAlgorithm(self, parameters, context, feedback):
         # see above, it is possible that initing of the algo failed, we check here and let user know...
         if parameters == {}:
-            raise QgsProcessingException("Er is iets misgegaan met het initialiseren van de input parameters.<br/>"
-                                         "Misschien geen (werkende) internet verbinding?<br/>"
-                                         "Dan kan namelijk de AHN service niet worden bereikt...<br/>"
-                                         "Raadpleeg ook de MessageLog.")
+            raise QgsProcessingException(
+                "Er is iets misgegaan met het initialiseren van de input parameters.<br/>"
+                "Misschien geen (werkende) internet verbinding?<br/>"
+                "Dan kan namelijk de AHN service niet worden bereikt...<br/>"
+                "Raadpleeg ook de MessageLog."
+            )
 
         try:
             # read out parameters
@@ -324,15 +277,11 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         y_upper_bound = y_lower_bound + (2 * cell_size)
         url = f"{self.wcs_url}?service=WCS&Request=GetCoverage&version=2.0.1&CoverageId={coverage_id}&format=image/tiff&subset=x({x_lower_bound},{x_upper_bound})&subset=y({y_lower_bound},{y_upper_bound})"
         feedback.pushInfo(f"WCS GetCoverage url: {url}")
-        response_body = get_request_bytes(url)
-        multipart_data = parse_response(response_body)
-        for part in multipart_data:
-            if part["headers"][b"content-type"] == b"image/tiff":
-                coverage = part["content"]
+        response_body = get_request_bytes(url, "image/tiff")
         uuid_string = str(uuid.uuid4())
         tif_file_name = f"/vsimem/{uuid_string}.tif"
         gdal.UseExceptions()
-        gdal.FileFromMemBuffer(tif_file_name, coverage)
+        gdal.FileFromMemBuffer(tif_file_name, response_body)
         ds = gdal.Open(tif_file_name)
         return ds
 

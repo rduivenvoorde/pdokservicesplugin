@@ -320,7 +320,6 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             feature_total = input_layer.featureCount()
 
             for feature in input_layer.getFeatures():
-
                 expr = QgsExpression(att_expression)
                 context = QgsExpressionContext()
                 context.setFeature(feature)

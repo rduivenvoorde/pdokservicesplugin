@@ -30,7 +30,7 @@ The name of logger we use in this plugin.
 It is created in the plugin.py and logs to the QgsMessageLog under the 
 given LOGGER_NAME tab
 """
-LOGGER_NAME = 'PDOK services plugin'
+LOGGER_NAME = "PDOK services plugin"
 
 
 class QgisLogHandler(logging.StreamHandler):
@@ -44,6 +44,7 @@ class QgisLogHandler(logging.StreamHandler):
     in all this plugin code, and it will show up in the QgsMessageLog
 
     """
+
     def __init__(self, topic):
         logging.StreamHandler.__init__(self)
         # topic is used both as logger id and for tab
@@ -72,7 +73,7 @@ class QgisLogHandler(logging.StreamHandler):
             20: Qgis.MessageLevel.Info,
             30: Qgis.MessageLevel.Warning,
             40: Qgis.MessageLevel.Warning,
-            50: Qgis.MessageLevel.Critical
+            50: Qgis.MessageLevel.Critical,
         }
 
     def emit(self, record):
@@ -80,17 +81,23 @@ class QgisLogHandler(logging.StreamHandler):
         # Without this it will not be shown because it is something like
         # <qgisnetworklogger.plugin.QgisNetworkLogger object at 0x7f580dac6b38>
         # which looks like an html element so is not shown in the html panel
-        #msg = self.format(record)
-        msg = record.getMessage().replace('<', '&lt;').replace('>', '&gt;')
-        from qgis.core import QgsMessageLog  # we need this... else QgsMessageLog is None after a plugin reload
-        QgsMessageLog.logMessage(f'{record.filename}:{record.lineno} - {msg}', self.topic, self.level_to_qgis[record.levelno])
+        # msg = self.format(record)
+        msg = record.getMessage().replace("<", "&lt;").replace(">", "&gt;")
+        from qgis.core import (
+            QgsMessageLog,
+        )  # we need this... else QgsMessageLog is None after a plugin reload
 
+        QgsMessageLog.logMessage(
+            f"{record.filename}:{record.lineno} - {msg}",
+            self.topic,
+            self.level_to_qgis[record.levelno],
+        )
 
 
 # using the root logger here, so we also can view the api logging if needed
 # alternative would be:
 log = logging.getLogger(LOGGER_NAME)
-#log = logging.getLogger()
+# log = logging.getLogger()
 
 # so to SHOW: COMMENT these lines
 logging.getLogger(LOGGER_NAME).setLevel(logging.WARNING)
@@ -99,13 +106,15 @@ logging.getLogger(LOGGER_NAME).setLevel(logging.WARNING)
 # is reloaded (during development), then the msg is emitted several times
 if not log.hasHandlers():
     handler = QgisLogHandler(LOGGER_NAME)
-    handler.setFormatter(logging.Formatter('%(name)s - %(message)s'))
+    handler.setFormatter(logging.Formatter("%(name)s - %(message)s"))
     log.addHandler(handler)
 # set logging level (NOTSET = no, else: DEBUG or INFO)
 log.setLevel(logging.DEBUG)
 log.propagate = True
 
+
 def classFactory(iface):
     # load PdokServicesPlugin class from file PdokServicesPlugin
     from .pdokservicesplugin import PdokServicesPlugin
+
     return PdokServicesPlugin(iface)

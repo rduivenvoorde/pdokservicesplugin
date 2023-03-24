@@ -76,6 +76,15 @@ pyrcc5 resources.qrc -o resources_rc.py &&
 Create symlink to QGIS plugin directory from repository directory (Windows):
 
 ```bat
-Rem maak eenv QGIS profiel aan met de naam "pdokplugin-develop"
+Rem maak een QGIS profiel aan met de naam "pdokplugin-develop"
 mklink /d "%APPDATA%\QGIS\QGIS3\profiles\pdokplugin-develop\python\plugins\pdokservicesplugin" "%REPODIR%\pdokservicesplugin"
+```
+
+Create symlink to QGIS plugin directory from repository directory (Ubuntu):
+
+```sh
+# maak een QGIS profiel aan met de naam "pdokplugin-develop"
+symlink_path "$(realpath ~)/.local/share/QGIS/QGIS3/profiles/pdokplugin-develop/python/plugins/pdokservicesplugin"
+mkdir -p $(dirname "$symlink_path")
+ln -s "$(pwd)/pdokservicesplugin" "$symlink_path" # uitvoeren vanuit root van repo
 ```
