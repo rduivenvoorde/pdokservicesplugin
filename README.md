@@ -73,7 +73,7 @@ pyrcc5 resources.qrc -o resources_rc.py &&
     black resources_rc.py
 ```
 
-Update layers config file in [`pdokservicesplugin/resources/layers-pdok.json`](pdokservicesplugin/resources/layers-pdok.json):
+Update layers config file in [`pdokservicesplugin/resources/layers-pdok.json`](pdokservicesplugin/resources/layers-pdok.json) (run from root of repo):
 
 ```sh
 scripts/generate-pdok-layers-config.sh pdokservicesplugin/resources/layers-pdok.json
