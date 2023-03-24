@@ -89,11 +89,11 @@ class QgisLogHandler(logging.StreamHandler):
 
 # using the root logger here, so we also can view the api logging if needed
 # alternative would be:
-#    log = logging.getLogger(LOGGER_NAME)
-log = logging.getLogger()
+log = logging.getLogger(LOGGER_NAME)
+#log = logging.getLogger()
 
 # so to SHOW: COMMENT these lines
-#logging.getLogger(LOGGER_NAME).setLevel(logging.WARNING)
+logging.getLogger(LOGGER_NAME).setLevel(logging.WARNING)
 
 # checking below is needed, else we add this handler every time the plugin
 # is reloaded (during development), then the msg is emitted several times
