@@ -11,6 +11,7 @@ import os.path
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import QCoreApplication, QVariant
+from qgis.core import QgsWkbTypes
 
 from qgis.core import (
     QgsProject,
@@ -301,12 +302,16 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
             if add_score_field:
                 fields.append(QgsField(score_att_name, QVariant.Double))
 
+            result_geom_type = result_type.geom_type()
+            if not get_actual_geom:
+                result_geom_type =  QgsWkbTypes.Point
+
             (sink, dest_id) = self.parameterAsSink(
                 parameters,
                 self.OUTPUT,
                 context,
                 fields,
-                result_type.geom_type(),
+                result_geom_type,
                 out_crs,
             )
 
@@ -318,13 +323,12 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
 
             feature_counter = 0
             feature_total = input_layer.featureCount()
-
+            
             for feature in input_layer.getFeatures():
                 expr = QgsExpression(att_expression)
                 context = QgsExpressionContext()
                 context.setFeature(feature)
                 attribute_val = expr.evaluate(context)
-                # feedback.pushInfo(f"attribute_val: {attribute_val}")
 
                 # Set returned NULL value to None (workaround, cause QGIS does not yet return a None for empty cells)
                 # TODO: add logging for skipped features
@@ -340,11 +344,9 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
                     postal_code = match.group(1)
                     house_nr = match.group(2)
                     attribute_val = f"postcode:{postal_code} and huisnummer:{house_nr}"
-
                 data = free_query(
                     attribute_val, Projection.EPSG_28992, TypeFilter([result_type])
                 )
-
                 geom = None
                 display_name = ""
                 score = None
