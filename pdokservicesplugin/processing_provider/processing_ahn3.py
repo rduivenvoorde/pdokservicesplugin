@@ -187,15 +187,16 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
 
         try:
             # read out parameters
-            input_layer = self.parameterAsVectorLayer(parameters, self.INPUT, context)
-            in_crs = input_layer.crs()
+            input_source = self.parameterAsSource(parameters, self.INPUT, context)
+            in_crs = input_source.sourceCrs()
             attribute_name = parameters[self.ATTRIBUTE_NAME]
+
             coverage_id = [
                 self.coverages[i]
                 for i in self.parameterAsEnums(parameters, self.COVERAGE_ID, context)
             ][0]
             # start processing
-            fields = input_layer.fields()
+            fields = input_source.fields()
             fields.append(QgsField(attribute_name, QVariant.Double))
             field_names = [field.name() for field in fields]
             (sink, dest_id) = self.parameterAsSink(
@@ -203,7 +204,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                 self.OUTPUT,
                 context,
                 fields,
-                input_layer.wkbType(),
+                input_source.wkbType(),
                 in_crs,
             )
             if feedback.isCanceled():
@@ -216,7 +217,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                 transform_input = QgsCoordinateTransform(
                     in_crs, wcs_crs, QgsProject.instance()
                 )
-            for feature in input_layer.getFeatures():
+            for feature in input_source.getFeatures():
                 geom = feature.geometry()
                 if in_crs.authid() != wcs_proj_authid:
                     geom.transform(transform_input)

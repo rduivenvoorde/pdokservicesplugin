@@ -6,7 +6,8 @@ from osgeo import ogr
 
 from .http_client import get_request_json
 
-SERVICE_ENDPOINT="https://api.pdok.nl/bzk/locatieserver/search/v3_1"
+SERVICE_ENDPOINT = "https://api.pdok.nl/bzk/locatieserver/search/v3_1"
+
 
 class Projection(Enum):
     def __str__(self):

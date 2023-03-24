@@ -304,7 +304,7 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
 
             result_geom_type = result_type.geom_type()
             if not get_actual_geom:
-                result_geom_type =  QgsWkbTypes.Point
+                result_geom_type = QgsWkbTypes.Point
 
             (sink, dest_id) = self.parameterAsSink(
                 parameters,
@@ -323,7 +323,7 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
 
             feature_counter = 0
             feature_total = input_layer.featureCount()
-            
+
             for feature in input_layer.getFeatures():
                 expr = QgsExpression(att_expression)
                 context = QgsExpressionContext()
