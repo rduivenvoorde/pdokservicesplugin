@@ -969,7 +969,7 @@ class PdokServicesPlugin(object):
             if key in ["wkt_centroid", "wkt_geom"]:  # skip geom fields
                 continue
             val = data_sorted[key]
-            if isinstance(val, str) and re.match(r"^https?:\/\/.*$", val):
+            if isinstance(val, str) and re.match(r"^https?://.*$", val):
                 val = f'<a href="{val}">{val}</a>'
             if isinstance(val, list):
                 val = ", ".join(val)

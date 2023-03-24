@@ -319,7 +319,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         coverage = self.wcs.contents[coverage_id]
         proj_string = coverage.boundingboxes[0]["nativeSrs"]
         # http://www.opengis.net/def/crs/EPSG/0/28992
-        p = re.compile("^.*\/(.*?)\/.*?\/(.*)$")
+        p = re.compile(r"^.*/(.*?)/.*?/(.*)$")
         m = p.match(proj_string)
         if not m:
             raise ValueError("unable to extract EPSG code from {proj_string}")

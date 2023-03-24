@@ -339,7 +339,7 @@ class PDOKGeocoder(QgsProcessingAlgorithm):
 
                 # check if src_field_val matches postcode in format exactly "9090AA 20-a"
                 # TODO: make explicit behind option?
-                match = re.search("^([0-9]{4}[A-Za-z]{2})\s(.*)$", attribute_val)
+                match = re.search(r"^([0-9]{4}[A-Za-z]{2})\s(.*)$", attribute_val)
                 if match and len(match.groups()) == 2:
                     postal_code = match.group(1)
                     house_nr = match.group(2)
