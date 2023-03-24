@@ -6,9 +6,7 @@ from osgeo import ogr
 
 from .http_client import get_request_json
 
-SERVICE_ENDPOINT = "https://geodata.nationaalgeoregister.nl/locatieserver/v3"
-REV_SERVICE_ENDPOINT = "https://geodata.nationaalgeoregister.nl/locatieserver/v4"
-
+SERVICE_ENDPOINT="https://api.pdok.nl/bzk/locatieserver/search/v3_1"
 
 class Projection(Enum):
     def __str__(self):
@@ -193,7 +191,7 @@ def reverse_lookup(
     """
     rev_geo_type_filter = type_filter.rev_geo_filter()
     fields_query_string = url_encode_query_string(",".join(fields))
-    url = f"{REV_SERVICE_ENDPOINT}/revgeo/?X={x}&Y={y}&{rev_geo_type_filter}&fl={fields_query_string}"  # {rev_geo_type_filter}
+    url = f"{SERVICE_ENDPOINT}/reverse?X={x}&Y={y}&{rev_geo_type_filter}&fl={fields_query_string}"  # {rev_geo_type_filter}
     content_obj = get_request_json(url)
     result = content_obj["response"]["docs"]
     return result
