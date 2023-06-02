@@ -222,11 +222,7 @@ class Ui_PdokServicesPlugin(object):
     def retranslateUi(self, PdokServicesPlugin):
         _translate = QtCore.QCoreApplication.translate
         PdokServicesPlugin.setWindowTitle(
-<<<<<<< HEAD
-            _translate("PdokServicesPlugin", "PDOK Services Plugin")
-=======
             _translate("PdokServicesPlugin", "PDOK Services")
->>>>>>> 1d93c7a (wip)
         )
         self.layerSearch.setPlaceholderText(
             _translate(

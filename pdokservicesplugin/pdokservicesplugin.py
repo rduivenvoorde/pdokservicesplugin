@@ -153,7 +153,7 @@ class PdokServicesPlugin(object):
             os.path.join(self.plugin_dir, "resources", "pdok_icon_delete.svg")
         )
 
-        self.dip = DataItemProvider(self.layer_manager)
+        self.dip = DataItemProvider(self.layer_manager, self.callback)
         QgsApplication.instance().dataItemProviderRegistry().addProvider(self.dip)
 
         self.run_action = QAction(self.run_icon, PLUGIN_NAME, self.iface.mainWindow())
@@ -255,12 +255,16 @@ class PdokServicesPlugin(object):
         )
         QMessageBox.information(
             self.iface.mainWindow(), f"{PLUGIN_NAME} - About", infoString
-        )
+        )  
+
+    def callback(self):
+        self.add_fav_actions_to_toolbar_button()
+        
 
     def refreshDip(self):
         QgsApplication.instance().dataItemProviderRegistry().removeProvider(self.dip)
         self.dip = None
-        self.dip = DataItemProvider(self.layer_manager)
+        self.dip = DataItemProvider(self.layer_manager, self.callback)
         QgsApplication.instance().dataItemProviderRegistry().addProvider(self.dip)
 
     def unload(self):
@@ -1076,11 +1080,13 @@ class PdokServicesPlugin(object):
                     title = fav_layer["title"].capitalize()
                     if "selectedStyle" in fav_layer:
                         style = fav_layer["selectedStyle"]
-                        style_title = style["name"]
-                        if "title" in style:
-                            style_title = style["title"]
-                        if style_title:
-                            title = f"{title} [{style_title}]"
+
+                        if "name" in style:
+                            style_title = style["name"]
+                            if "title" in style:
+                                style_title = style["title"]
+                            if style_title:
+                                title = f"{title} [{style_title}]"
 
                     if "service_type" in fav_layer:
                         stype = fav_layer["service_type"].upper()
