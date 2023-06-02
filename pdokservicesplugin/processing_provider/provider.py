@@ -5,7 +5,7 @@ from qgis.core import QgsProcessingProvider
 
 from .processing_geocoder import PDOKGeocoder
 from .processing_reverse_geocoder import PDOKReverseGeocoder
-from .processing_ahn3 import PDOKWCSTool
+from .processing_ahn import PDOKWCSTool
 
 from ..lib.constants import PLUGIN_NAME, PLUGIN_ID
 
