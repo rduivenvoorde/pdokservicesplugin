@@ -61,26 +61,26 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         """
         Returns the unique algorithm name.
         """
-        return "pdok-ahn3-wcs-tool"
+        return "pdok-ahn-wcs-tool"
 
     def displayName(self):
         """
         Returns the translated algorithm name.
         """
-        return self.tr("PDOK AHN3 WCS Tool")
+        return self.tr("PDOK AHN WCS Tool")
 
     def group(self):
         """
         Returns the name of the group this algorithm belongs to.
         """
-        return self.tr("AHN3")
+        return self.tr("AHN")
 
     def groupId(self):
         """
         Returns the unique ID of the group this algorithm belongs
         to.
         """
-        return "pdok-ahn3"
+        return "pdok-ahn"
 
     def icon(self):
         provider_path = os.path.dirname(__file__)
@@ -97,15 +97,24 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         return self.tr(
             textwrap.dedent(
                 """
-                Deze processing tool haalt hoogtedata op van de <a href="https://service.pdok.nl/rws/ahn3/wcs/v1_0?request=GetCapabilities&service=WCS">AHN3 WCS</a> service voor elk punt in de input-laag. De output is een puntenlaag met het toegevoegde hoogte attribuut. Wanneer voor een locatie in de AHN3 WCS een <tt>NODATA</tt> waarde wordt gevonden is de resulterende waarde in de outputlaag <tt>NULL</tt>.
+                Deze processing tool haalt hoogtedata op van de <a href="https://service.pdok.nl/rws/ahn/wcs/v1_0?request=GetCapabilities&service=WCS">AHN WCS</a> service voor elk punt in de input-laag. De output is een puntenlaag met het toegevoegde hoogte attribuut. Wanneer voor een locatie in de AHN WCS een <tt>NODATA</tt> waarde wordt gevonden is de resulterende waarde in de outputlaag <tt>NULL</tt>.
 
+                <h3>Metadata</h3>
+                <dl>
+                    <dt><b>Dataset metadata</b><dt>
+                    <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/41daef8b-155e-4608-b49c-c87ea45d931g" >Actueel Hoogtebestand Nederland DSM</a></dd>
+                    <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/41daef8b-155e-4608-b49c-c87ea45d931c" >Actueel Hoogtebestand Nederland DTM</a></dd>
+                    <dt><b>Service metadata</b><dt>
+                    <dd><a href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/bfcc588f-9393-4c70-b989-d9e92ac2f493" >Actueel Hoogtebestand Nederland (AHN) WCS</a></dd>
+                </dl>
+                              
 
                 <h3>Parameters</h3>
                 <dl>
                     <dt><b>Input point layer</b><dt>
                     <dd>input-laag met punten</dd>
                     <dt><b>CoverageId:</b></dt>
-                    <dd>coverage om te bevragen, de AHN3 biedt verschillende coverages; voornaamste verschil is resolutie (5m vs 0.5m) en terrein (dtm) - vs oppervlaktemodel (dsm), zie de <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentatie</a></dd>
+                    <dd>coverage om te bevragen, de AHN biedt verschillende coverages; voornaamste verschil is resolutie (5m vs 0.5m) en terrein (dtm) - vs oppervlaktemodel (dsm), zie de <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentatie</a></dd>
                     <dt><b>Attribute name:</b></dt>
                     <dd>attribuutnaam om de hoogte op te slaan in de outputlaag</dd>
                     <dt><b>Output layer:</b></dt>
@@ -124,13 +133,12 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             self.OUTPUT = "OUTPUT"  # recommended name for the main output parameter
             self.ATTRIBUTE_NAME = "ATTRIBUTE_NAME"
             self.COVERAGE_ID = "COVERAGE_ID"
-            self.wcs_url = "https://service.pdok.nl/rws/ahn3/wcs/v1_0"
+            self.wcs_url = "https://service.pdok.nl/rws/ahn/wcs/v1_0"
             self.cap_url = f"{self.wcs_url}?request=GetCapabilities&service=WCS"
             _xml_bytes = get_request_bytes(self.cap_url)
             self.wcs = WebCoverageService_2_0_1(self.wcs_url, _xml_bytes, None)
-
             _coverages = list(self.wcs.contents.keys())
-
+            
             for cov in _coverages:
                 desc_cov_url = f"{self.wcs_url}?request=DescribeCoverage&service=WCS&version=2.0.1&coverageId={cov}"
                 desc_cov_resp = get_request_bytes(desc_cov_url)
@@ -151,7 +159,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                     self.tr("CoverageId"),
                     options=self.coverages,
                     defaultValue=self.coverages.index(
-                        "ahn3_05m_dtm"
+                        "dtm_05m"
                     ),  # sensible default? - although many nodata areas due to buildings
                     optional=False,
                 )
@@ -242,6 +250,9 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                         f"NODATA value found for feature with id: {fid}, geom: POINT({x},{y})"
                     )
                     ahn_val = None
+                else:
+                    ahn_val = round(ahn_val, 2) # reduce precision to 2 digits after the decimal point
+                    
                 new_ft.setAttribute(attribute_name, ahn_val)
                 new_ft.setGeometry(geom)
                 sink.addFeature(new_ft, QgsFeatureSink.FastInsert)
