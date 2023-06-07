@@ -47,6 +47,12 @@ from ..lib.http_client import get_request_bytes, PdokServicesNetworkException
 class PDOKWCSTool(QgsProcessingAlgorithm):
     """ """
 
+    wcs_url = "https://service.pdok.nl/rws/ahn/wcs/v1_0"
+    cap_url = f"{wcs_url}?request=GetCapabilities&service=WCS"
+    coverages = [ "dtm_05m", "dsm_05m"]
+    default_coverage = coverages[0]
+
+
     def tr(self, string):
         """
         Returns a translatable string with the self.tr() function.
@@ -96,7 +102,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
         """
         return self.tr(
             textwrap.dedent(
-                """
+                f"""
                 Deze processing tool haalt hoogtedata op van de <a href="https://service.pdok.nl/rws/ahn/wcs/v1_0?request=GetCapabilities&service=WCS">AHN WCS</a> service voor elk punt in de input-laag. De output is een puntenlaag met het toegevoegde hoogte attribuut. Wanneer voor een locatie in de AHN WCS een <tt>NODATA</tt> waarde wordt gevonden is de resulterende waarde in de outputlaag <tt>NULL</tt>.
 
                 <h3>Metadata</h3>
@@ -114,7 +120,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                     <dt><b>Input point layer</b><dt>
                     <dd>input-laag met punten</dd>
                     <dt><b>CoverageId:</b></dt>
-                    <dd>coverage om te bevragen, de AHN biedt verschillende coverages; voornaamste verschil is resolutie (5m vs 0.5m) en terrein (dtm) - vs oppervlaktemodel (dsm), zie de <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentatie</a></dd>
+                    <dd>coverage om te bevragen, de AHN biedt twee coverages: {", ".join(PDOKWCSTool.coverages)} (een terrein- (dtm) vs oppervlaktemodel (dsm), zie de <a href="https://www.ahn.nl/kwaliteitsbeschrijving">AHN documentatie)</a></dd>
                     <dt><b>Attribute name:</b></dt>
                     <dd>attribuutnaam om de hoogte op te slaan in de outputlaag</dd>
                     <dt><b>Output layer:</b></dt>
@@ -133,19 +139,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             self.OUTPUT = "OUTPUT"  # recommended name for the main output parameter
             self.ATTRIBUTE_NAME = "ATTRIBUTE_NAME"
             self.COVERAGE_ID = "COVERAGE_ID"
-            self.wcs_url = "https://service.pdok.nl/rws/ahn/wcs/v1_0"
-            self.cap_url = f"{self.wcs_url}?request=GetCapabilities&service=WCS"
-            _xml_bytes = get_request_bytes(self.cap_url)
-            self.wcs = WebCoverageService_2_0_1(self.wcs_url, _xml_bytes, None)
-            _coverages = list(self.wcs.contents.keys())
-            
-            for cov in _coverages:
-                desc_cov_url = f"{self.wcs_url}?request=DescribeCoverage&service=WCS&version=2.0.1&coverageId={cov}"
-                desc_cov_resp = get_request_bytes(desc_cov_url)
-                self.wcs._describeCoverage[cov] = etree.fromstring(desc_cov_resp)
-
-            self.coverages = [item for item in _coverages]
-
+           
             self.addParameter(
                 QgsProcessingParameterFeatureSource(
                     self.INPUT,
@@ -157,10 +151,10 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                 QgsProcessingParameterEnum(
                     self.COVERAGE_ID,
                     self.tr("CoverageId"),
-                    options=self.coverages,
-                    defaultValue=self.coverages.index(
-                        "dtm_05m"
-                    ),  # sensible default? - although many nodata areas due to buildings
+                    options=PDOKWCSTool.coverages,
+                    defaultValue=PDOKWCSTool.coverages.index(
+                        PDOKWCSTool.default_coverage
+                    ),
                     optional=False,
                 )
             )
@@ -194,6 +188,16 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             )
 
         try:
+            # retrieve wcs object
+            _xml_bytes = get_request_bytes(PDOKWCSTool.cap_url)
+            self.wcs = WebCoverageService_2_0_1(PDOKWCSTool.wcs_url, _xml_bytes, None)
+            
+            for cov in PDOKWCSTool.coverages:
+                desc_cov_url = f"{PDOKWCSTool.wcs_url}?request=DescribeCoverage&service=WCS&version=2.0.1&coverageId={cov}"
+                desc_cov_resp = get_request_bytes(desc_cov_url)
+                self.wcs._describeCoverage[cov] = etree.fromstring(desc_cov_resp) # _describeCoverage is cache for DescribeCoverage responses => https://github.com/geopython/OWSLib/blob/0eaf201d587e42237415f0010e8940275cd50ba8/owslib/coverage/wcsBase.py#LL53C37-L53C37
+                # so by filling cache, we ensure owslib does not retrieve describecoverage docs, but we do it ourselves
+
             # read out parameters
             input_source = self.parameterAsSource(parameters, self.INPUT, context)
             in_crs = input_source.sourceCrs()
@@ -239,12 +243,17 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                     attr = attrs[i]
                     field_name = field_names[i]
                     new_ft.setAttribute(field_name, attr)
+                
                 ds = self.get_gdal_ds_from_wcs(x, y, coverage_id, feedback)
-                nodata = self.get_nodata_from_gdal_ds(ds)
-                ahn_val = self.get_val_from_gdal_ds(x, y, ds)
-                ds = None
 
-                if ahn_val == nodata:
+                if ds is None:
+                    ahn_val = None
+                else:
+                    nodata = self.get_nodata_from_gdal_ds(ds)
+                    ahn_val = self.get_val_from_gdal_ds(x, y, ds)
+                    ds = None
+
+                if ahn_val == nodata or ahn_val == None:
                     fid = feature.id()
                     feedback.pushWarning(
                         f"NODATA value found for feature with id: {fid}, geom: POINT({x},{y})"
@@ -280,7 +289,13 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             )
             raise QgsProcessingException(message)
 
+
     def get_gdal_ds_from_wcs(self, x, y, coverage_id, feedback):
+        """returns none when x,y outside coverage boundingbox
+        """
+        (minx,miny,maxx,maxy) = self.wcs.contents[coverage_id].boundingboxes[0]['bbox'] # assuming boundingboxes[0] contains nativeproj bounding box
+        if x < minx or x > maxx or y < miny or y > maxy:
+            return None
         origin = [float(i) for i in self.wcs.contents[coverage_id].grid.origin]
         cell_size = float(self.wcs.contents[coverage_id].grid.offsetvectors[0][0])
         x_lower_bound = origin[0] + (((x - origin[0]) // cell_size) * cell_size)
