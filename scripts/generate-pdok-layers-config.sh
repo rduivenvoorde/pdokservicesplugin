@@ -10,28 +10,27 @@ output_file_real=$output_dir/$(basename "$output_file")
 output_file_base=$(basename "$output_file_real")
 cat <<EOF > /tmp/sorting-rules.json
 [
-  { "index": 0, "names": ["opentopo+"], "types": ["OGC:WMTS"] },
-  { "index": 10, "names": ["^actueel_orthohr$"], "types": ["OGC:WMTS"] },
-  { "index": 11, "names": ["^actueel_ortho25$"], "types": ["OGC:WMTS"] },
-  { "index": 12, "names": ["^actueel_ortho25ir$"], "types": ["OGC:WMTS"] },
-  { "index": 12, "names": ["lufolabels"], "types": ["OGC:WMTS"] },
+  { "index": 1, "names": ["^actueel_orthohr$"], "types": ["OGC:WMTS"] },
+  { "index": 2, "names": ["^actueel_ortho25$"], "types": ["OGC:WMTS"] },
+  { "index": 3, "names": ["^actueel_ortho25ir$"], "types": ["OGC:WMTS"] },
+  { "index": 4, "names": ["lufolabels"], "types": ["OGC:WMTS"] },
   {
-    "index": 20,
+    "index": 5,
     "names": ["landgebied", "provinciegebied", "gemeentegebied"],
     "types": ["OGC:WFS"]
   },
-  { "index": 30, "names": ["top+"], "types": ["OGC:WMTS"] },
+  { "index": 6, "names": ["top[0-9]+raster"], "types": ["OGC:WMS"] },
   {
-    "index": 32,
+    "index": 7,
     "names": ["^standaard$", "^grijs$", "^pastel$", "^water$"],
     "types": ["OGC:WMTS"]
   },
   {
-    "index": 34,
-    "names": ["bgtstandaardv2", "bgtachtergrond"],
+    "index": 8,
+    "names": ["standaardvisualisatie", "achtergrondvisualisatie"],
     "types": ["OGC:WMTS"]
   },
-  { "index": 60, "names": ["ahn3+"], "types": ["OGC:WMTS"] }
+  { "index": 9, "names": ["^d.m_05m$"], "types": ["OGC:WMS"] }
 ]
 EOF
 
