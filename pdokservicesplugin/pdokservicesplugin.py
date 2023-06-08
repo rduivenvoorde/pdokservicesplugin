@@ -1287,7 +1287,9 @@ class PdokServicesPlugin(object):
                     title = fav_layer["title"].capitalize()
                     if "selectedStyle" in fav_layer:
                         style = fav_layer["selectedStyle"]
-                        style_title = style["name"]
+
+                        if "name" in style:
+                            style_title = style["name"]
                         if "title" in style:
                             style_title = style["title"]
                         if style_title:
