@@ -10,6 +10,11 @@ class BookmarkManager:
     def __init__(self):
         self.settings_manager = SettingsManager()
 
+    def delete_all_bookmarks(self):
+        bookmarks = self.get_bookmarks()
+        for bookmark in bookmarks:
+            self.delete_bookmark(bookmark)
+
     def save_bookmark(self, bookmark, i=-1):
         if i == -1:
             stored_bookmarks = self.get_bookmarks()

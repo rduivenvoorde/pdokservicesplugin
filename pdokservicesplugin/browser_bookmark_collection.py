@@ -6,7 +6,7 @@ from qgis.core import *
 
 from .browser_mapitem import MapDataItem
 from .bookmark_manager import BookmarkManager
-from .constants import PLUGIN_NAME
+from .constants import PLUGIN_NAME_SHORT
 
 import logging
 
@@ -45,37 +45,45 @@ class DataItemProvider(QgsDataItemProvider):
 class RootCollection(QgsDataCollectionItem):
     def __init__(self, layer_manager,callback):
         QgsDataCollectionItem.__init__(
-            self, None, f"{PLUGIN_NAME} - Favorieten", "/PDOK"
+            self, None, f"{PLUGIN_NAME_SHORT} - Favorieten", "/PDOK"
         )
 
         self._layer_manager = layer_manager
         self._callback = callback
-        self.setIcon(QIcon(os.path.join(IMGS_PATH, "icon_pdok.svg")))
+        self.setIcon(QIcon(os.path.join(IMGS_PATH, "pdok_icon_bookmark.svg")))
+        self.bookmark_manager = BookmarkManager()
 
     def createChildren(self):
         children = []
 
-        bookmark_manager = BookmarkManager()
-        bookmarks = bookmark_manager.get_bookmarks()
+        
+        bookmarks = self.bookmark_manager.get_bookmarks()
 
         index = 0
+        nr_bookmarks = len(bookmarks)
         for bookmark in bookmarks:
             title = self._layer_manager.get_bookmark_title(bookmark)
-            md_item = MapDataItem(self, self._layer_manager, title, bookmark, index, self._callback)
+            md_item = MapDataItem(self, self._layer_manager, title, bookmark, index, self._callback, nr_bookmarks)
             sip.transferto(md_item, self)
             children.append(md_item)
             index += 1
 
         return children
 
-    def _test(self):
-        self.refreshConnections()
+    def delete_all_action(self):
+        self.bookmark_manager.delete_all_bookmarks()
+        self.depopulate()
+        self._callback()
 
     def actions(self, parent):
         actions = []
+        add_action = QAction(QIcon(), "Delete all bookmarks", parent)
+        add_action.triggered.connect(self.delete_all_action)
+        log.debug(f"{self.bookmark_manager.get_bookmarks()} - bookmarks")
+        if len(self.bookmark_manager.get_bookmarks())<1:
+            add_action.setEnabled(False)
 
-        add_action = QAction(QIcon(), "Refresh items", parent)
-        add_action.triggered.connect(self._test)
+
         actions.append(add_action)
 
         return actions

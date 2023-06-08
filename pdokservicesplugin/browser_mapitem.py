@@ -20,7 +20,7 @@ IMGS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "imgs")
 
 
 class MapDataItem(QgsDataItem):
-    def __init__(self, parent, layer_manager, title, pdok_layer_config, index, callback):
+    def __init__(self, parent, layer_manager, title, bookmark, index, callback, nr_bookmarks):
         QgsDataItem.__init__(
             self, QgsDataItem.Custom, parent, title, "/Pdok/layers/" + title
         )
@@ -31,10 +31,11 @@ class MapDataItem(QgsDataItem):
 
         self.populate()  # set to treat Item as not-folder-like
         self._index = index
+        self._nr_bookmarks = nr_bookmarks
         self._parent = parent
         self._layer_manager = layer_manager
         self._title = title
-        self._pdok_layer_config = pdok_layer_config
+        self._bookmark   = bookmark
         self.setSortKey("_index")
         self.bookmark_manager = BookmarkManager()
         log.error("init MapDataItem")
@@ -47,6 +48,8 @@ class MapDataItem(QgsDataItem):
     def actions(self, parent):
         actions = []
         
+
+
         add_bookmark_to_map_action = QAction(QIcon(), "Add bookmark to map", parent)
         add_bookmark_to_map_action.triggered.connect(lambda: self._add_layer_to_canvas())
         actions.append(add_bookmark_to_map_action)
@@ -58,28 +61,33 @@ class MapDataItem(QgsDataItem):
 
         move_up_action = QAction(QIcon(), "Move bookmark up", parent)
         move_up_action.triggered.connect(lambda: self._move_up())
+        if self._index == 0:
+            move_up_action.setEnabled(False)
+
         actions.append(move_up_action)
 
         move_down_action = QAction(QIcon(), "Move bookmark down", parent)
         move_down_action.triggered.connect(lambda: self._move_down())
+        if self._index == (self._nr_bookmarks-1):
+            move_down_action.setEnabled(False)
         actions.append(move_down_action)
 
         return actions
 
     def _add_layer_to_canvas(self):
-        logging.debug("_add_layer_to_canvas")
         # TODO: check if bookmark is present in layer config
-        self._layer_manager.load_layer(self._pdok_layer_config)
+        # TODO: check if bookmark is already loaded on map
+        self._layer_manager.load_layer(self._bookmark)
 
     def _move_up(self):
         # QgsMessageLog.logMessage("Your plugin code has been executed correctly", "PdokServicesPlugin", level=Qgis.Info)
-        self.bookmark_manager.change_bookmark_index(self._pdok_layer_config, -1)
+        self.bookmark_manager.change_bookmark_index(self._bookmark, -1)
         self.parent().depopulate() # depopulates also repopulates it seems...
         self._callback()
     
     def _move_down(self):
         # QgsMessageLog.logMessage("Your plugin code has been executed correctly", "PdokServicesPlugin", level=Qgis.Info)
-        self.bookmark_manager.change_bookmark_index(self._pdok_layer_config, 1)
+        self.bookmark_manager.change_bookmark_index(self._bookmark, 1)
         self.parent().depopulate() # depopulates also repopulates it seems...
         self._callback()
 
@@ -89,8 +97,8 @@ class MapDataItem(QgsDataItem):
         # del custommaps[self._name]
         # smanager.store_setting("custommaps", custommaps)
         log.exception("help")
-        self.bookmark_manager.delete_bookmark(self._pdok_layer_config)
-        self.parent().refreshConnections()
+        self.bookmark_manager.delete_bookmark(self._bookmark)
+        self.parent().depopulate()
         self._callback()
         # self.refreshConnections()
 
