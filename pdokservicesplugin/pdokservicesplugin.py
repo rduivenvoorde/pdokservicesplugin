@@ -532,14 +532,13 @@ class PdokServicesPlugin(object):
             uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
             return QgsVectorLayer(uri, title, "wfs")
         elif servicetype == "wcs":
-            # HACK to be able to make WCS working for now:
-            # 1) fixed format to "GEOTIFF_FLOAT32"
-            # 2) remove the '?request=getcapabiliteis....' part from the url
-            # But service is rather slow, maybe better to remove the WCS part from the plugin?q
-            # normally you would do a DescribeCoverage to find out about the format etc etc
-            format = "GEOTIFF_FLOAT32"
+            # HACK to get WCS to work:
+            # 1) fixed format to "GEOTIFF"
+            # 2) remove the '?request=getcapabiliteis....' part from the url, unknown why this is required compared to wms/wfs
+            # better approach would be to add the supported format(s) to the layers-pdok.json file and use that - this should be the approach when more 
+            # WCS services will be published by PDOK (currently it is only the AHN WCS)
+            format = "GEOTIFF"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
-            # log.debug(f'WCS uri: {uri}')
             return QgsRasterLayer(uri, title, "wcs")
         else:
             self.show_warning(
