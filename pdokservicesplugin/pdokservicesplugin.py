@@ -164,6 +164,7 @@ class PdokServicesPlugin(object):
             "wmts": "bottom",
             "wfs": "top",
             "wcs": "top",
+            "oapif": "top",
         }
 
         self.add_fav_actions_to_toolbar_button()
@@ -351,6 +352,7 @@ class PdokServicesPlugin(object):
             "WMS": "Layer",
             "WMTS": "Layer",
             "WFS": "Featuretype",
+            "OAPIF": "OGC API - Features"
         }
         layername_key = f"{layername_key_mapping[stype]}"
         dataset_metadata_dd = self.get_dd(
@@ -540,6 +542,10 @@ class PdokServicesPlugin(object):
             format = "GEOTIFF"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
             return QgsRasterLayer(uri, title, "wcs")
+        elif servicetype == "oapif":
+            crs = "EPSG:3857" #Daraa uses 3857 specifically
+            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' srsname='{crs}' typename='{layername}' url='{url}'"
+            return QgsVectorLayer(uri, title, servicetype.upper())
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
