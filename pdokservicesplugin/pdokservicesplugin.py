@@ -356,10 +356,24 @@ class PdokServicesPlugin(object):
             "OAPIF": "OGC API - Features"
         }
         layername_key = f"{layername_key_mapping[stype]}"
-        dataset_metadata_dd = self.get_dd(
-            dataset_md_id,
-            f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
-        )
+        if stype == 'OAPIF': # OAPIF Daraa dataset is not in NGR
+            dataset_metadata_dd = self.get_dd(
+                'oapif',
+                f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title}/{layername}</a>',
+            )
+            service_metadata_dd = self.get_dd(
+                'oapif',
+                f'<a title="Bekijk service metadata van OAPIF" href="{url}">{service_title}</a>',
+            )
+        else:
+            dataset_metadata_dd = self.get_dd(
+                dataset_md_id,
+                f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
+            )
+            service_metadata_dd = self.get_dd(
+                service_md_id,
+                f'<a title="Bekijk service metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a>',
+            )
         fav_string = ""
         fav_title = ""
         if fav:
@@ -387,9 +401,11 @@ class PdokServicesPlugin(object):
                 <dt><b>Service Abstract</b></dt>
                 {service_abstract_dd}
                 <dt><b>Service Metadata</b></dt>
-                <dd><a title="Bekijk service metadata in NGR"  href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a></dd>
+                {service_metadata_dd}
             </dl>
             """
+            # <dd><a title="Bekijk service metadata in NGR"  href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a></dd>
+
         )
         self.dlg.ui.comboSelectProj.clear()
         self.dlg.ui.wmsStyleComboBox.clear()
