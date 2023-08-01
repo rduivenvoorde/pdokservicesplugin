@@ -566,7 +566,7 @@ class PdokServicesPlugin(object):
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
                 kan niet worden geladen door de plugin of door QGIS.
-                Is het niet beschikbaar als wms, wmts of wfs?
+                Is het niet beschikbaar als wms, wmts, wfs of oapif?
                 """
             )
             return
