@@ -54,6 +54,7 @@ from qgis.gui import QgsVertexMarker
 import qgis.utils
 
 import textwrap
+import requests
 import json
 import os
 import urllib.request, urllib.parse, urllib.error
@@ -542,9 +543,8 @@ class PdokServicesPlugin(object):
             format = "GEOTIFF"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
             return QgsRasterLayer(uri, title, "wcs")
-        elif servicetype == "oapif":
-            crs = "EPSG:3857" #Daraa uses 3857 specifically
-            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' srsname='{crs}' typename='{layername}' url='{url}'"
+        elif servicetype == "oapif": # OGC API Features
+            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
             return QgsVectorLayer(uri, title, servicetype.upper())
         else:
             self.show_warning(
@@ -723,6 +723,33 @@ class PdokServicesPlugin(object):
             [itemLayername, itemType, itemServicetitle, itemFilter]
         )
 
+    def daraa_to_json(self):
+        daraa_layers = []
+        service_url = "https://demo.ldproxy.net/daraa"
+        daraa_json = requests.get(service_url + "/collections").json()
+        service_title = daraa_json["title"]
+        service_abstract = daraa_json["description"]
+        service_type = "oapif"
+        for collection in daraa_json["collections"]:
+            collection_name = collection["id"]
+            collection_title = collection["title"]
+            collection_abstract = collection["description"] if "description" in collection else "Geen abstract gevonden"
+            daraa_layers.append(
+                {
+                    "name": collection_name,
+                    "title": collection_title,
+                    "abstract": collection_abstract,
+                    "dataset_md_id": "",
+                    "service_url": service_url,
+                    "service_title": service_title,
+                    "service_abstract": service_abstract,
+                    "service_type": service_type,
+                    "service_md_id": "",
+                }
+            )
+        return daraa_layers
+    
+
     def run(self, hiddenDialog=False):
         """
         run method that performs all the real work
@@ -736,9 +763,10 @@ class PdokServicesPlugin(object):
             self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
 
         if self.services_loaded == False:
+            self.layers_pdok = self.daraa_to_json()
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
-                self.layers_pdok = json.load(f)
+                self.layers_pdok.extend(json.load(f))
 
             self.sourceModel = QStandardItemModel()
 
