@@ -359,7 +359,7 @@ class PdokServicesPlugin(object):
         if stype == 'OAPIF': # OAPIF Daraa dataset is not in NGR
             dataset_metadata_dd = self.get_dd(
                 'oapif',
-                f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title}/{layername}</a>',
+                f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title} - {layername}</a>',
             )
             service_metadata_dd = self.get_dd(
                 'oapif',
