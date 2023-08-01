@@ -1199,7 +1199,7 @@ class PdokServicesPlugin(object):
                         **self.current_layer,
                         **{"selectedStyle": selected_style},
                     }
-                add_fav_action = QAction(f"Voeg deze laag toe aan favourieten")
+                add_fav_action = QAction(f"Voeg deze laag toe aan favorieten")
                 add_fav_action.setIcon(self.fav_icon)
                 menu.addAction(add_fav_action)
                 action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
