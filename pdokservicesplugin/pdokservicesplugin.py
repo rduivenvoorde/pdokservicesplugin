@@ -359,10 +359,24 @@ class PdokServicesPlugin(object):
             "WFS": "Featuretype",
         }
         layername_key = f"{layername_key_mapping[stype]}"
-        dataset_metadata_dd = self.get_dd(
-            dataset_md_id,
-            f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
-        )
+        if stype == 'OAPIF': # OAPIF Daraa dataset is not in NGR
+            dataset_metadata_dd = self.get_dd(
+                'oapif',
+                f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title}/{layername}</a>',
+            )
+            service_metadata_dd = self.get_dd(
+                'oapif',
+                f'<a title="Bekijk service metadata van OAPIF" href="{url}">{service_title}</a>',
+            )
+        else:
+            dataset_metadata_dd = self.get_dd(
+                dataset_md_id,
+                f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
+            )
+            service_metadata_dd = self.get_dd(
+                service_md_id,
+                f'<a title="Bekijk service metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a>',
+            )
         fav_string = ""
         fav_title = ""
         if fav:
