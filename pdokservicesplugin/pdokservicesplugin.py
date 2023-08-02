@@ -47,6 +47,7 @@ from qgis.core import (
     QgsMessageLog,
     QgsRasterLayer,
     QgsVectorLayer,
+    QgsVectorTileLayer,
     QgsLayerTreeLayer,
     QgsWkbTypes,
 )
@@ -169,6 +170,8 @@ class PdokServicesPlugin(object):
             "wmts": "bottom",
             "wfs": "top",
             "wcs": "top",
+            "oapif": "top",
+            "oat": "bottom",
         }
 
         self.add_fav_actions_to_toolbar_button()
@@ -357,6 +360,8 @@ class PdokServicesPlugin(object):
             "WMS": "Layer",
             "WMTS": "Layer",
             "WFS": "Featuretype",
+            "OAPIF": "OGC API - Features",
+            "OAT": "OGC API - Tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
         if stype == 'OAPIF': # OAPIF Daraa dataset is not in NGR
@@ -411,6 +416,7 @@ class PdokServicesPlugin(object):
         self.dlg.ui.comboSelectProj.clear()
         self.dlg.ui.wmsStyleComboBox.clear()
 
+        # vectortiles??
         show_list = {
             self.dlg.ui.comboSelectProj: ["WMS", "WMTS"],
             self.dlg.ui.labelCrs: ["WMS", "WMTS"],
@@ -563,11 +569,21 @@ class PdokServicesPlugin(object):
             format = "GEOTIFF"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
             return QgsRasterLayer(uri, title, "wcs")
+        elif servicetype == "oapif": # OGC API Features
+            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
+            return QgsVectorLayer(uri, title, servicetype.upper())
+        elif servicetype == "oat": # OGC API Tiles voor BGT
+            url_template = url + "/tiles/NetherlandsRDNewQuad/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+            style_url = url + "/styles/bgt_standaardvisualisatie"
+            minmaxz_coord = 12
+            type = "xyz"
+            uri = f"styleUrl={style_url}&url={url_template}&type={type}&zmax={minmaxz_coord}&zmin={minmaxz_coord}&http-header:referer="
+            return QgsVectorTileLayer(uri, title)
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
                 kan niet worden geladen door de plugin of door QGIS.
-                Is het niet beschikbaar als wms, wmts of wfs?
+                Is het niet beschikbaar als wms, wmts, wfs, oapif of oat (vectortile)?
                 """
             )
             return
@@ -763,6 +779,39 @@ class PdokServicesPlugin(object):
         :return:
         """
         return value.lower() == 'true' if isinstance(value, str) else bool(value)
+    def add_bgttiles_to_json(self):
+        tiles = []
+        service_url = "https://api.pdok.nl/lv/bgt/ogc/v1_0"
+        bgttiles_json = requests.get(service_url).json()
+        dataset_title = bgttiles_json["title"]
+        dataset_abstract = bgttiles_json["description"]
+        service_type = "oat"
+        styles = requests.get(service_url + "/styles").json()
+        tiles.append(
+            {
+                "name": dataset_title,
+                "title": dataset_title,
+                "abstract": dataset_abstract,
+                "dataset_md_id": "2cb4769c-b56e-48fa-8685-c48f61b9a319",
+                "styles": [
+                    {
+                        "title": styles['styles'][0]['title'],
+                        "name": styles['styles'][0]['id']
+                    },
+                    {
+                        "title": styles['styles'][1]['title'],
+                        "name": styles['styles'][1]['id']
+                    }
+                ],
+                "service_url": service_url,
+                "service_title":  "BGT OGC API (vector) Tiles",
+                "service_abstract": "BGT Vector Tiles service op basis van OGC API Tiles koppelvlak. De BGT, Basisregistratie Grootschalige Topografie, wordt de gedetailleerde grootschalige basiskaart (digitale kaart) van heel Nederland, waarin op een eenduidige manier de ligging van alle fysieke objecten zoals gebouwen, wegen, water, spoorlijnen en (landbouw)terreinen is geregistreerd.",
+                "service_type": service_type,
+                "service_md_id": "356fc922-f910-4874-b72a-dbb18c1bed3e",
+            }
+        )
+        return tiles
+    
 
     def run(self, hiddenDialog=False):
         """
@@ -777,9 +826,14 @@ class PdokServicesPlugin(object):
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:
+            # Init self.layers_pdok with BGT OGC API Tiles manually
+            self.layers_pdok = self.add_bgttiles_to_json()
+
+            self.layers_pdok.extend(self.daraa_to_json())
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
-                self.layers_pdok = json.load(f)
+                self.layers_pdok.extend(json.load(f))
+
 
             self.sourceModel = QStandardItemModel()
 
