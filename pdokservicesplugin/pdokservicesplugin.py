@@ -415,10 +415,10 @@ class PdokServicesPlugin(object):
 
         # vectortiles??
         show_list = {
-            self.dlg.ui.comboSelectProj: ["WMS", "WMTS"],
-            self.dlg.ui.labelCrs: ["WMS", "WMTS"],
-            self.dlg.ui.wmsStyleComboBox: ["WMS"],
-            self.dlg.ui.wmsStyleLabel: ["WMS"],
+            self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OAT"],
+            self.dlg.ui.labelCrs: ["WMS", "WMTS", "OAT"],
+            self.dlg.ui.wmsStyleComboBox: ["WMS", "OAT"],
+            self.dlg.ui.wmsStyleLabel: ["WMS", "OAT"],
         }
 
         for ui_el in show_list.keys():
@@ -453,12 +453,31 @@ class PdokServicesPlugin(object):
                 if crs[i] == "EPSG:28992":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-        if stype == "WMTS":
+        if stype == "WMTS" or stype == "OAT":
             tilematrixsets = self.current_layer["tilematrixsets"].split(",")
             self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
             for i in range(len(tilematrixsets)):
                 if tilematrixsets[i].startswith("EPSG:28992"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+
+        if stype == "OAT":
+            styles = self.current_layer["styles"]
+            nr_styles = len(styles)
+            style_str = "styles" if nr_styles > 1 else "style"
+            self.dlg.ui.wmsStyleLabel.setText(
+                f"Style ({nr_styles} {style_str} beschikbaar)"
+            )
+            style_title_names = [
+                x["title"] if "title" in x else x["name"] for x in styles
+            ]
+            self.dlg.ui.wmsStyleComboBox.addItems(style_title_names)
+            self.dlg.ui.wmsStyleComboBox.setCurrentIndex(0)
+            completer = QCompleter(style_title_names, self.dlg.ui.wmsStyleComboBox)
+            completer.setFilterMode(Qt.MatchContains)
+            self.dlg.ui.wmsStyleComboBox.setCompleter(completer)
+            self.dlg.ui.wmsStyleComboBox.setEnabled(
+                nr_styles > 1  # enable if more than one style
+            )
 
     def quote_wmts_url(self, url):
         """
@@ -567,8 +586,25 @@ class PdokServicesPlugin(object):
             uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
             return QgsVectorLayer(uri, title, servicetype.upper())
         elif servicetype == "oat": # OGC API Tiles voor BGT
+
+            # CRS met oat werkt nog niet correct in qgis/gdal
+            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+                crs = "EPSG:28992"
+            else:
+                crs = self.dlg.ui.comboSelectProj.currentText()
+
+            # Style toevoegen in laag vanuit ui
+            selected_style_name = self.current_layer['default'] if "default" in self.current_layer else ""
+            selected_style = self.get_selected_style()
+            if selected_style is not None:
+                selected_style_name = selected_style["name"]
+                selected_style_title = selected_style["name"]
+                if "title" in selected_style:
+                    selected_style_title = selected_style["title"]
+                title += f" [{selected_style_title}]"
+            
             url_template = url + "/tiles/NetherlandsRDNewQuad/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
-            style_url = url + "/styles/bgt_standaardvisualisatie"
+            style_url = url + "/styles/" + selected_style_name + "?f=json"
             minmaxz_coord = 12
             type = "xyz"
             uri = f"styleUrl={style_url}&url={url_template}&type={type}&zmax={minmaxz_coord}&zmin={minmaxz_coord}&http-header:referer="
@@ -800,6 +836,8 @@ class PdokServicesPlugin(object):
                         "name": styles['styles'][1]['id']
                     }
                 ],
+                "default": styles['default'],
+                "tilematrixsets": "EPSG:28992",
                 "service_url": service_url,
                 "service_title":  "BGT OGC API (vector) Tiles",
                 "service_abstract": "BGT Vector Tiles service op basis van OGC API Tiles koppelvlak. De BGT, Basisregistratie Grootschalige Topografie, wordt de gedetailleerde grootschalige basiskaart (digitale kaart) van heel Nederland, waarin op een eenduidige manier de ligging van alle fysieke objecten zoals gebouwen, wegen, water, spoorlijnen en (landbouw)terreinen is geregistreerd.",
