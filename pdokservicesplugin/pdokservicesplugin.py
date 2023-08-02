@@ -594,6 +594,11 @@ class PdokServicesPlugin(object):
         elif servicetype == "oat": # OGC API Tiles voor BGT
 
             # CRS met oat werkt nog niet correct in qgis/gdal
+            crs_mapping = {
+                "EPSG:28992": "NetherlandsRDNewQuad",
+                "EPSG:3857": "WebMercatorQuad",
+                "EPSG:4258": "EuropeanETRS89_GRS80Quad_Draft"
+            }
             if self.dlg.ui.comboSelectProj.currentIndex() == -1:
                 crs = "EPSG:28992"
             else:
@@ -609,9 +614,14 @@ class PdokServicesPlugin(object):
                     selected_style_title = selected_style["title"]
                 title += f" [{selected_style_title}]"
             
-            url_template = url + "/tiles/NetherlandsRDNewQuad/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
-            style_url = url + "/styles/" + selected_style_name + "?f=json"
-            minmaxz_coord = 12
+            url_template = url + "/tiles/" + crs_mapping[crs] + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+            style_url = url + "/styles/" + selected_style_name
+            if crs == "EPSG:28992":
+                minmaxz_coord = 12
+            elif crs == "EPSG:4258":
+                minmaxz_coord = 14
+            else :
+                minmaxz_coord = 17
             type = "xyz"
             uri = f"styleUrl={style_url}&url={url_template}&type={type}&zmax={minmaxz_coord}&zmin={minmaxz_coord}&http-header:referer="
             return QgsVectorTileLayer(uri, title)
@@ -823,6 +833,7 @@ class PdokServicesPlugin(object):
         dataset_abstract = bgttiles_json["description"]
         service_type = "oat"
         styles = requests.get(service_url + "/styles").json()
+        service_tiles = requests.get(service_url + "/tiles").json()
         tiles.append(
             {
                 "name": dataset_title,
@@ -842,10 +853,42 @@ class PdokServicesPlugin(object):
                 "default": styles['default'],
                 "tilematrixsets": "EPSG:28992",
                 "service_url": service_url,
-                "service_title":  "BGT OGC API (vector) Tiles",
-                "service_abstract": "BGT Vector Tiles service op basis van OGC API Tiles koppelvlak. De BGT, Basisregistratie Grootschalige Topografie, wordt de gedetailleerde grootschalige basiskaart (digitale kaart) van heel Nederland, waarin op een eenduidige manier de ligging van alle fysieke objecten zoals gebouwen, wegen, water, spoorlijnen en (landbouw)terreinen is geregistreerd.",
+                "service_title":  service_tiles['title'],
+                "service_abstract": service_tiles['description'],
                 "service_type": service_type,
                 "service_md_id": "356fc922-f910-4874-b72a-dbb18c1bed3e",
+            }
+        )
+        return tiles
+    
+    def add_bagtiles_to_json(self):
+        tiles = []
+        service_url = "https://api.pdok.nl/lv/bag/ogc/v0_1"
+        bagtiles_json = requests.get(service_url).json()
+        dataset_title = bagtiles_json["title"]
+        dataset_abstract = bagtiles_json["description"]
+        service_type = "oat"
+        styles = requests.get(service_url + "/styles").json()
+        service_tiles = requests.get(service_url + "/tiles").json()
+        tiles.append(
+            {
+                "name": dataset_title,
+                "title": dataset_title,
+                "abstract": dataset_abstract,
+                "dataset_md_id": "aa3b5e6e-7baa-40c0-8972-3353e927ec2f",
+                "styles": [
+                    {
+                        "title": styles['styles'][0]['title'],
+                        "name": styles['styles'][0]['id']
+                    }
+                ],
+                "default": styles['default'],
+                "tilematrixsets": "EPSG:28992,EPSG:3857,EPSG:4258",
+                "service_url": service_url,
+                "service_title":  service_tiles['title'],
+                "service_abstract": service_tiles['description'],
+                "service_type": service_type,
+                "service_md_id": "",
             }
         )
         return tiles
@@ -866,7 +909,7 @@ class PdokServicesPlugin(object):
         if self.services_loaded == False:
             # Init self.layers_pdok with BGT OGC API Tiles manually
             self.layers_pdok = self.add_bgttiles_to_json()
-
+            self.layers_pdok.extend(self.add_bagtiles_to_json())
             self.layers_pdok.extend(self.daraa_to_json())
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
