@@ -364,13 +364,14 @@ class PdokServicesPlugin(object):
             "OAT": "OGC API - Tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
-        if stype == 'OAPIF': # OAPIF Daraa dataset is not in NGR
+        # OAPIF Daraa dataset is not in NGR: ref to metadata page
+        if stype == "OAPIF":
             dataset_metadata_dd = self.get_dd(
-                'oapif',
-                f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title}/{layername}</a>',
+                "oapif",
+                f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title} - {layername}</a>',
             )
             service_metadata_dd = self.get_dd(
-                'oapif',
+                "oapif",
                 f'<a title="Bekijk service metadata van OAPIF" href="{url}">{service_title}</a>',
             )
         else:
@@ -416,7 +417,6 @@ class PdokServicesPlugin(object):
         self.dlg.ui.comboSelectProj.clear()
         self.dlg.ui.wmsStyleComboBox.clear()
 
-        # vectortiles??
         show_list = {
             self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OAT"],
             self.dlg.ui.labelCrs: ["WMS", "WMTS", "OAT"],
@@ -428,7 +428,7 @@ class PdokServicesPlugin(object):
             service_types = show_list[ui_el]
             ui_el.setHidden(not (stype in service_types))
 
-        if stype == "WMS":
+        if stype == "WMS" or stype == "OAT":
             styles = self.current_layer["styles"]
             nr_styles = len(styles)
             style_str = "styles" if nr_styles > 1 else "style"
@@ -446,6 +446,8 @@ class PdokServicesPlugin(object):
             self.dlg.ui.wmsStyleComboBox.setEnabled(
                 nr_styles > 1  # enable if more than one style
             )
+
+        if stype == "WMS":
             try:
                 crs = self.current_layer["crs"]
             except KeyError:
@@ -462,25 +464,6 @@ class PdokServicesPlugin(object):
             for i in range(len(tilematrixsets)):
                 if tilematrixsets[i].startswith("EPSG:28992"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
-
-        if stype == "OAT":
-            styles = self.current_layer["styles"]
-            nr_styles = len(styles)
-            style_str = "styles" if nr_styles > 1 else "style"
-            self.dlg.ui.wmsStyleLabel.setText(
-                f"Style ({nr_styles} {style_str} beschikbaar)"
-            )
-            style_title_names = [
-                x["title"] if "title" in x else x["name"] for x in styles
-            ]
-            self.dlg.ui.wmsStyleComboBox.addItems(style_title_names)
-            self.dlg.ui.wmsStyleComboBox.setCurrentIndex(0)
-            completer = QCompleter(style_title_names, self.dlg.ui.wmsStyleComboBox)
-            completer.setFilterMode(Qt.MatchContains)
-            self.dlg.ui.wmsStyleComboBox.setCompleter(completer)
-            self.dlg.ui.wmsStyleComboBox.setEnabled(
-                nr_styles > 1  # enable if more than one style
-            )
 
     def quote_wmts_url(self, url):
         """
@@ -520,6 +503,13 @@ class PdokServicesPlugin(object):
                 )
         return selected_style
 
+    def get_crs_comboselect(self):
+        if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+            crs = "EPSG:28992"
+        else:
+            crs = self.dlg.ui.comboSelectProj.currentText()
+        return crs
+
     def create_new_layer(self):
         servicetype = self.current_layer["service_type"]
         title = self.current_layer["title"]
@@ -528,10 +518,7 @@ class PdokServicesPlugin(object):
 
         if servicetype == "wms":
             imgformat = self.current_layer["imgformats"].split(",")[0]
-            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                crs = "EPSG:28992"
-            else:
-                crs = self.dlg.ui.comboSelectProj.currentText()
+            crs = self.get_crs_comboselect()
 
             selected_style_name = ""
             if "selectedStyle" in self.current_layer:
@@ -557,10 +544,8 @@ class PdokServicesPlugin(object):
                 )
                 return None
             url = self.quote_wmts_url(url)
-            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                tilematrixset = "EPSG:28992"
-            else:
-                tilematrixset = self.dlg.ui.comboSelectProj.currentText()
+            tilematrixset = self.get_crs_comboselect()
+
             imgformat = self.current_layer["imgformats"].split(",")[0]
             if tilematrixset.startswith("EPSG:"):
                 crs = tilematrixset
@@ -583,29 +568,27 @@ class PdokServicesPlugin(object):
             # HACK to get WCS to work:
             # 1) fixed format to "GEOTIFF"
             # 2) remove the '?request=getcapabiliteis....' part from the url, unknown why this is required compared to wms/wfs
-            # better approach would be to add the supported format(s) to the layers-pdok.json file and use that - this should be the approach when more 
+            # better approach would be to add the supported format(s) to the layers-pdok.json file and use that - this should be the approach when more
             # WCS services will be published by PDOK (currently it is only the AHN WCS)
             format = "GEOTIFF"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
             return QgsRasterLayer(uri, title, "wcs")
-        elif servicetype == "oapif": # OGC API Features
+        elif servicetype == "oapif":  # OGC API Features
             uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
             return QgsVectorLayer(uri, title, servicetype.upper())
-        elif servicetype == "oat": # OGC API Tiles voor BGT
+        elif servicetype == "oat":  # OGC API Tiles voor BGT
 
             # CRS met oat werkt nog niet correct in qgis/gdal
+            crs = self.get_crs_comboselect()
             crs_mapping = {
                 "EPSG:28992": "NetherlandsRDNewQuad",
                 "EPSG:3857": "WebMercatorQuad",
-                "EPSG:4258": "EuropeanETRS89_GRS80Quad_Draft"
+                "EPSG:4258": "EuropeanETRS89_GRS80Quad_Draft",
             }
-            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                crs = "EPSG:28992"
-            else:
-                crs = self.dlg.ui.comboSelectProj.currentText()
-
             # Style toevoegen in laag vanuit ui
-            selected_style_name = self.current_layer['default'] if "default" in self.current_layer else ""
+            selected_style_name = (
+                self.current_layer["default"] if "default" in self.current_layer else ""
+            )
             selected_style = self.get_selected_style()
             if selected_style is not None:
                 selected_style_name = selected_style["name"]
@@ -613,14 +596,16 @@ class PdokServicesPlugin(object):
                 if "title" in selected_style:
                     selected_style_title = selected_style["title"]
                 title += f" [{selected_style_title}]"
-            
-            url_template = url + "/tiles/" + crs_mapping[crs] + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+
+            url_template = (
+                url + "/tiles/" + crs_mapping[crs] + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+            )
             style_url = url + "/styles/" + selected_style_name
             if crs == "EPSG:28992":
                 minmaxz_coord = 12
             elif crs == "EPSG:4258":
                 minmaxz_coord = 14
-            else :
+            else:
                 minmaxz_coord = 17
             type = "xyz"
             uri = f"styleUrl={style_url}&url={url_template}&type={type}&zmax={minmaxz_coord}&zmin={minmaxz_coord}&http-header:referer="
@@ -825,7 +810,38 @@ class PdokServicesPlugin(object):
         :return:
         """
         return value.lower() == 'true' if isinstance(value, str) else bool(value)
-    def add_bgttiles_to_json(self):
+    
+    def daraa_to_layers_pdok(self):
+        daraa_layers = []
+        service_url = "https://demo.ldproxy.net/daraa"
+        daraa_json = requests.get(service_url + "/collections").json()
+        service_title = daraa_json["title"]
+        service_abstract = daraa_json["description"]
+        service_type = "oapif"
+        for collection in daraa_json["collections"]:
+            collection_name = collection["id"]
+            collection_title = collection["title"]
+            collection_abstract = (
+                collection["description"]
+                if "description" in collection
+                else "Geen abstract gevonden"
+            )
+            daraa_layers.append(
+                {
+                    "name": collection_name,
+                    "title": collection_title,
+                    "abstract": collection_abstract,
+                    "dataset_md_id": "",
+                    "service_url": service_url,
+                    "service_title": service_title,
+                    "service_abstract": service_abstract,
+                    "service_type": service_type,
+                    "service_md_id": "",
+                }
+            )
+        return daraa_layers
+
+    def add_bgttiles_to_layers_pdok(self):
         tiles = []
         service_url = "https://api.pdok.nl/lv/bgt/ogc/v1_0"
         bgttiles_json = requests.get(service_url).json()
@@ -842,26 +858,26 @@ class PdokServicesPlugin(object):
                 "dataset_md_id": "2cb4769c-b56e-48fa-8685-c48f61b9a319",
                 "styles": [
                     {
-                        "title": styles['styles'][0]['title'],
-                        "name": styles['styles'][0]['id']
+                        "title": styles["styles"][0]["title"],
+                        "name": styles["styles"][0]["id"],
                     },
                     {
-                        "title": styles['styles'][1]['title'],
-                        "name": styles['styles'][1]['id']
-                    }
+                        "title": styles["styles"][1]["title"],
+                        "name": styles["styles"][1]["id"],
+                    },
                 ],
-                "default": styles['default'],
+                "default": styles["default"],
                 "tilematrixsets": "EPSG:28992",
                 "service_url": service_url,
-                "service_title":  service_tiles['title'],
-                "service_abstract": service_tiles['description'],
+                "service_title": service_tiles["title"],
+                "service_abstract": service_tiles["description"],
                 "service_type": service_type,
                 "service_md_id": "356fc922-f910-4874-b72a-dbb18c1bed3e",
             }
         )
         return tiles
-    
-    def add_bagtiles_to_json(self):
+
+    def add_bagtiles_to_layers_pdok(self):
         tiles = []
         service_url = "https://api.pdok.nl/lv/bag/ogc/v0_1"
         bagtiles_json = requests.get(service_url).json()
@@ -878,21 +894,27 @@ class PdokServicesPlugin(object):
                 "dataset_md_id": "aa3b5e6e-7baa-40c0-8972-3353e927ec2f",
                 "styles": [
                     {
-                        "title": styles['styles'][0]['title'],
-                        "name": styles['styles'][0]['id']
+                        "title": styles["styles"][0]["title"],
+                        "name": styles["styles"][0]["id"],
                     }
                 ],
-                "default": styles['default'],
+                "default": styles["default"],
                 "tilematrixsets": "EPSG:28992,EPSG:3857,EPSG:4258",
                 "service_url": service_url,
-                "service_title":  service_tiles['title'],
-                "service_abstract": service_tiles['description'],
+                "service_title": service_tiles["title"],
+                "service_abstract": service_tiles["description"],
                 "service_type": service_type,
                 "service_md_id": "",
             }
         )
         return tiles
-    
+
+    def extend_layer_pdok_ogcapi(self):
+        layers_pdok = []
+        layers_pdok = self.add_bgttiles_to_layers_pdok()
+        layers_pdok.extend(self.add_bagtiles_to_layers_pdok())
+        layers_pdok.extend(self.daraa_to_layers_pdok())
+        return layers_pdok
 
     def run(self, hiddenDialog=False):
         """
@@ -907,14 +929,12 @@ class PdokServicesPlugin(object):
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:
-            # Init self.layers_pdok with BGT OGC API Tiles manually
-            self.layers_pdok = self.add_bgttiles_to_json()
-            self.layers_pdok.extend(self.add_bagtiles_to_json())
-            self.layers_pdok.extend(self.daraa_to_json())
+
+            # For testing the plugin with ogcapi features & tiles
+            self.layers_pdok = self.extend_layer_pdok_ogcapi()
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
                 self.layers_pdok.extend(json.load(f))
-
 
             self.sourceModel = QStandardItemModel()
 
