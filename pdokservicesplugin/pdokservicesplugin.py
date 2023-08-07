@@ -866,7 +866,8 @@ class PdokServicesPlugin(object):
             # We add OAF layers to layers_pdok list 
             urls_oaf = [
                 "https://demo.ldproxy.net/daraa", 
-                "https://test.haleconnect.de/ogcapi/datasets/hydro-example"
+                "https://test.haleconnect.de/ogcapi/datasets/hydro-example",
+                "https://test.haleconnect.de/ogcapi/datasets/simplified-addresses"
             ]
             urls_oat = [
                 "https://api.pdok.nl/lv/bag/ogc/v0_1", 
