@@ -779,80 +779,47 @@ class PdokServicesPlugin(object):
             [itemLayername, itemType, itemServicetitle, itemFilter]
         )
 
-    def add_bgttiles_to_layers_pdok(self):
-        tiles = []
-        service_url = "https://api.pdok.nl/lv/bgt/ogc/v1_0"
-        bgttiles_json = requests.get(service_url).json()
-        dataset_title = bgttiles_json["title"]
-        dataset_abstract = bgttiles_json["description"]
-        service_type = "oat"
-        styles = requests.get(service_url + "/styles").json()
-        service_tiles = requests.get(service_url + "/tiles").json()
-        tiles.append(
-            {
-                "name": dataset_title,
-                "title": dataset_title,
-                "abstract": dataset_abstract,
-                "dataset_md_id": "2cb4769c-b56e-48fa-8685-c48f61b9a319",
-                "styles": [
-                    {
-                        "title": styles["styles"][0]["title"],
-                        "name": styles["styles"][0]["id"],
-                    },
-                    {
-                        "title": styles["styles"][1]["title"],
-                        "name": styles["styles"][1]["id"],
-                    },
-                ],
-                "default": styles["default"],
-                "tilematrixsets": "EPSG:28992",
-                "service_url": service_url,
-                "service_title": service_tiles["title"],
-                "service_abstract": service_tiles["description"],
-                "service_type": service_type,
-                "service_md_id": "356fc922-f910-4874-b72a-dbb18c1bed3e",
-            }
-        )
-        return tiles
-
-    def add_bagtiles_to_layers_pdok(self):
-        tiles = []
-        service_url = "https://api.pdok.nl/lv/bag/ogc/v0_1"
-        bagtiles_json = requests.get(service_url).json()
-        dataset_title = bagtiles_json["title"]
-        dataset_abstract = bagtiles_json["description"]
-        service_type = "oat"
-        styles = requests.get(service_url + "/styles").json()
-        service_tiles = requests.get(service_url + "/tiles").json()
-        tiles.append(
-            {
-                "name": dataset_title,
-                "title": dataset_title,
-                "abstract": dataset_abstract,
-                "dataset_md_id": "aa3b5e6e-7baa-40c0-8972-3353e927ec2f",
-                "styles": [
-                    {
-                        "title": styles["styles"][0]["title"],
-                        "name": styles["styles"][0]["id"],
-                    }
-                ],
-                "default": styles["default"],
-                "tilematrixsets": "EPSG:28992,EPSG:3857,EPSG:4258",
-                "service_url": service_url,
-                "service_title": service_tiles["title"],
-                "service_abstract": service_tiles["description"],
-                "service_type": service_type,
-                "service_md_id": "",
-            }
-        )
-        return tiles
-
     def extend_layer_pdok_ogcapi(self, urls_oaf = [], urls_oat = []):
         layers_pdok = []
-        layers_pdok = self.add_bgttiles_to_layers_pdok()
-        layers_pdok.extend(self.add_bagtiles_to_layers_pdok())
+        layers_pdok = self.retrieve_layers_from_oat_endpoint(urls_oat)
         layers_pdok.extend(self.retrieve_layers_from_oaf_endpoint(urls_oaf))
         return layers_pdok
+    
+    def retrieve_layers_from_oat_endpoint(self, urls = []):
+        oat_layers = []
+        for url in urls:
+            url_info = requests.get(url).json()
+            dataset_title = url_info.get('title', url.split('/')[-1])
+            # For the two test datasets, we hardcode some information for now which can not yet be retrieved from the endpoint
+            if 'bag' in url:
+                tms = "EPSG:28992,EPSG:3857,EPSG:4258"
+                dataset_md_id = "aa3b5e6e-7baa-40c0-8972-3353e927ec2f"
+                service_md_id = ""
+            elif 'bgt' in url:
+                tms = "EPSG:28992"
+                dataset_md_id = "2cb4769c-b56e-48fa-8685-c48f61b9a319"
+                service_md_id = "356fc922-f910-4874-b72a-dbb18c1bed3e"
+
+            dataset_abstract = url_info.get('description', "Geen abstract gevonden")
+            service_type = "oat"
+            styles = requests.get(url + "/styles").json()
+            tiles_info = requests.get(url + "/tiles").json()
+            tile_object = {
+                "name": dataset_title,
+                "title": dataset_title,
+                "abstract": dataset_abstract,
+                "dataset_md_id": dataset_md_id,
+                "styles": [{"title": style["title"], "name": style["id"]} for style in styles["styles"]],
+                "default": styles["default"],
+                "tilematrixsets": tms,
+                "service_url": url,
+                "service_title": tiles_info["title"],
+                "service_abstract": tiles_info["description"],
+                "service_type": service_type,
+                "service_md_id": service_md_id,
+            }
+            oat_layers.append(tile_object)
+        return oat_layers
     
     def retrieve_layers_from_oaf_endpoint(self, urls = []):
         oaf_layers = []
