@@ -942,6 +942,34 @@ class PdokServicesPlugin(object):
         layers_pdok.extend(self.add_bagtiles_to_layers_pdok())
         layers_pdok.extend(self.daraa_to_layers_pdok())
         return layers_pdok
+    def retrieve_layers_from_oaf_endpoint(self, urls = []):
+        oaf_layers = []
+        for url in urls:
+            url_layer = []
+            url_info = requests.get(url).json()
+            service_title = url_info['title'] if 'title' in url_info else url.split('/')[-1]
+            service_abstract = url_info['description'] if 'description' in url_info else  "Geen abstract gevonden"
+            service_type = "oapif"
+            collection_json = requests.get(url + "/collections").json()
+            for collection in collection_json["collections"]:
+                collection_name = collection["id"]
+                collection_title = collection["title"]
+                collection_abstract = collection["description"] if "description" in collection else "Geen abstract gevonden"
+                url_layer.append(
+                    {
+                        "name": collection_name,
+                        "title": collection_title,
+                        "abstract": collection_abstract,
+                        "dataset_md_id": "",
+                        "service_url": url,
+                        "service_title": service_title,
+                        "service_abstract": service_abstract,
+                        "service_type": service_type,
+                        "service_md_id": "",
+                    }
+                )
+            oaf_layers.extend(url_layer)
+        return oaf_layers
 
     def run(self, hiddenDialog=False):
         """
@@ -956,9 +984,12 @@ class PdokServicesPlugin(object):
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:
-
-            # For testing the plugin with ogcapi features & tiles
-            self.layers_pdok = self.extend_layer_pdok_ogcapi()
+            # We add OAF layers to layers_pdok list 
+            urls_oaf = [
+                "https://demo.ldproxy.net/daraa", 
+                "https://test.haleconnect.de/ogcapi/datasets/hydro-example"
+            ]
+            self.layers_pdok = self.retrieve_layers_from_oaf_endpoint(urls = urls_oaf)
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
                 self.layers_pdok.extend(json.load(f))
