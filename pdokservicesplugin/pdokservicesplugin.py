@@ -765,6 +765,33 @@ class PdokServicesPlugin(object):
             )
         return daraa_layers
     
+    def hydroexample_to_json(self):
+        hydroexample_layers = []
+        service_url = "https://test.haleconnect.de/ogcapi/datasets/hydro-example"
+        hydroexample_json = requests.get(service_url).json()
+        service_title = hydroexample_json["title"]
+        service_abstract = hydroexample_json["description"]
+        hydroexample_collections_json = requests.get(service_url + "/collections").json()
+        service_type = "oapif"
+        for collection in hydroexample_collections_json["collections"]:
+            collection_name = collection["id"]
+            collection_title = collection["title"]
+            collection_abstract = collection["description"] if "description" in collection else "Geen abstract gevonden"
+            hydroexample_layers.append(
+                {
+                    "name": collection_name,
+                    "title": collection_title,
+                    "abstract": collection_abstract,
+                    "dataset_md_id": "",
+                    "service_url": service_url,
+                    "service_title": service_title,
+                    "service_abstract": service_abstract,
+                    "service_type": service_type,
+                    "service_md_id": "",
+                }
+            )
+        return hydroexample_layers
+    
 
     def run(self, hiddenDialog=False):
         """
@@ -780,6 +807,7 @@ class PdokServicesPlugin(object):
 
         if self.services_loaded == False:
             self.layers_pdok = self.daraa_to_json()
+            self.layers_pdok.extend(self.hydroexample_to_json())
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
                 self.layers_pdok.extend(json.load(f))
