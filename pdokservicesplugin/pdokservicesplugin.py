@@ -955,7 +955,8 @@ class PdokServicesPlugin(object):
             # We add OAF layers to layers_pdok list 
             urls_oaf = [
                 "https://demo.ldproxy.net/daraa", 
-                "https://test.haleconnect.de/ogcapi/datasets/hydro-example"
+                "https://test.haleconnect.de/ogcapi/datasets/hydro-example",
+                "https://test.haleconnect.de/ogcapi/datasets/simplified-addresses"
             ]
             self.layers_pdok = self.retrieve_layers_from_oaf_endpoint(urls = urls_oaf)
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
