@@ -21,28 +21,33 @@ def retrieve_layers_from_oat_endpoint(urls = []):
     for url in urls:
         url_info = requests.get(url).json()
         dataset_title = url_info.get('title', url.split('/')[-1])
+        tiles_info = requests.get(url + "/tiles").json()
         # For the two test datasets, we hardcode some information for now which can not yet be retrieved from the endpoint
         if 'bag' in url:
-            tms = "EPSG:28992,EPSG:3857,EPSG:4258"
             dataset_md_id = "aa3b5e6e-7baa-40c0-8972-3353e927ec2f"
             service_md_id = ""
         elif 'bgt' in url:
-            tms = "EPSG:28992"
             dataset_md_id = "2cb4769c-b56e-48fa-8685-c48f61b9a319"
             service_md_id = "356fc922-f910-4874-b72a-dbb18c1bed3e"
 
+        crs = ",".join([tileset["crs"] for tileset in tiles_info["tilesets"]])
         dataset_abstract = url_info.get('description', "Geen abstract gevonden")
         service_type = "api tiles"#"oat"
         styles = requests.get(url + "/styles").json()
-        tiles_info = requests.get(url + "/tiles").json()
         tile_object = {
             "name": dataset_title,
             "title": dataset_title,
             "abstract": dataset_abstract,
             "dataset_md_id": dataset_md_id,
-            "styles": [{"title": style["title"], "name": style["id"]} for style in styles["styles"]],
-            "default": styles["default"],
-            "tilematrixsets": tms,
+            "styles": [
+                {
+                "name": style["title"], 
+                "url": next(link["href"] for link in style["links"] if link["rel"] == "stylesheet"),
+                } 
+                for style in styles["styles"]],
+            "minscale": "",
+            "maxscale": "",
+            "crs": crs,
             "service_url": url,
             "service_title": tiles_info["title"],
             "service_abstract": tiles_info["description"],
@@ -50,8 +55,7 @@ def retrieve_layers_from_oat_endpoint(urls = []):
             "service_md_id": service_md_id,
         }
         oat_layers.append(tile_object)
-    return oat_layers
-    
+    return oat_layers 
 def retrieve_layers_from_oaf_endpoint(urls = []):
     oaf_layers = []
     for url in urls:
