@@ -32,7 +32,7 @@ def retrieve_layers_from_oat_endpoint(urls = []):
             service_md_id = "356fc922-f910-4874-b72a-dbb18c1bed3e"
 
         dataset_abstract = url_info.get('description', "Geen abstract gevonden")
-        service_type = "oat"
+        service_type = "api tiles"#"oat"
         styles = requests.get(url + "/styles").json()
         tiles_info = requests.get(url + "/tiles").json()
         tile_object = {
@@ -59,7 +59,7 @@ def retrieve_layers_from_oaf_endpoint(urls = []):
         url_info = requests.get(url).json()
         service_title = url_info['title'] if 'title' in url_info else url.split('/')[-1]
         service_abstract = url_info['description'] if 'description' in url_info else  "Geen abstract gevonden"
-        service_type = "oapif"
+        service_type = 'api features'#"oapif"
         collection_json = requests.get(url + "/collections").json()
         for collection in collection_json["collections"]:
             collection_name = collection["id"]
