@@ -810,134 +810,6 @@ class PdokServicesPlugin(object):
         :return:
         """
         return value.lower() == 'true' if isinstance(value, str) else bool(value)
-    
-    def daraa_to_layers_pdok(self):
-        daraa_layers = []
-        service_url = "https://demo.ldproxy.net/daraa"
-        daraa_json = requests.get(service_url + "/collections").json()
-        service_title = daraa_json["title"]
-        service_abstract = daraa_json["description"]
-        service_type = "oapif"
-        for collection in daraa_json["collections"]:
-            collection_name = collection["id"]
-            collection_title = collection["title"]
-            collection_abstract = (
-                collection["description"]
-                if "description" in collection
-                else "Geen abstract gevonden"
-            )
-            daraa_layers.append(
-                {
-                    "name": collection_name,
-                    "title": collection_title,
-                    "abstract": collection_abstract,
-                    "dataset_md_id": "",
-                    "service_url": service_url,
-                    "service_title": service_title,
-                    "service_abstract": service_abstract,
-                    "service_type": service_type,
-                    "service_md_id": "",
-                }
-            )
-        return daraa_layers
-
-    def hydroexample_to_json(self):
-        hydroexample_layers = []
-        service_url = "https://test.haleconnect.de/ogcapi/datasets/hydro-example"
-        hydroexample_json = requests.get(service_url).json()
-        service_title = hydroexample_json["title"]
-        service_abstract = hydroexample_json["description"]
-        hydroexample_collections_json = requests.get(service_url + "/collections").json()
-        service_type = "oapif"
-        for collection in hydroexample_collections_json["collections"]:
-            collection_name = collection["id"]
-            collection_title = collection["title"]
-            collection_abstract = collection["description"] if "description" in collection else "Geen abstract gevonden"
-            hydroexample_layers.append(
-                {
-                    "name": collection_name,
-                    "title": collection_title,
-                    "abstract": collection_abstract,
-                    "dataset_md_id": "",
-                    "service_url": service_url,
-                    "service_title": service_title,
-                    "service_abstract": service_abstract,
-                    "service_type": service_type,
-                    "service_md_id": "",
-                }
-            )
-        return hydroexample_layers
-    
-    def extend_layer_pdok_ogcapi(self, urls_oaf = [], urls_oat = []):
-        layers_pdok = []
-        layers_pdok = self.retrieve_layers_from_oat_endpoint(urls_oat)
-        layers_pdok.extend(self.retrieve_layers_from_oaf_endpoint(urls_oaf))
-        return layers_pdok
-    
-    def retrieve_layers_from_oat_endpoint(self, urls = []):
-        oat_layers = []
-        for url in urls:
-            url_info = requests.get(url).json()
-            dataset_title = url_info.get('title', url.split('/')[-1])
-            # For the two test datasets, we hardcode some information for now which can not yet be retrieved from the endpoint
-            if 'bag' in url:
-                tms = "EPSG:28992,EPSG:3857,EPSG:4258"
-                dataset_md_id = "aa3b5e6e-7baa-40c0-8972-3353e927ec2f"
-                service_md_id = ""
-            elif 'bgt' in url:
-                tms = "EPSG:28992"
-                dataset_md_id = "2cb4769c-b56e-48fa-8685-c48f61b9a319"
-                service_md_id = "356fc922-f910-4874-b72a-dbb18c1bed3e"
-
-            dataset_abstract = url_info.get('description', "Geen abstract gevonden")
-            service_type = "oat"
-            styles = requests.get(url + "/styles").json()
-            tiles_info = requests.get(url + "/tiles").json()
-            tile_object = {
-                "name": dataset_title,
-                "title": dataset_title,
-                "abstract": dataset_abstract,
-                "dataset_md_id": dataset_md_id,
-                "styles": [{"title": style["title"], "name": style["id"]} for style in styles["styles"]],
-                "default": styles["default"],
-                "tilematrixsets": tms,
-                "service_url": url,
-                "service_title": tiles_info["title"],
-                "service_abstract": tiles_info["description"],
-                "service_type": service_type,
-                "service_md_id": service_md_id,
-            }
-            oat_layers.append(tile_object)
-        return oat_layers
-    
-    def retrieve_layers_from_oaf_endpoint(self, urls = []):
-        oaf_layers = []
-        for url in urls:
-            url_layer = []
-            url_info = requests.get(url).json()
-            service_title = url_info['title'] if 'title' in url_info else url.split('/')[-1]
-            service_abstract = url_info['description'] if 'description' in url_info else  "Geen abstract gevonden"
-            service_type = "oapif"
-            collection_json = requests.get(url + "/collections").json()
-            for collection in collection_json["collections"]:
-                collection_name = collection["id"]
-                collection_title = collection["title"]
-                collection_abstract = collection["description"] if "description" in collection else "Geen abstract gevonden"
-                url_layer.append(
-                    {
-                        "name": collection_name,
-                        "title": collection_title,
-                        "abstract": collection_abstract,
-                        "dataset_md_id": "",
-                        "service_url": url,
-                        "service_title": service_title,
-                        "service_abstract": service_abstract,
-                        "service_type": service_type,
-                        "service_md_id": "",
-                    }
-                )
-            oaf_layers.extend(url_layer)
-        return oaf_layers
 
     def run(self, hiddenDialog=False):
         """
@@ -952,13 +824,7 @@ class PdokServicesPlugin(object):
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:
-            # We add OAF layers to layers_pdok list 
-            urls_oaf = [
-                "https://demo.ldproxy.net/daraa", 
-                "https://test.haleconnect.de/ogcapi/datasets/hydro-example",
-                "https://test.haleconnect.de/ogcapi/datasets/simplified-addresses"
-            ]
-            self.layers_pdok = self.retrieve_layers_from_oaf_endpoint(urls = urls_oaf)
+            self.layers_pdok = []
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
                 self.layers_pdok.extend(json.load(f))
