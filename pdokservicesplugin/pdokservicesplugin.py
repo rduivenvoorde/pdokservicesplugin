@@ -329,7 +329,11 @@ class PdokServicesPlugin(object):
         )
         layername = self.current_layer["name"]
         service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
-        stype = self.service_type_mapping[self.current_layer["service_type"]] if self.current_layer["service_type"] in self.service_type_mapping else self.current_layer["service_type"].upper()
+        stype = (
+            self.service_type_mapping[self.current_layer["service_type"]]
+            if self.current_layer["service_type"] in self.service_type_mapping
+            else self.current_layer["service_type"].upper()
+        )
         minscale = ""
         if "minscale" in self.current_layer:
             minscale = self.format_scale_denominator(self.current_layer["minscale"])
@@ -481,15 +485,14 @@ class PdokServicesPlugin(object):
                 if crs[i] == "EPSG:28992":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-
-    def extract_crs(self,crs_string):
-        pattern = r'/EPSG/(\d+)/(\d+)'
+    def extract_crs(self, crs_string):
+        pattern = r"/EPSG/(\d+)/(\d+)"
         match = re.search(pattern, crs_string)
         if match:
             return f"EPSG:{match.group(2)}"
         else:
             return crs_string
-        
+
     def quote_wmts_url(self, url):
         """
         Quoten wmts url is nodig omdat qgis de query param `SERVICE=WMS` erachter plakt als je de wmts url niet quote.
@@ -511,7 +514,7 @@ class PdokServicesPlugin(object):
                 (
                     x
                     for x in self.current_layer["styles"]
-                    if 'title' in x and x["title"] == selected_style_title 
+                    if "title" in x and x["title"] == selected_style_title
                 ),
                 None,
             )
@@ -597,7 +600,7 @@ class PdokServicesPlugin(object):
             return QgsRasterLayer(uri, title, "wcs")
         elif servicetype == "api features":  # OGC API Features
             uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
-            return QgsVectorLayer(uri, title, 'OAPIF')
+            return QgsVectorLayer(uri, title, "OAPIF")
         elif servicetype == "api tiles":  # OGC API Tiles
 
             # CRS met oat werkt nog niet correct in qgis/gdal
@@ -606,7 +609,7 @@ class PdokServicesPlugin(object):
                 "EPSG:28992": "NetherlandsRDNewQuad",
                 "EPSG:3857": "WebMercatorQuad",
                 "EPSG:4258": "EuropeanETRS89_GRS80Quad_Draft",
-                "EPSG:3035": "EuropeanETRS89_LAEAQuad"
+                "EPSG:3035": "EuropeanETRS89_LAEAQuad",
             }
             # Style toevoegen in laag vanuit ui
             selected_style_name = (
@@ -627,7 +630,7 @@ class PdokServicesPlugin(object):
                 maxz_coord = 14
             else:
                 maxz_coord = 17
-            minz_coord = 1 # Better performance wise, see QGIS issue https://github.com/qgis/QGIS/issues/54312
+            minz_coord = 1  # Better performance wise, see QGIS issue https://github.com/qgis/QGIS/issues/54312
             type = "xyz"
             uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
             return QgsVectorTileLayer(uri, title)
@@ -776,17 +779,18 @@ class PdokServicesPlugin(object):
     def add_source_row(self, serviceLayer):
         # you can attache different "data's" to to an QStandarditem
         # default one is the visible one:
-        stype = self.service_type_mapping[serviceLayer["service_type"]] if serviceLayer["service_type"] in self.service_type_mapping else serviceLayer["service_type"].upper()
+        stype = (
+            self.service_type_mapping[serviceLayer["service_type"]]
+            if serviceLayer["service_type"] in self.service_type_mapping
+            else serviceLayer["service_type"].upper()
+        )
         itemType = QStandardItem(str(stype))
         # userrole is a free form one:
         # only attach the data to the first item
         # service layer = a dict/object with all props of the layer
 
-
         itemType.setData(serviceLayer, Qt.UserRole)
-        itemType.setToolTip(
-            f'{stype} - {serviceLayer["title"]}'
-        )
+        itemType.setToolTip(f'{stype} - {serviceLayer["title"]}')
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
         styles_string = ""
@@ -796,17 +800,13 @@ class PdokServicesPlugin(object):
             )
 
         itemLayername = QStandardItem(str(serviceLayer["title"]))
-        itemLayername.setToolTip(
-            f'{stype} - {serviceLayer["service_title"]}'
-        )
+        itemLayername.setToolTip(f'{stype} - {serviceLayer["service_title"]}')
         # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
         itemFilter = QStandardItem(
             f'{serviceLayer["service_type"]} {layername} {serviceLayer["service_title"]} {serviceLayer["service_abstract"]} {styles_string}'
         )
         itemServicetitle = QStandardItem(str(serviceLayer["service_title"]))
-        itemServicetitle.setToolTip(
-            f'{stype} - {serviceLayer["title"]}'
-        )
+        itemServicetitle.setToolTip(f'{stype} - {serviceLayer["title"]}')
         self.sourceModel.appendRow(
             [itemLayername, itemType, itemServicetitle, itemFilter]
         )
