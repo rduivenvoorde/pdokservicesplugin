@@ -329,7 +329,7 @@ class PdokServicesPlugin(object):
         )
         layername = self.current_layer["name"]
         service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
-        stype = self.service_type_mapping(self.current_layer["service_type"]) if self.current_layer["service_type"] in self.service_type_mapping else self.current_layer["service_type"].upper()
+        stype = self.service_type_mapping[self.current_layer["service_type"]] if self.current_layer["service_type"] in self.service_type_mapping else self.current_layer["service_type"].upper()
         minscale = ""
         if "minscale" in self.current_layer:
             minscale = self.format_scale_denominator(self.current_layer["minscale"])
@@ -366,7 +366,7 @@ class PdokServicesPlugin(object):
             "WMTS": "Layer",
             "WFS": "Featuretype",
             "OGC API - features": "OGC API - features",
-            "OGC API - tiles": "OGC API - tiles",
+            "OGC API - tiles": "Vector tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
         # Go to endpoint of ogcapi features since no features in ngr
@@ -433,7 +433,7 @@ class PdokServicesPlugin(object):
             service_types = show_list[ui_el]
             ui_el.setHidden(not (stype in service_types))
 
-        if stype == "WMS" or stype == "OAT":
+        if stype == "WMS" or stype == "OGC API - tiles":
             styles = self.current_layer["styles"]
             nr_styles = len(styles)
             style_str = "styles" if nr_styles > 1 else "style"
@@ -776,13 +776,16 @@ class PdokServicesPlugin(object):
     def add_source_row(self, serviceLayer):
         # you can attache different "data's" to to an QStandarditem
         # default one is the visible one:
-        itemType = QStandardItem(str(serviceLayer["service_type"].upper()))
+        stype = self.service_type_mapping[serviceLayer["service_type"]] if serviceLayer["service_type"] in self.service_type_mapping else serviceLayer["service_type"].upper()
+        itemType = QStandardItem(str(stype))
         # userrole is a free form one:
         # only attach the data to the first item
         # service layer = a dict/object with all props of the layer
+
+
         itemType.setData(serviceLayer, Qt.UserRole)
         itemType.setToolTip(
-            f'{serviceLayer["service_type"].upper()} - {serviceLayer["title"]}'
+            f'{stype} - {serviceLayer["title"]}'
         )
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
@@ -794,7 +797,7 @@ class PdokServicesPlugin(object):
 
         itemLayername = QStandardItem(str(serviceLayer["title"]))
         itemLayername.setToolTip(
-            f'{serviceLayer["service_type"].upper()} - {serviceLayer["service_title"]}'
+            f'{stype} - {serviceLayer["service_title"]}'
         )
         # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
         itemFilter = QStandardItem(
@@ -802,7 +805,7 @@ class PdokServicesPlugin(object):
         )
         itemServicetitle = QStandardItem(str(serviceLayer["service_title"]))
         itemServicetitle.setToolTip(
-            f'{serviceLayer["service_type"].upper()} - {serviceLayer["title"]}'
+            f'{stype} - {serviceLayer["title"]}'
         )
         self.sourceModel.appendRow(
             [itemLayername, itemType, itemServicetitle, itemFilter]
