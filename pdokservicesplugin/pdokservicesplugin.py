@@ -166,8 +166,18 @@ class PdokServicesPlugin(object):
             "wmts": "bottom",
             "wfs": "top",
             "wcs": "top",
-            "oapif": "top",
-            "oat": "bottom",
+            "api features": "top",
+            "api tiles": "bottom",
+        }
+
+        # Set default layer loading behaviour
+        self.service_type_mapping = {
+            "wms": "WMS",
+            "wmts": "WMTS",
+            "wfs": "WFS",
+            "wcs": "WCS",
+            "api features": "OGC API - features",
+            "api tiles": "OGC API - tiles",
         }
 
         self.add_fav_actions_to_toolbar_button()
@@ -319,7 +329,7 @@ class PdokServicesPlugin(object):
         )
         layername = self.current_layer["name"]
         service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
-        stype = self.current_layer["service_type"].upper()
+        stype = self.service_type_mapping(self.current_layer["service_type"]) if self.current_layer["service_type"] in self.service_type_mapping else self.current_layer["service_type"].upper()
         minscale = ""
         if "minscale" in self.current_layer:
             minscale = self.format_scale_denominator(self.current_layer["minscale"])
@@ -355,18 +365,18 @@ class PdokServicesPlugin(object):
             "WMS": "Layer",
             "WMTS": "Layer",
             "WFS": "Featuretype",
-            "OAPIF": "OGC API - Features",
-            "OAT": "OGC API - Tiles",
+            "OGC API - features": "OGC API - features",
+            "OGC API - tiles": "OGC API - tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
-        # OAPIF Daraa dataset is not in NGR: ref to metadata page
-        if stype == "OAPIF":
+        # Go to endpoint of ogcapi features since no features in ngr
+        if stype == "OGC API - features":
             dataset_metadata_dd = self.get_dd(
-                "oapif",
+                stype,
                 f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title} - {layername}</a>',
             )
             service_metadata_dd = self.get_dd(
-                "oapif",
+                stype,
                 f'<a title="Bekijk service metadata van OAPIF" href="{url}">{service_title}</a>',
             )
         else:
@@ -413,10 +423,10 @@ class PdokServicesPlugin(object):
         self.dlg.ui.wmsStyleComboBox.clear()
 
         show_list = {
-            self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OAT"],
-            self.dlg.ui.labelCrs: ["WMS", "WMTS", "OAT"],
-            self.dlg.ui.wmsStyleComboBox: ["WMS", "OAT"],
-            self.dlg.ui.wmsStyleLabel: ["WMS", "OAT"],
+            self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OGC API - tiles"],
+            self.dlg.ui.labelCrs: ["WMS", "WMTS", "OGC API - tiles"],
+            self.dlg.ui.wmsStyleComboBox: ["WMS", "OGC API - tiles"],
+            self.dlg.ui.wmsStyleLabel: ["WMS", "OGC API - tiles"],
         }
 
         for ui_el in show_list.keys():
@@ -453,12 +463,24 @@ class PdokServicesPlugin(object):
                 if crs[i] == "EPSG:28992":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-        if stype == "WMTS" or stype == "OAT":
+        if stype == "WMTS":
             tilematrixsets = self.current_layer["tilematrixsets"].split(",")
             self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
             for i in range(len(tilematrixsets)):
                 if tilematrixsets[i].startswith("EPSG:28992"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+
+        if stype == "OGC API - tiles":
+            try:
+                crs = self.current_layer["crs"]
+            except KeyError:
+                crs = "EPSG:28992"
+            crs = crs.split(",")
+            self.dlg.ui.comboSelectProj.addItems(crs)
+            for i in range(len(crs)):
+                if crs[i] == "EPSG:28992":
+                    self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+
 
     def quote_wmts_url(self, url):
         """
