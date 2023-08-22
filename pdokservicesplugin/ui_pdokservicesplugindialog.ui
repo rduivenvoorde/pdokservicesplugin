@@ -44,6 +44,9 @@
            <height>0</height>
           </size>
          </property>
+         <attribute name="horizontalHeaderDefaultSectionSize">
+                <number>150</number>
+        </attribute>
         </widget>
        </item>
        <item row="2" column="0" colspan="4">
