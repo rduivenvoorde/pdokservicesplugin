@@ -511,7 +511,7 @@ class PdokServicesPlugin(object):
                 (
                     x
                     for x in self.current_layer["styles"]
-                    if x["title"] == selected_style_title
+                    if 'title' in x and x["title"] == selected_style_title 
                 ),
                 None,
             )
