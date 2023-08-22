@@ -481,12 +481,20 @@ class PdokServicesPlugin(object):
             except KeyError:
                 crs = "EPSG:28992"
             crs = crs.split(",")
-            self.dlg.ui.comboSelectProj.addItems(crs)
+            self.dlg.ui.comboSelectProj.addItems(map(self.extract_crs, crs))
             for i in range(len(crs)):
                 if crs[i] == "EPSG:28992":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
 
+    def extract_crs(self,crs_string):
+        pattern = r'/EPSG/(\d+)/(\d+)'
+        match = re.search(pattern, crs_string)
+        if match:
+            return f"EPSG:{match.group(2)}"
+        else:
+            return crs_string
+        
     def quote_wmts_url(self, url):
         """
         Quoten wmts url is nodig omdat qgis de query param `SERVICE=WMS` erachter plakt als je de wmts url niet quote.
@@ -595,10 +603,10 @@ class PdokServicesPlugin(object):
             format = "GEOTIFF"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
             return QgsRasterLayer(uri, title, "wcs")
-        elif servicetype == "oapif":  # OGC API Features
+        elif servicetype == "api features":  # OGC API Features
             uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
-            return QgsVectorLayer(uri, title, servicetype.upper())
-        elif servicetype == "oat":  # OGC API Tiles voor BGT
+            return QgsVectorLayer(uri, title, 'OAPIF')
+        elif servicetype == "api tiles":  # OGC API Tiles
 
             # CRS met oat werkt nog niet correct in qgis/gdal
             crs = self.get_crs_comboselect()
@@ -606,6 +614,7 @@ class PdokServicesPlugin(object):
                 "EPSG:28992": "NetherlandsRDNewQuad",
                 "EPSG:3857": "WebMercatorQuad",
                 "EPSG:4258": "EuropeanETRS89_GRS80Quad_Draft",
+                "EPSG:3035": "EuropeanETRS89_LAEAQuad"
             }
             # Style toevoegen in laag vanuit ui
             selected_style_name = (
@@ -614,29 +623,27 @@ class PdokServicesPlugin(object):
             selected_style = self.get_selected_style()
             if selected_style is not None:
                 selected_style_name = selected_style["name"]
-                selected_style_title = selected_style["name"]
-                if "title" in selected_style:
-                    selected_style_title = selected_style["title"]
-                title += f" [{selected_style_title}]"
+                selected_style_url = selected_style["url"]
+                title += f" [{selected_style_name}]"
 
             url_template = (
                 url + "/tiles/" + crs_mapping[crs] + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
             )
-            style_url = url + "/styles/" + selected_style_name
             if crs == "EPSG:28992":
-                minmaxz_coord = 12
-            elif crs == "EPSG:4258":
-                minmaxz_coord = 14
+                maxz_coord = 12
+            elif crs == "EPSG:4258" or crs == "EPSG:3035":
+                maxz_coord = 14
             else:
-                minmaxz_coord = 17
+                maxz_coord = 17
+            minz_coord = 1 # Better performance wise, see QGIS issue https://github.com/qgis/QGIS/issues/54312
             type = "xyz"
-            uri = f"styleUrl={style_url}&url={url_template}&type={type}&zmax={minmaxz_coord}&zmin={minmaxz_coord}&http-header:referer="
+            uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
             return QgsVectorTileLayer(uri, title)
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
                 kan niet worden geladen door de plugin of door QGIS.
-                Is het niet beschikbaar als wms, wmts, wfs, oapif of oat (vectortile)?
+                Is het niet beschikbaar als wms, wmts, wfs, api features of api tiles (vectortile)?
                 """
             )
             return
