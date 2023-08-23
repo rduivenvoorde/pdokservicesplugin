@@ -176,8 +176,8 @@ class PdokServicesPlugin(object):
             "wmts": "WMTS",
             "wfs": "WFS",
             "wcs": "WCS",
-            "api features": "OGC API - features",
-            "api tiles": "OGC API - tiles",
+            "api features": "OGC API - Features",
+            "api tiles": "OGC API - Tiles",
         }
 
         self.add_fav_actions_to_toolbar_button()
@@ -369,12 +369,12 @@ class PdokServicesPlugin(object):
             "WMS": "Layer",
             "WMTS": "Layer",
             "WFS": "Featuretype",
-            "OGC API - features": "OGC API - features",
-            "OGC API - tiles": "Vector tiles",
+            "OGC API - Features": "OGC API - Features",
+            "OGC API - Tiles": "Vector Tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
         # Go to endpoint of ogcapi features since no features in ngr
-        if stype == "OGC API - features":
+        if stype == "OGC API - Features":
             dataset_metadata_dd = self.get_dd(
                 stype,
                 f'<a title="Bekijk dataset metadata van OAPIF" href="{url}/collections/{layername}">{title} - {layername}</a>',
@@ -427,17 +427,17 @@ class PdokServicesPlugin(object):
         self.dlg.ui.wmsStyleComboBox.clear()
 
         show_list = {
-            self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OGC API - tiles"],
-            self.dlg.ui.labelCrs: ["WMS", "WMTS", "OGC API - tiles"],
-            self.dlg.ui.wmsStyleComboBox: ["WMS", "OGC API - tiles"],
-            self.dlg.ui.wmsStyleLabel: ["WMS", "OGC API - tiles"],
+            self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OGC API - Tiles"],
+            self.dlg.ui.labelCrs: ["WMS", "WMTS", "OGC API - Tiles"],
+            self.dlg.ui.wmsStyleComboBox: ["WMS", "OGC API - Tiles"],
+            self.dlg.ui.wmsStyleLabel: ["WMS", "OGC API - Tiles"],
         }
 
         for ui_el in show_list.keys():
             service_types = show_list[ui_el]
             ui_el.setHidden(not (stype in service_types))
 
-        if stype == "WMS" or stype == "OGC API - tiles":
+        if stype == "WMS" or stype == "OGC API - Tiles":
             styles = self.current_layer["styles"]
             nr_styles = len(styles)
             style_str = "styles" if nr_styles > 1 else "style"
@@ -467,14 +467,14 @@ class PdokServicesPlugin(object):
                 if crs[i] == "EPSG:28992":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-        if stype == "WMTS":
+        elif stype == "WMTS":
             tilematrixsets = self.current_layer["tilematrixsets"].split(",")
             self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
             for i in range(len(tilematrixsets)):
                 if tilematrixsets[i].startswith("EPSG:28992"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-        if stype == "OGC API - tiles":
+        elif stype == "OGC API - Tiles":
             try:
                 crs = self.current_layer["crs"]
             except KeyError:
@@ -533,10 +533,8 @@ class PdokServicesPlugin(object):
 
     def get_crs_comboselect(self):
         if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-            crs = "EPSG:28992"
-        else:
-            crs = self.dlg.ui.comboSelectProj.currentText()
-        return crs
+            return "EPSG:28992"
+        return self.dlg.ui.comboSelectProj.currentText()
 
     def create_new_layer(self):
         servicetype = self.current_layer["service_type"]
