@@ -490,8 +490,7 @@ class PdokServicesPlugin(object):
         match = re.search(pattern, crs_string)
         if match:
             return f"EPSG:{match.group(2)}"
-        else:
-            return crs_string
+        return crs_string
 
     def quote_wmts_url(self, url):
         """
