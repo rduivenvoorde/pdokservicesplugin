@@ -627,7 +627,9 @@ class PdokServicesPlugin(object):
                 maxz_coord = 14
             else:
                 maxz_coord = 17
-            minz_coord = 1  # Better performance wise, see QGIS issue https://github.com/qgis/QGIS/issues/54312
+            minz_coord = 1  
+            # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
+            # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
             type = "xyz"
             uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
             return QgsVectorTileLayer(uri, title)
