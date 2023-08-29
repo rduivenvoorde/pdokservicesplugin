@@ -639,13 +639,13 @@ class PdokServicesPlugin(object):
             # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
             # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
             type = "xyz"
-            uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
-            tileLayer = QgsVectorTileLayer(uri, title)
+            uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&crs={crs}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
+            tile_layer = QgsVectorTileLayer(uri, title)
 
             # Set the VT layer CRS and load the styleUrl
-            tileLayer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
-            tileLayer.loadDefaultStyle()
-            return tileLayer
+            tile_layer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
+            tile_layer.loadDefaultStyle()
+            return tile_layer
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
