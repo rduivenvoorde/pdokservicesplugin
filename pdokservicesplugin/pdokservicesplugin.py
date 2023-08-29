@@ -641,7 +641,10 @@ class PdokServicesPlugin(object):
             type = "xyz"
             uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
             tileLayer = QgsVectorTileLayer(uri, title)
+
+            # Set the VT layer CRS and load the styleUrl
             tileLayer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
+            tileLayer.loadDefaultStyle()
             return tileLayer
         else:
             self.show_warning(
