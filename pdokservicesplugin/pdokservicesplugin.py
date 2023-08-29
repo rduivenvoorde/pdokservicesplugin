@@ -600,7 +600,7 @@ class PdokServicesPlugin(object):
             return QgsVectorLayer(uri, title, "OAPIF")
         elif servicetype == "api tiles":  # OGC API Tiles
 
-            # CRS met oat werkt nog niet correct in qgis/gdal
+            # CRS does not work correctly in qgis/gdal. We can set a crs (non-webmercator), but it is not displayed as expected.
             crs = self.get_crs_comboselect()
             crs_mapping = {
                 "EPSG:28992": "NetherlandsRDNewQuad",
@@ -632,7 +632,9 @@ class PdokServicesPlugin(object):
             # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
             type = "xyz"
             uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
-            return QgsVectorTileLayer(uri, title)
+            tileLayer = QgsVectorTileLayer(uri, title)
+            tileLayer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
+            return tileLayer
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
