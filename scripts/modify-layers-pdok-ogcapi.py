@@ -97,7 +97,7 @@ def retrieve_layers_from_oaf_endpoint(urls=[]):
         service_abstract = (
             url_info["description"]
             if "description" in url_info
-            else "Geen abstract gevonden"
+            else ""
         )
         service_type = "api features"  # "oapif"
         collection_json = requests.get(url + "/collections").json()
@@ -107,7 +107,7 @@ def retrieve_layers_from_oaf_endpoint(urls=[]):
             collection_abstract = (
                 collection["description"]
                 if "description" in collection
-                else "Geen abstract gevonden"
+                else ""
             )
             url_layer.append(
                 {
