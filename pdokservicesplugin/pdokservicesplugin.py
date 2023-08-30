@@ -600,7 +600,7 @@ class PdokServicesPlugin(object):
             return QgsVectorLayer(uri, title, "OAPIF")
         elif servicetype == "api tiles":  # OGC API Tiles
 
-            # CRS does not work correctly in qgis/gdal. We can set a crs (non-webmercator), but it is not displayed as expected.
+            # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered elsewhere.
             crs = self.get_crs_comboselect()
             crs_mapping = {
                 "EPSG:28992": "NetherlandsRDNewQuad",
@@ -631,7 +631,7 @@ class PdokServicesPlugin(object):
             # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
             # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
             type = "xyz"
-            uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&crs={crs}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
+            uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
             tile_layer = QgsVectorTileLayer(uri, title)
 
             # Set the VT layer CRS and load the styleUrl
