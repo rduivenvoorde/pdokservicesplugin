@@ -10,6 +10,7 @@ output_file_real=$output_dir/$(basename "$output_file")
 output_file_base=$(basename "$output_file_real")
 cat <<EOF > /tmp/sorting-rules.json
 [
+  { "index": 0, "names": ["tiles$"], "types": ["OGC:API tiles"] },
   { "index": 1, "names": ["^actueel_orthohr$"], "types": ["OGC:WMTS"] },
   { "index": 2, "names": ["^actueel_ortho25$"], "types": ["OGC:WMTS"] },
   { "index": 3, "names": ["^actueel_ortho25ir$"], "types": ["OGC:WMTS"] },

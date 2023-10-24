@@ -21,16 +21,14 @@ import requests
 import sys
 
 URLS_OAF = [
-    "https://demo.ldproxy.net/daraa",
-    "https://test.haleconnect.de/ogcapi/datasets/hydro-example",
-    "https://test.haleconnect.de/ogcapi/datasets/simplified-addresses",
+    "https://api.pdok.nl/lv/bgt/ogc/v1_0-preprod"
 ]
 URLS_OAT = [
-    "https://api.pdok.nl/lv/bag/ogc/v0_1",
+    "https://api.pdok.nl/lv/bag/ogc/v1_0",
     "https://api.pdok.nl/lv/bgt/ogc/v1_0",
 ]
 BAG_DATASET_MD_ID = "aa3b5e6e-7baa-40c0-8972-3353e927ec2f"
-BAG_SERVICE_MD_ID = ""
+BAG_SERVICE_MD_ID = "b0f20313-2892-415e-82c1-bf77a984e8d8"
 BGT_DATASET_MD_ID = "2cb4769c-b56e-48fa-8685-c48f61b9a319"
 BGT_SERVICE_MD_ID = "356fc922-f910-4874-b72a-dbb18c1bed3e"
 
@@ -99,6 +97,9 @@ def retrieve_layers_from_oaf_endpoint(urls=[]):
             if "description" in url_info
             else ""
         )
+        if "bgt" in url:
+            dataset_md_id = BGT_DATASET_MD_ID
+            service_md_id = BGT_SERVICE_MD_ID
         service_type = "api features"  # "oapif"
         collection_json = requests.get(url + "/collections").json()
         for collection in collection_json["collections"]:
@@ -114,12 +115,12 @@ def retrieve_layers_from_oaf_endpoint(urls=[]):
                     "name": collection_name,
                     "title": collection_title,
                     "abstract": collection_abstract,
-                    "dataset_md_id": "",
+                    "dataset_md_id": dataset_md_id,
                     "service_url": url,
                     "service_title": service_title,
                     "service_abstract": service_abstract,
                     "service_type": service_type,
-                    "service_md_id": "",
+                    "service_md_id": service_md_id,
                 }
             )
         oaf_layers.extend(url_layer)
