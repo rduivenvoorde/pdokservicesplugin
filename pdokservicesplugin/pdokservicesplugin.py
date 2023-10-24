@@ -627,7 +627,14 @@ class PdokServicesPlugin(object):
                 maxz_coord = 14
             else:
                 maxz_coord = 17
-            minz_coord = 1  
+            if crs != "EPSG:3857":
+                self.show_warning(
+                    f"""OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
+                Het gebruik van andere CRS zorgt momenteel voor foutieve projecties.
+                Zie: https://github.com/qgis/QGIS/issues/54673  
+                """
+                )
+            minz_coord = 1
             # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
             # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
             type = "xyz"
