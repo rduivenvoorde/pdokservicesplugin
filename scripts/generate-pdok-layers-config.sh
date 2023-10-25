@@ -49,6 +49,8 @@ docker run -v "${output_dir}:/output_dir" -v /tmp:/tmp "pdok/ngr-services-spider
     .key = "dataset_md_id" 
   elif .key == "styles" then
     .value = (.value | map(del(.legend_url)))
+  elif .key == "service_url" and (.value | test("/tiles")) then
+      .value = (.value | split("/tiles")[0])
   else 
     (.) 
   end
