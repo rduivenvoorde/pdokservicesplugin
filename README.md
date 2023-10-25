@@ -4,7 +4,7 @@
 
 This plugin is probably only interesting for the dutch audience.
 
-It shows a list of available web services (WMS, WMTS, WFS etc) from our
+It shows a list of available web services (WMS, WMTS, WFS, OGC:API tiles/features etc) from our
 national data services (in our national crs epsg:28992).
 Further information in dutch below.
 
@@ -17,7 +17,7 @@ PDOK services te testen of te bekijken.
 
 Op basis van een json bestand (IN de plugin) met alle op dit moment beschikbare services wordt een dialoog opgebouwd met daarin
 
-- het soort service (WMS, WMTS, WFS of TMS)
+- het soort service (WMS, WMTS, WFS, TMS, OGC:API tiles/features)
 - de naam van de service
 - een regel per laag van de service
 
