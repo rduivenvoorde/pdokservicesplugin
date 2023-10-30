@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Modify layers-pdok.json with OGC:API records
+"""Modify/extend layers-pdok.json with OGC:API records for tiles/features from PDOK
 
 This script allows the user modify the layers-podk.json file which is used in the
 pdokservicesplugin. The records are generated in this script by requesting 
@@ -57,6 +57,7 @@ def retrieve_layers_from_oat_endpoint(urls=[]):
         dataset_abstract = url_info.get("description", "Geen abstract gevonden")
         service_type = "api tiles"
         styles = requests.get(url + "/styles").json()
+        tiles = requests.get(url + "/tiles").json()
         tile_object = {
             "name": dataset_title,
             "title": dataset_title,
@@ -64,6 +65,7 @@ def retrieve_layers_from_oat_endpoint(urls=[]):
             "dataset_md_id": dataset_md_id,
             "styles": [
                 {
+                    "id": style["id"],
                     "name": style["title"],
                     "url": next(
                         link["href"]
@@ -73,9 +75,19 @@ def retrieve_layers_from_oat_endpoint(urls=[]):
                 }
                 for style in styles["styles"]
             ],
-            "minscale": "",
-            "maxscale": "",
-            "crs": crs,
+            "tiles": [
+                {
+                    "title": tiles["title"],
+                    "abstract": tiles["description"],
+                    "tilesets": [
+                        {
+                            "tileset_id": tileset["tileMatrixSetId"],
+                            "tileset_crs": tileset["crs"]
+                        }
+                        for tileset in tiles["tilesets"]
+                    ]
+                }
+            ],
             "service_url": url,
             "service_title": tiles_info["title"],
             "service_abstract": tiles_info["description"],
