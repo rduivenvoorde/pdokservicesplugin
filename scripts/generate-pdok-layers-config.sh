@@ -40,7 +40,7 @@ if [[ $nr_of_services != "-" ]];then
   nr_svc_flag="-n ${nr_of_services}"
 fi
 
-docker run -v "${output_dir}:/output_dir" -v /tmp:/tmp "pdok/ngr-services-spider:0.6.2" layers $nr_svc_flag --snake-case --pretty -s /tmp/sorting-rules.json -m flat -p "OGC:WMS,OGC:WFS,OGC:WCS,OGC:WMTS,OGC:API tiles,OGC:API features" "/output_dir/${output_file_base}" --jq-filter '.layers[] |= with_entries(
+docker run -v "${output_dir}:/output_dir" -v /tmp:/tmp "pdok/ngr-services-spider:0.6.3" layers $nr_svc_flag --snake-case --pretty -s /tmp/sorting-rules.json -m flat -p "OGC:WMS,OGC:WFS,OGC:WCS,OGC:WMTS,OGC:API tiles,OGC:API features" "/output_dir/${output_file_base}" --jq-filter '.layers[] |= with_entries(
   if .key == "service_protocol" then 
     .value = (.value | split(":")[1] | ascii_downcase) | .key = "service_type" 
   elif .key == "service_metadata_id" then 
