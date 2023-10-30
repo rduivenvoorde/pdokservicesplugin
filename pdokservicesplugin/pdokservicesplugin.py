@@ -475,14 +475,17 @@ class PdokServicesPlugin(object):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
         elif stype == "OGC API - Tiles":
+            tiles = self.current_layer["tiles"][0]
+            crs_list = []
             try:
-                crs = self.current_layer["crs"]
+                crs_list = [tileset["tileset_crs"] for tileset in tiles["tilesets"]]
             except KeyError:
-                crs = "EPSG:28992"
-            crs = crs.split(",")
-            self.dlg.ui.comboSelectProj.addItems(map(self.extract_crs, crs))
-            for i in range(len(crs)):
-                if crs[i] == "EPSG:28992":
+                crs_list = ["EPSG:3857"]
+            self.dlg.ui.comboSelectProj.addItems(map(self.extract_crs, crs_list))
+            print(crs_list)
+            for i in range(len(crs_list)):
+                print(crs_list[i])
+                if crs_list[i].split("/")[-1] == "3857":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
     def extract_crs(self, crs_string):
@@ -600,14 +603,12 @@ class PdokServicesPlugin(object):
             return QgsVectorLayer(uri, title, "OAPIF")
         elif servicetype == "api tiles":  # OGC API Tiles
 
-            # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered elsewhere.
+            # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered incorrectly.
             crs = self.get_crs_comboselect()
-            crs_mapping = {
-                "EPSG:28992": "NetherlandsRDNewQuad",
-                "EPSG:3857": "WebMercatorQuad",
-                "EPSG:4258": "EuropeanETRS89_GRS80Quad_Draft",
-                "EPSG:3035": "EuropeanETRS89_LAEAQuad",
-            }
+            tiles = self.current_layer["tiles"][0]
+            tilesets = tiles["tilesets"]
+            used_tileset = next((tileset for tileset in tilesets if tileset["tileset_crs"].endswith(crs.split(":")[1])), None)
+
             # Style toevoegen in laag vanuit ui
             selected_style_name = (
                 self.current_layer["default"] if "default" in self.current_layer else ""
@@ -619,7 +620,7 @@ class PdokServicesPlugin(object):
                 title += f" [{selected_style_name}]"
 
             url_template = (
-                url + "/tiles/" + crs_mapping[crs] + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+                url + "/tiles/" + used_tileset["tileset_id"] + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
             )
             if crs == "EPSG:28992":
                 maxz_coord = 12
@@ -627,6 +628,7 @@ class PdokServicesPlugin(object):
                 maxz_coord = 14
             else:
                 maxz_coord = 17
+            # A warning is shown when adding a non-webmercator layer
             if crs != "EPSG:3857":
                 self.show_warning(
                     f"""OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
