@@ -476,9 +476,7 @@ class PdokServicesPlugin(object):
             except KeyError:
                 crs_list = ["EPSG:3857"]
             self.dlg.ui.comboSelectProj.addItems(map(self.extract_crs, crs_list))
-            print(crs_list)
             for i in range(len(crs_list)):
-                print(crs_list[i])
                 if crs_list[i].split("/")[-1] == "3857":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
