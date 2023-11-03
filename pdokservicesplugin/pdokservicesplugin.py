@@ -479,6 +479,16 @@ class PdokServicesPlugin(object):
             for i in range(len(crs_list)):
                 if crs_list[i].split("/")[-1] == "3857":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+                    self.dlg.ui.comboSelectProj.model().item(i).setEnabled(True)
+                else:
+                    # We disable all options that do not support correct projection of vector tiles
+                    self.dlg.ui.comboSelectProj.model().item(i).setEnabled(False)
+                    self.dlg.ui.comboSelectProj.setToolTip(
+                        f"""OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
+                Het gebruik van andere CRS zorgt momenteel voor foutieve projecties.
+                Zie: https://github.com/qgis/QGIS/issues/54673  
+                """
+                    )
 
     def extract_crs(self, crs_string):
         pattern = r"/EPSG/(\d+)/(\d+)"
@@ -597,12 +607,18 @@ class PdokServicesPlugin(object):
             uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
             return QgsVectorLayer(uri, title, "OAPIF")
         elif servicetype == "api tiles":  # OGC API Tiles
-
             # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered incorrectly.
             crs = self.get_crs_comboselect()
             tiles = self.current_layer["tiles"][0]
             tilesets = tiles["tilesets"]
-            used_tileset = next((tileset for tileset in tilesets if tileset["tileset_crs"].endswith(crs.split(":")[1])), None)
+            used_tileset = next(
+                (
+                    tileset
+                    for tileset in tilesets
+                    if tileset["tileset_crs"].endswith(crs.split(":")[1])
+                ),
+                None,
+            )
 
             # Style toevoegen in laag vanuit ui
             selected_style_name = (
@@ -615,7 +631,10 @@ class PdokServicesPlugin(object):
                 title += f" [{selected_style_name}]"
 
             url_template = (
-                url + "/tiles/" + used_tileset["tileset_id"] + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+                url
+                + "/tiles/"
+                + used_tileset["tileset_id"]
+                + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
             )
             if crs == "EPSG:28992":
                 maxz_coord = 12
@@ -623,14 +642,6 @@ class PdokServicesPlugin(object):
                 maxz_coord = 14
             else:
                 maxz_coord = 17
-            # A warning is shown when adding a non-webmercator layer
-            if crs != "EPSG:3857":
-                self.show_warning(
-                    f"""OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
-                Het gebruik van andere CRS zorgt momenteel voor foutieve projecties.
-                Zie: https://github.com/qgis/QGIS/issues/54673  
-                """
-                )
             minz_coord = 1
             # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
             # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
@@ -998,7 +1009,7 @@ class PdokServicesPlugin(object):
         a_list = [int(x) for x in a.split(".")]
         b_list = [int(x) for x in b.split(".")]
 
-        for (a_val, b_val) in zip(a_list, b_list):
+        for a_val, b_val in zip(a_list, b_list):
             if a_val > b_val:
                 return True
         return a_list == b_list
@@ -1266,7 +1277,6 @@ class PdokServicesPlugin(object):
             nr_of_favs = len(favs)
 
             if fav_index != -1:
-
                 up_fav_action = QAction(f"Verplaats favoriet omhoog")
                 down_fav_action = QAction(f"Verplaats favoriet omlaag")
 
