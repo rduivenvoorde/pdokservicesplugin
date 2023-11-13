@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
-"""Modify layers-pdok.json with OGC:API records
+"""Modify/extend layers-pdok.json with OGC:API records for tiles/features from PDOK
 
-This script allows the user modify the layers-podk.json file which is used in the
+This script allows the user modify the layers-pdok.json file which is used in the
 pdokservicesplugin. The records are generated in this script by requesting 
 various API endpoints that are conform the OGC:API standards.
 
 To run this script, one has to provide a single parameter: [ogcapi|original]
 
+Run the following command from the root of the repository:
 `python3 ./scripts/modify-layers-pdok-ogcapi.py ogcapi`: Adds ogcapi test records to 
-layers-pdok.json and creates a copy of the original file
+layers-pdok.json for tiles/features and creates a copy of the original file
 
 `python3 ./scripts/modify-layers-pdok-ogcapi.py original`: Replaces layers-pdok.json 
 with the copy file (containing the original .json file) and removes the copy.
+
+The URL endpoints that are used in this script to add layers are defined in "URLS_OAF"
+and "URLS_OAT". By modifying these constants, other endpoints can be added locally 
+without this service having a record in NGR.  
 """
 
 import json
@@ -19,18 +24,21 @@ import os
 import shutil
 import requests
 import sys
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+log = logging.getLogger(__name__)
 
 URLS_OAF = [
-    "https://demo.ldproxy.net/daraa",
-    "https://test.haleconnect.de/ogcapi/datasets/hydro-example",
-    "https://test.haleconnect.de/ogcapi/datasets/simplified-addresses",
+    "https://api.pdok.nl/lv/bgt/ogc/v1_0-preprod"
 ]
 URLS_OAT = [
-    "https://api.pdok.nl/lv/bag/ogc/v0_1",
+    "https://api.pdok.nl/lv/bag/ogc/v1_0",
     "https://api.pdok.nl/lv/bgt/ogc/v1_0",
 ]
 BAG_DATASET_MD_ID = "aa3b5e6e-7baa-40c0-8972-3353e927ec2f"
-BAG_SERVICE_MD_ID = ""
+BAG_SERVICE_MD_ID = "b0f20313-2892-415e-82c1-bf77a984e8d8"
 BGT_DATASET_MD_ID = "2cb4769c-b56e-48fa-8685-c48f61b9a319"
 BGT_SERVICE_MD_ID = "356fc922-f910-4874-b72a-dbb18c1bed3e"
 
@@ -55,10 +63,10 @@ def retrieve_layers_from_oat_endpoint(urls=[]):
             dataset_md_id = BGT_DATASET_MD_ID
             service_md_id = BGT_SERVICE_MD_ID
 
-        crs = ",".join([tileset["crs"] for tileset in tiles_info["tilesets"]])
         dataset_abstract = url_info.get("description", "Geen abstract gevonden")
         service_type = "api tiles"
         styles = requests.get(url + "/styles").json()
+        tiles = requests.get(url + "/tiles").json()
         tile_object = {
             "name": dataset_title,
             "title": dataset_title,
@@ -66,6 +74,7 @@ def retrieve_layers_from_oat_endpoint(urls=[]):
             "dataset_md_id": dataset_md_id,
             "styles": [
                 {
+                    "id": style["id"],
                     "name": style["title"],
                     "url": next(
                         link["href"]
@@ -75,9 +84,19 @@ def retrieve_layers_from_oat_endpoint(urls=[]):
                 }
                 for style in styles["styles"]
             ],
-            "minscale": "",
-            "maxscale": "",
-            "crs": crs,
+            "tiles": [
+                {
+                    "title": tiles["title"],
+                    "abstract": tiles["description"],
+                    "tilesets": [
+                        {
+                            "tileset_id": tileset["tileMatrixSetId"],
+                            "tileset_crs": tileset["crs"]
+                        }
+                        for tileset in tiles["tilesets"]
+                    ]
+                }
+            ],
             "service_url": url,
             "service_title": tiles_info["title"],
             "service_abstract": tiles_info["description"],
@@ -99,6 +118,9 @@ def retrieve_layers_from_oaf_endpoint(urls=[]):
             if "description" in url_info
             else ""
         )
+        if "bgt" in url:
+            dataset_md_id = BGT_DATASET_MD_ID
+            service_md_id = BGT_SERVICE_MD_ID
         service_type = "api features"  # "oapif"
         collection_json = requests.get(url + "/collections").json()
         for collection in collection_json["collections"]:
@@ -114,12 +136,12 @@ def retrieve_layers_from_oaf_endpoint(urls=[]):
                     "name": collection_name,
                     "title": collection_title,
                     "abstract": collection_abstract,
-                    "dataset_md_id": "",
+                    "dataset_md_id": dataset_md_id,
                     "service_url": url,
                     "service_title": service_title,
                     "service_abstract": service_abstract,
                     "service_type": service_type,
-                    "service_md_id": "",
+                    "service_md_id": service_md_id,
                 }
             )
         oaf_layers.extend(url_layer)
@@ -131,18 +153,18 @@ def original_layers_pdok(layers_location, backup_file_path):
     if os.path.exists(backup_file_path):
         shutil.copy2(backup_file_path, layers_location)
         os.remove(backup_file_path)
-        print(
+        log.info(
             f"Backup copy '{backup_file_path}'replaces layers-pdok.json and backup file removed"
         )
     else:
-        print(f"No backup found at '{backup_file_path}': No files replaced")
+        log.info(f"No backup found at '{backup_file_path}': No files replaced")
     return
 
 
 def add_ogcapi_records(layers_location, resources_folder, backup_file_path):
     # Checkout if layers-pdok.json exists
     if not os.path.exists(layers_location):
-        print(
+        log.info(
             f"There is no layers-pdok.json file in the correct location: {resources_folder}"
         )
         sys.exit(1)
@@ -150,11 +172,11 @@ def add_ogcapi_records(layers_location, resources_folder, backup_file_path):
     # Create a backup copy of the original file if it doesn't exist
     if not os.path.exists(backup_file_path):
         shutil.copy2(layers_location, backup_file_path)
-        print(
+        log.info(
             f"Backup copy '{backup_file_path}' created with original layers-pdok.json"
         )
     else:
-        print(f"Backup already exists '{backup_file_path}': No copy made")
+        log.info(f"Backup already exists '{backup_file_path}': No copy made")
 
     # For testing the plugin with ogcapi features & tiles: extend original layers-pdok.json
     extra_records_layers_pdok = extend_layer_pdok_ogcapi(
@@ -175,10 +197,10 @@ def add_ogcapi_records(layers_location, resources_folder, backup_file_path):
     if not all_ogcapi_records_exist:
         extra_records_layers_pdok.extend(data)
         write_to_layers_file(extra_records_layers_pdok, layers_location)
-        print("layers-pdok.json updated succesfully")
+        log.info("layers-pdok.json updated succesfully")
     else:
         write_to_layers_file(data, layers_location)
-        print(f"All ogcapi records already exist in '{layers_location}': Nothing added")
+        log.info(f"All ogcapi records already exist in '{layers_location}': Nothing added")
     return
 
 
@@ -198,11 +220,11 @@ def main():
     allowed_args = ["ogcapi", "original"]
     # Check for the correct number of command-line arguments
     if len(sys.argv) != 2:
-        print("Usage: modify-layers-pdok-ogcapi.py [ogcapi|original]")
+        log.info("Usage: modify-layers-pdok-ogcapi.py [ogcapi|original]")
         sys.exit(1)
 
     if sys.argv[1] not in allowed_args:
-        print(f"Arg {sys.argv[1]} not allowed, only [ogcapi|original] allowed")
+        log.info(f"Arg {sys.argv[1]} not allowed, only [ogcapi|original] allowed")
         sys.exit(1)
     else:
         mode = sys.argv[1]
