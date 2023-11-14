@@ -165,7 +165,6 @@ class PdokServicesPlugin(object):
             "wmts": "bottom",
             "wfs": "top",
             "wcs": "top",
-            "api features": "top",
             "api tiles": "bottom",
         }
 
@@ -175,7 +174,6 @@ class PdokServicesPlugin(object):
             "wmts": "WMTS",
             "wfs": "WFS",
             "wcs": "WCS",
-            "api features": "OGC API - Features",
             "api tiles": "OGC API - Tiles",
         }
 
@@ -368,7 +366,6 @@ class PdokServicesPlugin(object):
             "WMS": "Layer",
             "WMTS": "Layer",
             "WFS": "Featuretype",
-            "OGC API - Features": "OGC API - Features",
             "OGC API - Tiles": "Vector Tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
@@ -594,9 +591,6 @@ class PdokServicesPlugin(object):
             format = "GEOTIFF"
             uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
             return QgsRasterLayer(uri, title, "wcs")
-        elif servicetype == "api features":  # OGC API Features
-            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
-            return QgsVectorLayer(uri, title, "OAPIF")
         elif servicetype == "api tiles":  # OGC API Tiles
             # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered incorrectly.
             crs = self.get_crs_comboselect()
@@ -648,7 +642,7 @@ class PdokServicesPlugin(object):
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
                 kan niet worden geladen door de plugin of door QGIS.
-                Is het niet beschikbaar als wms, wmts, wfs, api features of api tiles (vectortile)?
+                Is het niet beschikbaar als wms, wmts, wfs of api tiles (vectortile)?
                 """
             )
             return

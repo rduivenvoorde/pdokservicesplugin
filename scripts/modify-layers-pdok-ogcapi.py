@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Modify/extend layers-pdok.json with OGC:API records for tiles/features from PDOK
+"""Modify/extend layers-pdok.json with OGC:API records for tiles from PDOK
 
 This script allows the user modify the layers-pdok.json file which is used in the
 pdokservicesplugin. The records are generated in this script by requesting 
@@ -9,13 +9,13 @@ To run this script, one has to provide a single parameter: [ogcapi|original]
 
 Run the following command from the root of the repository:
 `python3 ./scripts/modify-layers-pdok-ogcapi.py ogcapi`: Adds ogcapi test records to 
-layers-pdok.json for tiles/features and creates a copy of the original file
+layers-pdok.json for tiles and creates a copy of the original file
 
 `python3 ./scripts/modify-layers-pdok-ogcapi.py original`: Replaces layers-pdok.json 
 with the copy file (containing the original .json file) and removes the copy.
 
-The URL endpoints that are used in this script to add layers are defined in "URLS_OAF"
-and "URLS_OAT". By modifying these constants, other endpoints can be added locally 
+The URL endpoints that are used in this script to add layers are defined in "URLS_OAT". 
+By modifying this constant, other endpoints can be added locally 
 without this service having a record in NGR.  
 """
 
@@ -30,9 +30,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 log = logging.getLogger(__name__)
 
-URLS_OAF = [
-    "https://api.pdok.nl/lv/bgt/ogc/v1_0-preprod"
-]
 URLS_OAT = [
     "https://api.pdok.nl/lv/bag/ogc/v1_0",
     "https://api.pdok.nl/lv/bgt/ogc/v1_0",
@@ -43,10 +40,9 @@ BGT_DATASET_MD_ID = "2cb4769c-b56e-48fa-8685-c48f61b9a319"
 BGT_SERVICE_MD_ID = "356fc922-f910-4874-b72a-dbb18c1bed3e"
 
 
-def extend_layer_pdok_ogcapi(urls_oaf=[], urls_oat=[]):
+def extend_layer_pdok_ogcapi(urls_oat=[]):
     layers_pdok = []
     layers_pdok = retrieve_layers_from_oat_endpoint(urls_oat)
-    layers_pdok.extend(retrieve_layers_from_oaf_endpoint(urls_oaf))
     return layers_pdok
 
 
@@ -107,47 +103,6 @@ def retrieve_layers_from_oat_endpoint(urls=[]):
     return oat_layers
 
 
-def retrieve_layers_from_oaf_endpoint(urls=[]):
-    oaf_layers = []
-    for url in urls:
-        url_layer = []
-        url_info = requests.get(url).json()
-        service_title = url_info["title"] if "title" in url_info else url.split("/")[-1]
-        service_abstract = (
-            url_info["description"]
-            if "description" in url_info
-            else ""
-        )
-        if "bgt" in url:
-            dataset_md_id = BGT_DATASET_MD_ID
-            service_md_id = BGT_SERVICE_MD_ID
-        service_type = "api features"  # "oapif"
-        collection_json = requests.get(url + "/collections").json()
-        for collection in collection_json["collections"]:
-            collection_name = collection["id"]
-            collection_title = collection["title"]
-            collection_abstract = (
-                collection["description"]
-                if "description" in collection
-                else ""
-            )
-            url_layer.append(
-                {
-                    "name": collection_name,
-                    "title": collection_title,
-                    "abstract": collection_abstract,
-                    "dataset_md_id": dataset_md_id,
-                    "service_url": url,
-                    "service_title": service_title,
-                    "service_abstract": service_abstract,
-                    "service_type": service_type,
-                    "service_md_id": service_md_id,
-                }
-            )
-        oaf_layers.extend(url_layer)
-    return oaf_layers
-
-
 def original_layers_pdok(layers_location, backup_file_path):
     # Find backup or print if not exists
     if os.path.exists(backup_file_path):
@@ -178,9 +133,9 @@ def add_ogcapi_records(layers_location, resources_folder, backup_file_path):
     else:
         log.info(f"Backup already exists '{backup_file_path}': No copy made")
 
-    # For testing the plugin with ogcapi features & tiles: extend original layers-pdok.json
+    # For testing the plugin with ogcapi tiles: extend original layers-pdok.json
     extra_records_layers_pdok = extend_layer_pdok_ogcapi(
-        urls_oaf=URLS_OAF, urls_oat=URLS_OAT
+        urls_oat=URLS_OAT
     )
 
     # Load existing data from the JSON file (if it exists)
