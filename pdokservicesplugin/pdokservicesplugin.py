@@ -636,12 +636,7 @@ class PdokServicesPlugin(object):
                 + used_tileset["tileset_id"]
                 + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
             )
-            if crs == "EPSG:28992":
-                maxz_coord = 12
-            elif crs == "EPSG:4258" or crs == "EPSG:3035":
-                maxz_coord = 14
-            else:
-                maxz_coord = 17
+            maxz_coord = used_tileset["tileset_max_zoomlevel"]
             minz_coord = 1
             # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
             # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
