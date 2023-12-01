@@ -198,6 +198,8 @@ class Ui_PdokServicesPlugin(object):
         self.cb_flashing_geoms.setChecked(True)
         self.cb_flashing_geoms.setObjectName("cb_flashing_geoms")
         self.gridLayout_6.addWidget(self.cb_flashing_geoms, 0, 0, 1, 1)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.gridLayout_6.addItem(spacerItem, 1, 0, 1, 1)
         self.gridLayout.addWidget(self.groupBox, 0, 0, 1, 1)
         self.tabWidget.addTab(self.tab, "")
         self.verticalLayout.addWidget(self.tabWidget)
