@@ -631,6 +631,13 @@ class PdokServicesPlugin(object):
         self.remove_pointer_or_layer()
         self.geocoder_source_model.clear()
         self.ls_dialog_get_suggestions()
+        # AND save current state to QSettings
+        checked_boxes = []
+        for key in self.fq_checkboxes.keys():
+            if key.isChecked():
+                checked_boxes.append(self.fq_checkboxes[key].name)
+        log.debug(checked_boxes)
+        self.set_settings_value("checkedfqs", checked_boxes)
 
     def ls_dialog_get_suggestions(self):
         try:
