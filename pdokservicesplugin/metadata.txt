@@ -16,7 +16,7 @@ author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
-    4.1.6   (12-2023) update service url's, fix #99 (ability to remove old favs)
+    4.1.6   (12-2023) update service url's, fix #99 (ability to remove old favs), save fq filter state to QSettings, make it possible (and create setting) to use the old yellow cross again (no flashing geom), fix LS filter
     4.1.5   (06-2023) quickfix for ahn4 wcs (Anton)
     4.1.4   (06-2023) update service url's fix ahn processing algo (NOT requesting caps on startup) (Both: Thanks Anton!)
     4.1.3   (03-2023) services update (most notable: remove OpenTopo!), fix ahn3 processing tool, fix locator service url (Thanks Anton!)
