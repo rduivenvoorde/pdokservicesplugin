@@ -1150,13 +1150,11 @@ class PdokServicesPlugin(object):
                     # then update favourite context menu
                     self.delete_fav_layer_in_settings(self.current_layer)
                     self.update_layer_panel()
-                    self.add_fav_actions_to_toolbar_button()
                 elif action == up_fav_action:
                     self.change_index_fav_layer_in_settings(self.current_layer, -1)
-                    self.add_fav_actions_to_toolbar_button()
                 elif action == down_fav_action:
                     self.change_index_fav_layer_in_settings(self.current_layer, 1)
-                    self.add_fav_actions_to_toolbar_button()
+                self.add_fav_actions_to_toolbar_button()
 
             else:
                 selected_style = self.get_selected_style()
@@ -1197,11 +1195,19 @@ class PdokServicesPlugin(object):
                 self.current_layer = layer
                 self.load_layer()
                 return
-        self.show_warning(
-            "Maak een Favoriet aan door in de dialoog met services en lagen via het context menu (rechter muisknop) een Favoriet te kiezen...",
+        # layer fav_layer not found, ask user to delete it, do NOT open the dialog (old behaviour)
+        reply = QMessageBox.question(
+            self.iface.mainWindow(),
             "Geen Favoriet aanwezig (of verouderd)...",
+            "Het lijkt erop dat deze Favoriet niet meer bestaat (bij PDOK). Uit uw Favorieten verwijderen?",
+            QMessageBox.Yes,
+            QMessageBox.No,
         )
-        self.run()
+        # if YES: clean it up from settings and update the toolbar actions
+        if reply == QMessageBox.Yes:
+            log.debug("CLEAN UP")
+            self.delete_fav_layer_in_settings(fav_layer)
+            self.add_fav_actions_to_toolbar_button()
 
     def get_layer_in_pdok_layers(self, lyr):
         """
