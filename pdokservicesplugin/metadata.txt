@@ -10,12 +10,13 @@ about=Nederlands:
         - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://data.pdok.nl
         - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://data.pdok.nl ophalen.
 
-version=4.1.5
+version=4.1.6
 
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    4.1.6   (12-2023) update service url's, fix #99 (ability to remove old favs)
     4.1.5   (06-2023) quickfix for ahn4 wcs (Anton)
     4.1.4   (06-2023) update service url's fix ahn processing algo (NOT requesting caps on startup) (Both: Thanks Anton!)
     4.1.3   (03-2023) services update (most notable: remove OpenTopo!), fix ahn3 processing tool, fix locator service url (Thanks Anton!)
