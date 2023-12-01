@@ -664,7 +664,7 @@ class PdokServicesPlugin(object):
                 Qt.AlignLeft
             )
             self.dlg.geocoderResultView.resizeColumnsToContents()
-            #self.dlg.geocoderResultView.setColumnHidden(2, True)
+            self.dlg.geocoderResultView.setColumnHidden(2, True)
 
             self.dlg.geocoderResultView.horizontalHeader().setStretchLastSection(True)
             self.dlg.ui.geocoderResultSearchLabel.setEnabled(True)
