@@ -179,7 +179,10 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="2" column="0">
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="geocoderResultSearchLabel">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Filter Resultaten </string>
          </property>
@@ -197,13 +200,23 @@
          <property name="text">
           <string/>
          </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item row="3" column="0" colspan="3">
         <widget class="QTableView" name="geocoderResultView"/>
        </item>
        <item row="2" column="1" colspan="2">
-        <widget class="QLineEdit" name="geocoderResultSearch"/>
+        <widget class="QLineEdit" name="geocoderResultSearch">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_6">
@@ -331,11 +344,11 @@
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;Deze plugin wordt gemaakt door Richard Duivenvoorde (&lt;/span&gt;&lt;a href=&quot;http://www.zuidt.nl&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; text-decoration: underline; color:#0000ff;&quot;&gt;Zuidt&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;). &lt;br /&gt;De code van deze plugin is te vinden op &lt;/span&gt;&lt;a href=&quot;https://github.com/rduivenvoorde/pdokservicesplugin&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; text-decoration: underline; color:#0000ff;&quot;&gt;Github&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;. Bugs kunt u daar melden. &lt;/span&gt;&lt;/p&gt;
-&lt;h2 style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:600; color:#444444;&quot;&gt;PDOK&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h2&gt;
+&lt;h2 style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:600; color:#444444;&quot;&gt;PDOK&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:304; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h2&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/resources/pdok.png&quot; style=&quot;float: left;&quot; /&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; &lt;/span&gt;&lt;a href=&quot;http://www.pdok.nl&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; text-decoration: underline; color:#0000ff;&quot;&gt;PDOK&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; stelt webservices beschikbaar van landsdekkende geo-informatie afkomstig van overheden. Deze data komen rechtstreeks bij de bron vandaan, d.w.z. dat overheidsorganisaties bronhouder van deze data zijn. Daardoor zijn de data actueel en betrouwbaar. Bovendien zijn ze door elke afnemer (overheid, bedrijf, particulier) kosteloos te gebruiken. &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;De lijst van services en lagen in deze plugin worden met behulp van het &lt;/span&gt;&lt;span style=&quot; font-family:'monospace'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;pdokservicesspider&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; script gegeneerd (te vinden op &lt;/span&gt;&lt;a href=&quot;https://github.com/rduivenvoorde/pdokservicesplugin&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; text-decoration: underline; color:#0000ff;&quot;&gt;Github&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;). Dit script genereert deze lijst op basis van de &lt;/span&gt;&lt;a href=&quot;https://www.nationaalgeoregister.nl/geonetwork/srv/dut/csw?service=CSW&amp;amp;request=GetCapabilities&amp;amp;version=2.0.2&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; text-decoration: underline; color:#0000ff;&quot;&gt;CSW service&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; van het &lt;/span&gt;&lt;a href=&quot;https://www.nationaalgeoregister.nl/&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; text-decoration: underline; color:#0000ff;&quot;&gt;Nationaal Georegister&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;. &lt;/span&gt;&lt;/p&gt;
-&lt;h2 style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:600; color:#444444;&quot;&gt;OpenGeoGroep&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h2&gt;
-&lt;h3 style=&quot; margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:large; font-weight:600; color:#444444;&quot;&gt;Anders denken, Anders doen..&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h3&gt;
+&lt;h2 style=&quot; margin-top:16px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:600; color:#444444;&quot;&gt;OpenGeoGroep&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:x-large; font-weight:304; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h2&gt;
+&lt;h3 style=&quot; margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:large; font-weight:600; color:#444444;&quot;&gt;Anders denken, Anders doen..&lt;/span&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:large; font-weight:304; color:#444444;&quot;&gt; &lt;/span&gt;&lt;/h3&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:162.5%;&quot;&gt;&lt;img src=&quot;:/plugins/pdokservicesplugin/resources/ogg.gif&quot; style=&quot;float: left;&quot; /&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt;De &lt;/span&gt;&lt;a href=&quot;http://www.opengeogroep.nl&quot;&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; text-decoration: underline; color:#0000ff;&quot;&gt;OpenGeoGroep&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Helvetica Neue','Helvetica','Arial','sans-serif'; font-size:15px; font-weight:304; color:#444444;&quot;&gt; is een commerciele ICT-dienstverlener die diensten en oplossingen biedt voor geo-informatie vraagstukken. Al onze diensten zijn leveranciersonafhankelijk. De OpenGeoGroep onderscheidt zich door het aanbieden van diensten en innovatieve oplossingen gebaseerd op professionele Open Source Software en op basis van Open Standaarden.&lt;/span&gt; &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="openExternalLinks">

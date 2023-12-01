@@ -642,6 +642,8 @@ class PdokServicesPlugin(object):
     def ls_dialog_get_suggestions(self):
         try:
             self.dlg.ui.lookupinfo.setHtml("")
+            self.dlg.ui.geocoderResultSearchLabel.setEnabled(False)
+            self.dlg.ui.geocoderResultSearch.setEnabled(False)
             search_text = self.dlg.geocoder_search.text()
             if len(search_text) <= 1:
                 return
@@ -654,14 +656,20 @@ class PdokServicesPlugin(object):
                 adrestekst.setData(result, Qt.UserRole)
                 type = QStandardItem(str(result["type"]))
                 adrestekst.setData(result, Qt.UserRole)
-                self.geocoder_source_model.appendRow([adrestekst, type])
+                search_string = QStandardItem(f'{str(result["weergavenaam"])} {str(result["type"])}')
+                self.geocoder_source_model.appendRow([adrestekst, type, search_string])
             self.geocoder_source_model.setHeaderData(0, Qt.Horizontal, "Resultaat")
             self.geocoder_source_model.setHeaderData(1, Qt.Horizontal, "Type")
             self.geocoder_source_model.horizontalHeaderItem(0).setTextAlignment(
                 Qt.AlignLeft
             )
             self.dlg.geocoderResultView.resizeColumnsToContents()
+            #self.dlg.geocoderResultView.setColumnHidden(2, True)
+
             self.dlg.geocoderResultView.horizontalHeader().setStretchLastSection(True)
+            self.dlg.ui.geocoderResultSearchLabel.setEnabled(True)
+            self.dlg.ui.geocoderResultSearch.setEnabled(True)
+
         except PdokServicesNetworkException as ex:
             title = f"{PLUGIN_NAME} - HTTP Request Error"
             message = f"""an error occured while executing HTTP request, error:
@@ -773,7 +781,7 @@ class PdokServicesPlugin(object):
             self.geocoder_source_model = QStandardItemModel()
 
             self.geocoderProxyModel.setSourceModel(self.geocoder_source_model)
-            self.geocoderProxyModel.setFilterKeyColumn(0)
+            self.geocoderProxyModel.setFilterKeyColumn(2)
             self.dlg.geocoderResultView.setModel(self.geocoderProxyModel)
             self.dlg.geocoderResultView.setEditTriggers(
                 QAbstractItemView.NoEditTriggers
