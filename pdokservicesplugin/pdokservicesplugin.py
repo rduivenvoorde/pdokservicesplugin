@@ -86,6 +86,11 @@ from .lib.locatieserver import (
 )
 
 
+# enable possible remote pycharm debugging
+# import pydevd
+# pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
+
+
 class PdokServicesPlugin(object):
     def __init__(self, iface):
         # Save reference to the QGIS interface
@@ -176,7 +181,7 @@ class PdokServicesPlugin(object):
 
         self.toolbar_search.mousePressEvent = lambda _: toolbar_search_mouse_event()
 
-        self.toolbar_search.setMaximumWidth(200)
+        self.toolbar_search.setMaximumWidth(300)
         self.toolbar_search.setAlignment(Qt.AlignLeft)
         self.toolbar_search.setPlaceholderText("Zoek in PDOK Locatieserver")
         self.toolbar.addWidget(self.toolbar_search)
@@ -195,8 +200,7 @@ class PdokServicesPlugin(object):
             eraser_icon, "Cleanup", self.erase_address()
         )
 
-        if not self.show_ls_feature():
-            self.toolbar.addAction(self.clean_ls_search_action)
+        self.toolbar.addAction(self.clean_ls_search_action)
 
         self.clean_ls_search_action.triggered.connect(self.erase_address)
         self.clean_ls_search_action.setEnabled(False)
@@ -240,6 +244,8 @@ class PdokServicesPlugin(object):
         for cbx in self.fq_checkboxes.keys():
             cbx.stateChanged.connect(self.ls_dialog_get_suggestions_and_remove_pointer)
         self.run(True)
+
+        self.dlg.ui.cb_flashing_geoms.stateChanged.connect(self.change_result_visual)
 
         # set to hidden when no layer selected
         self.dlg.ui.layer_info.setHidden(True)
@@ -717,17 +723,26 @@ class PdokServicesPlugin(object):
             [itemLayername, itemType, itemServicetitle, itemFilter]
         )
 
+    @staticmethod
+    def valueToBool(value):
+        """
+        Apparently QGIS or Qt fiddles with boolean QSettings values, sometimes it is False and sometimes 'false'
+        :param value:
+        :return:
+        """
+        return value.lower() == 'true' if isinstance(value, str) else bool(value)
+
     def run(self, hiddenDialog=False):
         """
         run method that performs all the real work
         """
-        # enable possible remote pycharm debugging
-        # import pydevd
-        # pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True)
-
         # last viewed/selected tab
         if QSettings().contains(f"/{PLUGIN_ID}/currenttab"):
             self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
+
+        flashing_geoms = self.valueToBool(QSettings().value(f"/{PLUGIN_ID}/flashing_geoms"))
+        self.dlg.ui.cb_flashing_geoms.setChecked(flashing_geoms)
+        self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
@@ -883,8 +898,10 @@ class PdokServicesPlugin(object):
             bool: boolean indicating whether qgis supports "hidden" layers
         """
         semversion = qgis.utils.Qgis.QGIS_VERSION.split("-")[0]
-        if self.semver_greater_or_equal_then(semversion, "3.18.0"):
+        if self.semver_greater_or_equal_then(semversion, "3.18.0") and self.valueToBool(QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")):
+            # it is possible to use the new shiny flashing geoms
             return True
+        # the 'old way' :-)
         return False
 
     def zoom_to_result(self, data):
@@ -1008,9 +1025,9 @@ class PdokServicesPlugin(object):
     def set_pointer(self, point):
         self.remove_pointer()
         self.pointer = QgsVertexMarker(self.iface.mapCanvas())
-        self.pointer.setColor(QColor(255, 0, 0))
+        self.pointer.setColor(QColor(255, 255, 0))
         self.pointer.setIconSize(10)
-        self.pointer.setPenWidth(2)
+        self.pointer.setPenWidth(5)
         self.pointer.setCenter(point)
         self.clean_ls_search_action.setEnabled(True)
 
@@ -1019,6 +1036,15 @@ class PdokServicesPlugin(object):
             self.iface.mapCanvas().scene().removeItem(self.pointer)
             self.pointer = None
             self.clean_ls_search_action.setEnabled(False)
+
+    def change_result_visual(self, checked: bool):
+        if checked:
+            # default: user checked show results as 'new style/flashing geoms', save in QSettings
+            QSettings().setValue(f"/{PLUGIN_ID}/flashing_geoms", True)
+        else:
+            # user want the old behaviour, save in QSettings
+            QSettings().setValue(f"/{PLUGIN_ID}/flashing_geoms", False)
+        self.clean_ls_search_action.setEnabled(not checked)
 
     def info(self, msg=""):
         QgsMessageLog.logMessage("{}".format(msg), "PDOK-services Plugin", Qgis.Info)
