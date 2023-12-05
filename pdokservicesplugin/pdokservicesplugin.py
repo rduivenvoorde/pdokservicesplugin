@@ -480,7 +480,11 @@ class PdokServicesPlugin(object):
                     # We disable all options that do not support correct projection of vector tiles
                     self.dlg.ui.comboSelectProj.model().item(i).setEnabled(False)
                     self.dlg.ui.comboSelectProj.setToolTip(
-                        f"""OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). Het gebruik van andere CRS zorgt momenteel voor foutieve projecties. Zie: https://github.com/qgis/QGIS/issues/54673"""
+                        f"""
+                        OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
+                        Het gebruik van andere CRS zorgt momenteel voor foutieve projecties. 
+                        Zie: https://github.com/qgis/QGIS/issues/54673
+                        """
                     )
 
     def extract_crs(self, crs_string):
@@ -540,102 +544,17 @@ class PdokServicesPlugin(object):
         url = self.current_layer["service_url"]
 
         if servicetype == "wms":
-            imgformat = self.current_layer["imgformats"].split(",")[0]
-            crs = self.get_crs_comboselect()
-
-            selected_style_name = ""
-            if "selectedStyle" in self.current_layer:
-                selected_style = self.current_layer["selectedStyle"]
-            else:
-                selected_style = self.get_selected_style()
-            if selected_style is not None:
-                selected_style_name = selected_style["name"]
-                selected_style_title = selected_style["name"]
-                if "title" in selected_style:
-                    selected_style_title = selected_style["title"]
-                title += f" [{selected_style_title}]"
-
-            uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
-            return QgsRasterLayer(uri, title, "wms")
+            return self.create_wms_layer(layername, title, url)
         elif servicetype == "wmts":
-            if Qgis.QGIS_VERSION_INT < 10900:
-                self.show_warning(
-                    f"""Sorry, dit type layer: '{servicetype.upper()}'
-                    kan niet worden geladen in deze versie van QGIS.
-                    Misschien kunt u QGIS 2.0 installeren (die kan het WEL)?
-                    Of is de laag niet ook beschikbaar als wms of wfs?"""
-                )
-                return None
-            url = self.quote_wmts_url(url)
-            tilematrixset = self.get_crs_comboselect()
-
-            imgformat = self.current_layer["imgformats"].split(",")[0]
-            if tilematrixset.startswith("EPSG:"):
-                crs = tilematrixset
-                i = crs.find(":", 5)
-                if i > -1:
-                    crs = crs[:i]
-            elif tilematrixset.startswith("OGC:1.0"):
-                crs = "EPSG:3857"
-            else:
-                # non PDOK services do not have a strict tilematrixset naming based on crs...
-                crs = self.current_layer["crs"]
-            uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
-            return QgsRasterLayer(
-                uri, title, "wms"
-            )  # `wms` is correct, zie ook quote_wmts_url
+            return self.create_wmts_layer(layername, title, url, servicetype)
         elif servicetype == "wfs":
-            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
-            return QgsVectorLayer(uri, title, "wfs")
+            return self.create_wfs_layer(layername, title, url)
         elif servicetype == "wcs":
-            # HACK to get WCS to work:
-            # 1) fixed format to "GEOTIFF"
-            # 2) remove the '?request=getcapabiliteis....' part from the url, unknown why this is required compared to wms/wfs
-            # better approach would be to add the supported format(s) to the layers-pdok.json file and use that - this should be the approach when more
-            # WCS services will be published by PDOK (currently it is only the AHN WCS)
-            format = "GEOTIFF"
-            uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
-            return QgsRasterLayer(uri, title, "wcs")
+            return self.create_wcs_layer(layername, title, url)
         elif servicetype == "api features":
-            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
-            return QgsVectorLayer(uri, title, "OAPIF")
+            return self.create_oaf_layer(layername, title, url)
         elif servicetype == "api tiles":
-            # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered incorrectly.
-            crs = self.get_crs_comboselect()
-            used_tileset = [
-                tileset
-                for tileset in self.current_layer["tiles"][0]["tilesets"]
-                if tileset["tileset_crs"].endswith(crs.split(":")[1])
-            ][0]
-
-            # Style toevoegen in laag vanuit ui
-            selected_style = self.get_selected_style()
-            selected_style_url = ""
-
-            if selected_style is not None:
-                selected_style_url = selected_style["url"]
-                title += f" [{selected_style['name']}]"
-
-            url_template = (
-                url
-                + "/tiles/"
-                + used_tileset["tileset_id"]
-                + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
-            )
-            maxz_coord = used_tileset["tileset_max_zoomlevel"]
-
-            # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
-            # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
-            minz_coord = 1
-
-            type = "xyz"
-            uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
-            tile_layer = QgsVectorTileLayer(uri, title)
-
-            # Set the VT layer CRS and load the styleUrl
-            tile_layer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
-            tile_layer.loadDefaultStyle()
-            return tile_layer
+            return self.create_oat_layer(title, url)
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
@@ -644,6 +563,109 @@ class PdokServicesPlugin(object):
                 """
             )
             return
+
+    def create_wms_layer(self, layername, title, url):
+        imgformat = self.current_layer["imgformats"].split(",")[0]
+        crs = self.get_crs_comboselect()
+
+        selected_style_name = ""
+        if "selectedStyle" in self.current_layer:
+            selected_style = self.current_layer["selectedStyle"]
+        else:
+            selected_style = self.get_selected_style()
+        if selected_style is not None:
+            selected_style_name = selected_style["name"]
+            selected_style_title = selected_style["name"]
+            if "title" in selected_style:
+                selected_style_title = selected_style["title"]
+            title += f" [{selected_style_title}]"
+
+        uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
+        return QgsRasterLayer(uri, title, "wms")
+
+    def create_wmts_layer(self, layername, title, url, servicetype):
+        if Qgis.QGIS_VERSION_INT < 10900:
+            self.show_warning(
+                f"""Sorry, dit type layer: '{servicetype.upper()}'
+                kan niet worden geladen in deze versie van QGIS.
+                Misschien kunt u QGIS 2.0 installeren (die kan het WEL)?
+                Of is de laag niet ook beschikbaar als wms of wfs?"""
+            )
+            return None
+        url = self.quote_wmts_url(url)
+        tilematrixset = self.get_crs_comboselect()
+
+        imgformat = self.current_layer["imgformats"].split(",")[0]
+        if tilematrixset.startswith("EPSG:"):
+            crs = tilematrixset
+            i = crs.find(":", 5)
+            if i > -1:
+                crs = crs[:i]
+        elif tilematrixset.startswith("OGC:1.0"):
+            crs = "EPSG:3857"
+        else:
+            # non PDOK services do not have a strict tilematrixset naming based on crs...
+            crs = self.current_layer["crs"]
+        uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
+        return QgsRasterLayer(
+            uri, title, "wms"
+        )  # `wms` is correct, zie ook quote_wmts_url
+
+    def create_wfs_layer(self, layername, title, url):
+        uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
+        return QgsVectorLayer(uri, title, "wfs")
+
+    def create_wcs_layer(self, layername, title, url):
+        # HACK to get WCS to work:
+        # 1) fixed format to "GEOTIFF"
+        # 2) remove the '?request=getcapabiliteis....' part from the url, unknown why this is required compared to wms/wfs
+        # better approach would be to add the supported format(s) to the layers-pdok.json file and use that - this should be the approach when more
+        # WCS services will be published by PDOK (currently it is only the AHN WCS)
+        format = "GEOTIFF"
+        uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
+        return QgsRasterLayer(uri, title, "wcs")
+
+    def create_oaf_layer(self, layername, title, url):
+        uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
+        return QgsVectorLayer(uri, title, "OAPIF")
+
+    def create_oat_layer(self, title, url):
+        # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered incorrectly.
+        crs = self.get_crs_comboselect()
+        used_tileset = [
+            tileset
+            for tileset in self.current_layer["tiles"][0]["tilesets"]
+            if tileset["tileset_crs"].endswith(crs.split(":")[1])
+        ][0]
+
+        # Style toevoegen in laag vanuit ui
+        selected_style = self.get_selected_style()
+        selected_style_url = ""
+
+        if selected_style is not None:
+            selected_style_url = selected_style["url"]
+            title += f" [{selected_style['name']}]"
+
+        url_template = (
+            url
+            + "/tiles/"
+            + used_tileset["tileset_id"]
+            + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+        )
+        maxz_coord = used_tileset["tileset_max_zoomlevel"]
+
+        # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
+        # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
+        minz_coord = 1
+
+        type = "xyz"
+        uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
+        tile_layer = QgsVectorTileLayer(uri, title)
+
+        # Set the VT layer CRS and load the styleUrl
+        tile_layer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
+        tile_layer.loadDefaultStyle()
+        return tile_layer
 
     def load_layer(self, tree_location=None):
         if self.current_layer == None:
