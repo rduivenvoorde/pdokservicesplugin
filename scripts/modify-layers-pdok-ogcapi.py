@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """Modify/extend layers-pdok.json with OGC:API records for tiles/features from PDOK
 
-This script allows the user modify the layers-pdok.json file which is used in the
+This script allows the user to modify the layers-pdok.json file which is used in the
 pdokservicesplugin. The records are generated in this script by requesting 
 various API endpoints that are conform the OGC:API standards, especially useful when there are no
 NGR-records for these OGC:API services.
 
-To run this script, one has to provide one/multiple parameters. For the first parameter: [ogcapi|original]
+To run this script, one has to provide one/multiple parameters. For the first parameter,
+a mode should be provided: [ogcapi|original]
 The remaining parameters should all be urls to landing pages of ogcapi's containing
 either OGC:API tiles or OGC:API features sets.  
 
 Run the following command from the root of the repository:
 `python3 ./scripts/modify-layers-pdok-ogcapi.py ogcapi URL1 URL2`: Adds ogcapi test records to 
 layers-pdok.json for tiles/features and creates a copy of the original file. Here, URL1 URL2 should be 
-the landing pages of ogcapi endpoints that are publibly accesible containing tiles/features. At least one 
-URL should be given as argument when using ogcapi mode.
+the landing pages of ogcapi endpoints that are publicly accesible containing tiles/features. At least one 
+URL should be given as argument when using ogcapi mode to add records to layers-pdok.json.
 
 `python3 ./scripts/modify-layers-pdok-ogcapi.py original`: Replaces layers-pdok.json 
 with the copy file (containing the original .json file) and removes the copy.
@@ -37,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 EMPTY = ""
 API_FEATURES = "api features"
+API_TILES = "api tiles"
 
 
 def extend_layer_pdok_ogcapi(urls):
@@ -70,17 +72,14 @@ def retrieve_layers_from_oat_endpoint(url):
     url_info = requests.get(url).json()
     dataset_title = url_info.get("title", url.split("/")[-1])
     tiles_info = requests.get(url + "/tiles").json()
-    dataset_md_id = ""
-    service_md_id = ""
     dataset_abstract = url_info.get("description", "Geen abstract gevonden")
-    service_type = "api tiles"
     styles = requests.get(url + "/styles").json()
     tiles = requests.get(url + "/tiles").json()
     return {
         "name": dataset_title,
         "title": dataset_title,
         "abstract": dataset_abstract,
-        "dataset_md_id": dataset_md_id,
+        "dataset_md_id": EMPTY,
         "styles": [
             {
                 "id": style["id"],
@@ -112,8 +111,8 @@ def retrieve_layers_from_oat_endpoint(url):
         "service_url": url,
         "service_title": tiles_info["title"],
         "service_abstract": tiles_info["description"],
-        "service_type": service_type,
-        "service_md_id": service_md_id,
+        "service_type": API_TILES,
+        "service_md_id": EMPTY,
     }
 
 
@@ -217,10 +216,11 @@ def write_to_layers_file(datafile, layers_location):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "mode", help="choose one of [ogcapi|original]", choices=["ogcapi", "original"]
+        "mode", help="Choose one of [ogcapi|original]", choices=["ogcapi", "original"]
     )
-    parser.add_argument("urls", nargs="*", help="metadata urls")
-    return parser.parse_args()
+    parser.add_argument("urls", nargs="*", help="Url(s) of ogcapi landing page(s)")
+    args: argparse.Namespace = parser.parse_args()
+    return args.mode, args.urls
 
 
 def main():

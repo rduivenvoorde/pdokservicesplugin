@@ -95,4 +95,4 @@ mkdir -p $(dirname "$symlink_path")
 ln -s "$(pwd)/pdokservicesplugin" "$symlink_path" # uitvoeren vanuit root van repo
 ```
 
-# TODO: document modify-layers-pdok-ogcapi.py
+Extend the layers config file using OGC:API urls, see [`scripts/modify-layers-pdok-ogcapi.py`](scripts/modify-layers-pdok-ogcapi.py) for more detailed instructions.
