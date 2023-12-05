@@ -326,6 +326,7 @@ class PdokServicesPlugin(object):
         url = self.current_layer["service_url"]
         title = self.current_layer["title"]
         abstract_dd = self.get_dd(self.current_layer["abstract"])
+        service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
 
         service_title = (
             self.current_layer["service_title"]
@@ -333,7 +334,6 @@ class PdokServicesPlugin(object):
             else "[service title niet ingevuld]"
         )
         layername = self.current_layer["name"]
-        service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
         stype = (
             self.service_type_mapping[self.current_layer["service_type"]]
             if self.current_layer["service_type"] in self.service_type_mapping
@@ -467,25 +467,20 @@ class PdokServicesPlugin(object):
 
         elif stype == "OGC API - Tiles":
             tiles = self.current_layer["tiles"][0]
-            crs_list = list(
-                {
-                    self.extract_crs(tileset.get("tileset_crs", "EPSG:3857"))
-                    for tileset in tiles["tilesets"]
-                }
-            )
+            crs_list = [
+                self.extract_crs(tileset["tileset_crs"])
+                for tileset in tiles["tilesets"]
+            ]
             self.dlg.ui.comboSelectProj.addItems(crs_list)
             for i, crs in enumerate(crs_list):
-                if crs.split("/")[-1] == "3857":
+                if crs.endswith("3857"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
                     self.dlg.ui.comboSelectProj.model().item(i).setEnabled(True)
                 else:
                     # We disable all options that do not support correct projection of vector tiles
                     self.dlg.ui.comboSelectProj.model().item(i).setEnabled(False)
                     self.dlg.ui.comboSelectProj.setToolTip(
-                        f"""OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
-                Het gebruik van andere CRS zorgt momenteel voor foutieve projecties.
-                Zie: https://github.com/qgis/QGIS/issues/54673  
-                """
+                        f"""OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). Het gebruik van andere CRS zorgt momenteel voor foutieve projecties. Zie: https://github.com/qgis/QGIS/issues/54673"""
                     )
 
     def extract_crs(self, crs_string):
@@ -607,43 +602,40 @@ class PdokServicesPlugin(object):
         elif servicetype == "api tiles":
             # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered incorrectly.
             crs = self.get_crs_comboselect()
-            used_tilesets = [
+            used_tileset = [
                 tileset
-                for tileset in self.current_layer["tiles"][0]
-                if tileset["tileset_crs"].endswith(self.extract_crs(crs))
-            ]
+                for tileset in self.current_layer["tiles"][0]["tilesets"]
+                if tileset["tileset_crs"].endswith(crs.split(":")[1])
+            ][0]
 
-            if used_tilesets:
-                used_tileset = used_tilesets[0]
-                # Style toevoegen in laag vanuit ui
-                selected_style = self.get_selected_style()
-                if selected_style is not None:
-                    selected_style_url = selected_style["url"]
-                    title += f" [{selected_style['name']}]"
-                else:
-                    # TODO: selected style can be None?
-                    raise ValueError("TODO: handle style not selected")
+            # Style toevoegen in laag vanuit ui
+            selected_style = self.get_selected_style()
+            selected_style_url = ""
 
-                url_template = (
-                    url
-                    + "/tiles/"
-                    + used_tileset["tileset_id"]
-                    + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
-                )
-                maxz_coord = used_tileset["tileset_max_zoomlevel"]
+            if selected_style is not None:
+                selected_style_url = selected_style["url"]
+                title += f" [{selected_style['name']}]"
 
-                # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
-                # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
-                minz_coord = 1
+            url_template = (
+                url
+                + "/tiles/"
+                + used_tileset["tileset_id"]
+                + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+            )
+            maxz_coord = used_tileset["tileset_max_zoomlevel"]
 
-                type = "xyz"
-                uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
-                tile_layer = QgsVectorTileLayer(uri, title)
+            # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
+            # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
+            minz_coord = 1
 
-                # Set the VT layer CRS and load the styleUrl
-                tile_layer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
-                tile_layer.loadDefaultStyle()
-                return tile_layer
+            type = "xyz"
+            uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
+            tile_layer = QgsVectorTileLayer(uri, title)
+
+            # Set the VT layer CRS and load the styleUrl
+            tile_layer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
+            tile_layer.loadDefaultStyle()
+            return tile_layer
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
