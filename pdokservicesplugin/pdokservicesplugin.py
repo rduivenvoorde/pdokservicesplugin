@@ -87,8 +87,8 @@ from .lib.locatieserver import (
 
 
 # enable possible remote pycharm debugging
-# import pydevd
-# pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
+#import pydevd
+#pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
 
 
 class PdokServicesPlugin(object):
@@ -530,6 +530,9 @@ class PdokServicesPlugin(object):
                     crs = crs[:i]
             elif tilematrixset.startswith("OGC:1.0"):
                 crs = "EPSG:3857"
+            else:
+                # non PDOK services do not have a strict tilematrixset naming based on crs...
+                crs = self.current_layer["crs"]
             uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
             return QgsRasterLayer(
                 uri, title, "wms"
