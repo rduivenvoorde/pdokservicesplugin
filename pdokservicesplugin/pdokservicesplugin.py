@@ -88,8 +88,8 @@ from .lib.locatieserver import (
 
 
 # enable possible remote pycharm debugging
-#import pydevd
-#pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
+# import pydevd
+# pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
 
 
 class PdokServicesPlugin(object):
@@ -391,6 +391,26 @@ class PdokServicesPlugin(object):
         if fav:
             fav_string = '<img style="margin:10px" src=":/plugins/pdokservicesplugin/resources/bookmark.png" align="left" />&nbsp;&nbsp;'
             fav_title = "&nbsp;[favoriet]"
+
+        show_dev_urls = stype == "OGC API - Tiles"
+        dev_urls_html = (
+            f"""
+        <h3>Ontwikkelaars informatie</h3>
+        <dl>
+            <dt><b>URLs voor Tiles</b></dt>
+            <dd>
+                {self.get_tiles_urls(url, self.current_layer["tiles"][0])}
+            </dd>
+            <dt><b>URLs voor Styles</b></dt>
+            <dd>
+                {self.get_styles_urls(self.current_layer["styles"])}
+            </dd>
+        </dl>
+        """
+            if show_dev_urls
+            else ""
+        )
+
         self.dlg.ui.layer_info.setHtml(
             f"""
             <h2>{fav_string}{layername_key} ({stype}) - {title}</h2>
@@ -413,8 +433,9 @@ class PdokServicesPlugin(object):
                 <dt><b>Service Abstract</b></dt>
                 {service_abstract_dd}
                 <dt><b>Service Metadata</b></dt>
-                <dd><a title="Bekijk service metadata in NGR"  href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a></dd>
+                {service_metadata_dd}
             </dl>
+            {dev_urls_html}
             """
         )
         self.dlg.ui.comboSelectProj.clear()
@@ -493,6 +514,34 @@ class PdokServicesPlugin(object):
         if match:
             return f"EPSG:{match.group(2)}"
         return crs_string
+
+    def get_tiles_urls(self, url, tiles):
+        url_tuple_list = [
+            (
+                self.build_tileset_url(url, tileset["tileset_id"], False),
+                self.extract_crs(tileset["tileset_crs"]),
+                tileset["tileset_max_zoomlevel"],
+            )
+            for tileset in tiles["tilesets"]
+        ]
+        html_tiles = "<ul>"
+        for url, crs, max_zoomlevel in url_tuple_list:
+            html_tiles += (
+                f"<li>{url}<br>CRS: {crs}<br>Max Zoom Level: {max_zoomlevel}</li>"
+            )
+        return html_tiles + "</ul>"
+
+    def get_styles_urls(self, styles):
+        html_styles = "<ul>"
+        for style in styles:
+            html_styles += f"<li>{style['url']}</li>"
+        return html_styles + "</ul>"
+
+    def build_tileset_url(self, url, tileset_id, for_request):
+        url_template = url + "/tiles/" + tileset_id
+        if for_request:
+            return url_template + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+        return url_template + "/{z}/{y}/{x}?f=mvt"
 
     def quote_wmts_url(self, url):
         """
@@ -646,12 +695,7 @@ class PdokServicesPlugin(object):
             selected_style_url = selected_style["url"]
             title += f" [{selected_style['name']}]"
 
-        url_template = (
-            url
-            + "/tiles/"
-            + used_tileset["tileset_id"]
-            + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
-        )
+        url_template = self.build_tileset_url(url, used_tileset["tileset_id"], True)
         maxz_coord = used_tileset["tileset_max_zoomlevel"]
 
         # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
@@ -768,7 +812,9 @@ class PdokServicesPlugin(object):
                 adrestekst.setData(result, Qt.UserRole)
                 type = QStandardItem(str(result["type"]))
                 adrestekst.setData(result, Qt.UserRole)
-                search_string = QStandardItem(f'{str(result["weergavenaam"])} {str(result["type"])}')
+                search_string = QStandardItem(
+                    f'{str(result["weergavenaam"])} {str(result["type"])}'
+                )
                 self.geocoder_source_model.appendRow([adrestekst, type, search_string])
             self.geocoder_source_model.setHeaderData(0, Qt.Horizontal, "Resultaat")
             self.geocoder_source_model.setHeaderData(1, Qt.Horizontal, "Type")
@@ -856,7 +902,7 @@ class PdokServicesPlugin(object):
         :param value:
         :return:
         """
-        return value.lower() == 'true' if isinstance(value, str) else bool(value)
+        return value.lower() == "true" if isinstance(value, str) else bool(value)
 
     def run(self, hiddenDialog=False):
         """
@@ -866,7 +912,9 @@ class PdokServicesPlugin(object):
         if QSettings().contains(f"/{PLUGIN_ID}/currenttab"):
             self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
 
-        flashing_geoms = self.valueToBool(QSettings().value(f"/{PLUGIN_ID}/flashing_geoms"))
+        flashing_geoms = self.valueToBool(
+            QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")
+        )
         self.dlg.ui.cb_flashing_geoms.setChecked(flashing_geoms)
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
@@ -1025,7 +1073,9 @@ class PdokServicesPlugin(object):
             bool: boolean indicating whether qgis supports "hidden" layers
         """
         semversion = qgis.utils.Qgis.QGIS_VERSION.split("-")[0]
-        if self.semver_greater_or_equal_then(semversion, "3.18.0") and self.valueToBool(QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")):
+        if self.semver_greater_or_equal_then(semversion, "3.18.0") and self.valueToBool(
+            QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")
+        ):
             # it is possible to use the new shiny flashing geoms
             return True
         # the 'old way' :-)
