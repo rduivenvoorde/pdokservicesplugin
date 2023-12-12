@@ -655,8 +655,8 @@ class PdokServicesPlugin(object):
         maxz_coord = used_tileset["tileset_max_zoomlevel"]
 
         # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
-        # we need to set the minimum z value to 1, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
-        minz_coord = 1
+        # we need to set the minimum z value to 0, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
+        minz_coord = 0
 
         type = "xyz"
         uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
