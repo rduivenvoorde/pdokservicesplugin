@@ -1,21 +1,22 @@
 [general]
 name=PDOK services plugin
-qgisMinimumVersion=3.10
+qgisMinimumVersion=3.14
 qgisMaximumVersion=3.99
 description=Plugin to easily load the available Dutch PDOK (Publieke Dienstverlening Op de Kaart) services. Currently only in Dutch.
 about=Nederlands:
 
-        - Plugin om eenvoudiger PDOK services (WMS, WMTS, WFS en WCS) te laden in QGIS.
+        - Plugin om eenvoudiger PDOK services (WMS, WMTS, WFS, WCS en OGC:API tiles/features) te laden in QGIS.
         - Vindt u dit een handige plugin? Stuur eens een (klein) Tikkie of een ASN betaling. Zie verder de 'homepage' van deze plugin: https://github.com/rduivenvoorde/pdokservicesplugin
-        - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://data.pdok.nl
-        - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://data.pdok.nl ophalen.
+        - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://www.pdok.nl/datasets
+        - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://www.pdok.nl/datasets ophalen.
 
-version=4.1.6
+version=4.2.0
 
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    4.2.0   (12-2023) support ogcapi tiles and update services
     4.1.6   (12-2023) update service url's, fix #99 (ability to remove old favs), save fq filter state to QSettings, make it possible (and create setting) to use the old yellow cross again (no flashing geom), fix LS filter
     4.1.5   (06-2023) quickfix for ahn4 wcs (Anton)
     4.1.4   (06-2023) update service url's fix ahn processing algo (NOT requesting caps on startup) (Both: Thanks Anton!)

@@ -47,6 +47,7 @@ from qgis.core import (
     QgsMessageLog,
     QgsRasterLayer,
     QgsVectorLayer,
+    QgsVectorTileLayer,
     QgsLayerTreeLayer,
     QgsWkbTypes,
 )
@@ -87,8 +88,8 @@ from .lib.locatieserver import (
 
 
 # enable possible remote pycharm debugging
-#import pydevd
-#pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
+# import pydevd
+# pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
 
 
 class PdokServicesPlugin(object):
@@ -169,6 +170,18 @@ class PdokServicesPlugin(object):
             "wmts": "bottom",
             "wfs": "top",
             "wcs": "top",
+            "api features": "top",
+            "api tiles": "bottom",
+        }
+
+        # Set default layer loading behaviour
+        self.service_type_mapping = {
+            "wms": "WMS",
+            "wmts": "WMTS",
+            "wfs": "WFS",
+            "wcs": "WCS",
+            "api features": "OGC API - Features",
+            "api tiles": "OGC API - Tiles",
         }
 
         self.add_fav_actions_to_toolbar_button()
@@ -313,6 +326,7 @@ class PdokServicesPlugin(object):
         url = self.current_layer["service_url"]
         title = self.current_layer["title"]
         abstract_dd = self.get_dd(self.current_layer["abstract"])
+        service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
 
         service_title = (
             self.current_layer["service_title"]
@@ -320,8 +334,11 @@ class PdokServicesPlugin(object):
             else "[service title niet ingevuld]"
         )
         layername = self.current_layer["name"]
-        service_abstract_dd = self.get_dd(self.current_layer["service_abstract"])
-        stype = self.current_layer["service_type"].upper()
+        stype = (
+            self.service_type_mapping[self.current_layer["service_type"]]
+            if self.current_layer["service_type"] in self.service_type_mapping
+            else self.current_layer["service_type"].upper()
+        )
         minscale = ""
         if "minscale" in self.current_layer:
             minscale = self.format_scale_denominator(self.current_layer["minscale"])
@@ -357,17 +374,43 @@ class PdokServicesPlugin(object):
             "WMS": "Layer",
             "WMTS": "Layer",
             "WFS": "Featuretype",
+            "OGC API - Features": "OGC API - Features",
+            "OGC API - Tiles": "Vector Tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
         dataset_metadata_dd = self.get_dd(
             dataset_md_id,
             f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
         )
+        service_metadata_dd = self.get_dd(
+            service_md_id,
+            f'<a title="Bekijk service metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a>',
+        )
         fav_string = ""
         fav_title = ""
         if fav:
             fav_string = '<img style="margin:10px" src=":/plugins/pdokservicesplugin/resources/bookmark.png" align="left" />&nbsp;&nbsp;'
             fav_title = "&nbsp;[favoriet]"
+
+        show_dev_urls = stype == "OGC API - Tiles"
+        dev_urls_html = (
+            f"""
+        <h3>Ontwikkelaars informatie</h3>
+        <dl>
+            <dt><b>URLs voor Tiles</b></dt>
+            <dd>
+                {self.get_tiles_urls(url, self.current_layer["tiles"][0])}
+            </dd>
+            <dt><b>URLs voor Styles</b></dt>
+            <dd>
+                {self.get_styles_urls(self.current_layer["styles"])}
+            </dd>
+        </dl>
+        """
+            if show_dev_urls
+            else ""
+        )
+
         self.dlg.ui.layer_info.setHtml(
             f"""
             <h2>{fav_string}{layername_key} ({stype}) - {title}</h2>
@@ -390,25 +433,26 @@ class PdokServicesPlugin(object):
                 <dt><b>Service Abstract</b></dt>
                 {service_abstract_dd}
                 <dt><b>Service Metadata</b></dt>
-                <dd><a title="Bekijk service metadata in NGR"  href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a></dd>
+                {service_metadata_dd}
             </dl>
+            {dev_urls_html}
             """
         )
         self.dlg.ui.comboSelectProj.clear()
         self.dlg.ui.wmsStyleComboBox.clear()
 
         show_list = {
-            self.dlg.ui.comboSelectProj: ["WMS", "WMTS"],
-            self.dlg.ui.labelCrs: ["WMS", "WMTS"],
-            self.dlg.ui.wmsStyleComboBox: ["WMS"],
-            self.dlg.ui.wmsStyleLabel: ["WMS"],
+            self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OGC API - Tiles"],
+            self.dlg.ui.labelCrs: ["WMS", "WMTS", "OGC API - Tiles"],
+            self.dlg.ui.wmsStyleComboBox: ["WMS", "OGC API - Tiles"],
+            self.dlg.ui.wmsStyleLabel: ["WMS", "OGC API - Tiles"],
         }
 
         for ui_el in show_list.keys():
             service_types = show_list[ui_el]
             ui_el.setHidden(not (stype in service_types))
 
-        if stype == "WMS":
+        if stype == "WMS" or stype == "OGC API - Tiles":
             styles = self.current_layer["styles"]
             nr_styles = len(styles)
             style_str = "styles" if nr_styles > 1 else "style"
@@ -426,22 +470,78 @@ class PdokServicesPlugin(object):
             self.dlg.ui.wmsStyleComboBox.setEnabled(
                 nr_styles > 1  # enable if more than one style
             )
-            try:
-                crs = self.current_layer["crs"]
-            except KeyError:
-                crs = "EPSG:28992"
+
+        if stype == "WMS":
+            crs = self.current_layer.get("crs", "EPSG:28992")
             crs = crs.split(",")
             self.dlg.ui.comboSelectProj.addItems(crs)
-            for i in range(len(crs)):
-                if crs[i] == "EPSG:28992":
+            for i, c in enumerate(crs):
+                if c == "EPSG:28992":
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
 
-        if stype == "WMTS":
+        elif stype == "WMTS":
             tilematrixsets = self.current_layer["tilematrixsets"].split(",")
             self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
-            for i in range(len(tilematrixsets)):
-                if tilematrixsets[i].startswith("EPSG:28992"):
+            for i, tilematrixset in enumerate(tilematrixsets):
+                if tilematrixset.startswith("EPSG:28992"):
                     self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+
+        elif stype == "OGC API - Tiles":
+            tiles = self.current_layer["tiles"][0]
+            crs_list = [
+                self.extract_crs(tileset["tileset_crs"])
+                for tileset in tiles["tilesets"]
+            ]
+            self.dlg.ui.comboSelectProj.addItems(crs_list)
+            for i, crs in enumerate(crs_list):
+                if crs.endswith("3857"):
+                    self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+                    self.dlg.ui.comboSelectProj.model().item(i).setEnabled(True)
+                else:
+                    # We disable all options that do not support correct projection of vector tiles
+                    self.dlg.ui.comboSelectProj.model().item(i).setEnabled(False)
+                    self.dlg.ui.comboSelectProj.setToolTip(
+                        f"""
+                        OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
+                        Het gebruik van andere CRS zorgt momenteel voor foutieve projecties. 
+                        Zie: https://github.com/qgis/QGIS/issues/54673
+                        """
+                    )
+
+    def extract_crs(self, crs_string):
+        pattern = r"/EPSG/(\d+)/(\d+)"
+        match = re.search(pattern, crs_string)
+        if match:
+            return f"EPSG:{match.group(2)}"
+        return crs_string
+
+    def get_tiles_urls(self, url, tiles):
+        url_tuple_list = [
+            (
+                self.build_tileset_url(url, tileset["tileset_id"], False),
+                self.extract_crs(tileset["tileset_crs"]),
+                tileset["tileset_max_zoomlevel"],
+            )
+            for tileset in tiles["tilesets"]
+        ]
+        html_tiles = "<ul>"
+        for url, crs, max_zoomlevel in url_tuple_list:
+            html_tiles += (
+                f"<li>{url}<br>CRS: {crs}<br>Max Zoom Level: {max_zoomlevel}</li>"
+            )
+        return html_tiles + "</ul>"
+
+    def get_styles_urls(self, styles):
+        html_styles = "<ul>"
+        for style in styles:
+            html_styles += f"<li>{style['url']}</li>"
+        return html_styles + "</ul>"
+
+    def build_tileset_url(self, url, tileset_id, for_request):
+        url_template = url + "/tiles/" + tileset_id
+        if for_request:
+            return url_template + "/%7Bz%7D/%7By%7D/%7Bx%7D?f%3Dmvt"
+        return url_template + "/{z}/{y}/{x}?f=mvt"
 
     def quote_wmts_url(self, url):
         """
@@ -464,7 +564,7 @@ class PdokServicesPlugin(object):
                 (
                     x
                     for x in self.current_layer["styles"]
-                    if x["title"] == selected_style_title
+                    if "title" in x and x["title"] == selected_style_title
                 ),
                 None,
             )
@@ -481,6 +581,11 @@ class PdokServicesPlugin(object):
                 )
         return selected_style
 
+    def get_crs_comboselect(self):
+        if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+            return "EPSG:28992"
+        return self.dlg.ui.comboSelectProj.currentText()
+
     def create_new_layer(self):
         servicetype = self.current_layer["service_type"]
         title = self.current_layer["title"]
@@ -488,75 +593,123 @@ class PdokServicesPlugin(object):
         url = self.current_layer["service_url"]
 
         if servicetype == "wms":
-            imgformat = self.current_layer["imgformats"].split(",")[0]
-            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                crs = "EPSG:28992"
-            else:
-                crs = self.dlg.ui.comboSelectProj.currentText()
-
-            selected_style_name = ""
-            if "selectedStyle" in self.current_layer:
-                selected_style = self.current_layer["selectedStyle"]
-            else:
-                selected_style = self.get_selected_style()
-            if selected_style is not None:
-                selected_style_name = selected_style["name"]
-                selected_style_title = selected_style["name"]
-                if "title" in selected_style:
-                    selected_style_title = selected_style["title"]
-                title += f" [{selected_style_title}]"
-
-            uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
-            return QgsRasterLayer(uri, title, "wms")
+            return self.create_wms_layer(layername, title, url)
         elif servicetype == "wmts":
-            if Qgis.QGIS_VERSION_INT < 10900:
-                self.show_warning(
-                    f"""Sorry, dit type layer: '{servicetype.upper()}'
-                    kan niet worden geladen in deze versie van QGIS.
-                    Misschien kunt u QGIS 2.0 installeren (die kan het WEL)?
-                    Of is de laag niet ook beschikbaar als wms of wfs?"""
-                )
-                return None
-            url = self.quote_wmts_url(url)
-            if self.dlg.ui.comboSelectProj.currentIndex() == -1:
-                tilematrixset = "EPSG:28992"
-            else:
-                tilematrixset = self.dlg.ui.comboSelectProj.currentText()
-            imgformat = self.current_layer["imgformats"].split(",")[0]
-            if tilematrixset.startswith("EPSG:"):
-                crs = tilematrixset
-                i = crs.find(":", 5)
-                if i > -1:
-                    crs = crs[:i]
-            elif tilematrixset.startswith("OGC:1.0"):
-                crs = "EPSG:3857"
-            else:
-                # non PDOK services do not have a strict tilematrixset naming based on crs...
-                crs = self.current_layer["crs"]
-            uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
-            return QgsRasterLayer(
-                uri, title, "wms"
-            )  # `wms` is correct, zie ook quote_wmts_url
+            return self.create_wmts_layer(layername, title, url, servicetype)
         elif servicetype == "wfs":
-            uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
-            return QgsVectorLayer(uri, title, "wfs")
+            return self.create_wfs_layer(layername, title, url)
         elif servicetype == "wcs":
-            # HACK to get WCS to work:
-            # 1) fixed format to "GEOTIFF"
-            # 2) remove the '?request=getcapabiliteis....' part from the url, unknown why this is required compared to wms/wfs
-            # better approach would be to add the supported format(s) to the layers-pdok.json file and use that - this should be the approach when more 
-            # WCS services will be published by PDOK (currently it is only the AHN WCS)
-            format = "GEOTIFF"
-            uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
-            return QgsRasterLayer(uri, title, "wcs")
+            return self.create_wcs_layer(layername, title, url)
+        elif servicetype == "api features":
+            return self.create_oaf_layer(layername, title, url)
+        elif servicetype == "api tiles":
+            return self.create_oat_layer(title, url)
         else:
             self.show_warning(
                 f"""Sorry, dit type laag: '{servicetype.upper()}'
                 kan niet worden geladen door de plugin of door QGIS.
-                Is het niet beschikbaar als wms, wmts of wfs?
+                Is het niet beschikbaar als wms, wmts, wfs, api features of api tiles (vectortile)?
                 """
             )
             return
+
+    def create_wms_layer(self, layername, title, url):
+        imgformat = self.current_layer["imgformats"].split(",")[0]
+        crs = self.get_crs_comboselect()
+
+        selected_style_name = ""
+        if "selectedStyle" in self.current_layer:
+            selected_style = self.current_layer["selectedStyle"]
+        else:
+            selected_style = self.get_selected_style()
+        if selected_style is not None:
+            selected_style_name = selected_style["name"]
+            selected_style_title = selected_style["name"]
+            if "title" in selected_style:
+                selected_style_title = selected_style["title"]
+            title += f" [{selected_style_title}]"
+
+        uri = f"crs={crs}&layers={layername}&styles={selected_style_name}&format={imgformat}&url={url}"
+        return QgsRasterLayer(uri, title, "wms")
+
+    def create_wmts_layer(self, layername, title, url, servicetype):
+        if Qgis.QGIS_VERSION_INT < 10900:
+            self.show_warning(
+                f"""Sorry, dit type layer: '{servicetype.upper()}'
+                kan niet worden geladen in deze versie van QGIS.
+                Misschien kunt u QGIS 2.0 installeren (die kan het WEL)?
+                Of is de laag niet ook beschikbaar als wms of wfs?"""
+            )
+            return None
+        url = self.quote_wmts_url(url)
+        tilematrixset = self.get_crs_comboselect()
+
+        imgformat = self.current_layer["imgformats"].split(",")[0]
+        if tilematrixset.startswith("EPSG:"):
+            crs = tilematrixset
+            i = crs.find(":", 5)
+            if i > -1:
+                crs = crs[:i]
+        elif tilematrixset.startswith("OGC:1.0"):
+            crs = "EPSG:3857"
+        else:
+            # non PDOK services do not have a strict tilematrixset naming based on crs...
+            crs = self.current_layer["crs"]
+        uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
+        return QgsRasterLayer(
+            uri, title, "wms"
+        )  # `wms` is correct, zie ook quote_wmts_url
+
+    def create_wfs_layer(self, layername, title, url):
+        uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
+        return QgsVectorLayer(uri, title, "wfs")
+
+    def create_wcs_layer(self, layername, title, url):
+        # HACK to get WCS to work:
+        # 1) fixed format to "GEOTIFF"
+        # 2) remove the '?request=getcapabiliteis....' part from the url, unknown why this is required compared to wms/wfs
+        # better approach would be to add the supported format(s) to the layers-pdok.json file and use that - this should be the approach when more
+        # WCS services will be published by PDOK (currently it is only the AHN WCS)
+        format = "GEOTIFF"
+        uri = f"cache=AlwaysNetwork&crs=EPSG:28992&format={format}&identifier={layername}&url={url.split('?')[0]}"
+        return QgsRasterLayer(uri, title, "wcs")
+
+    def create_oaf_layer(self, layername, title, url):
+        uri = f" pagingEnabled='true' restrictToRequestBBOX='1' preferCoordinatesForWfsT11='false' typename='{layername}' url='{url}'"
+        return QgsVectorLayer(uri, title, "OAPIF")
+
+    def create_oat_layer(self, title, url):
+        # CRS does not work as expected in qgis/gdal. We can set a crs (non-webmercator), but it is rendered incorrectly.
+        crs = self.get_crs_comboselect()
+        used_tileset = [
+            tileset
+            for tileset in self.current_layer["tiles"][0]["tilesets"]
+            if tileset["tileset_crs"].endswith(crs.split(":")[1])
+        ][0]
+
+        # Style toevoegen in laag vanuit ui
+        selected_style = self.get_selected_style()
+        selected_style_url = ""
+
+        if selected_style is not None:
+            selected_style_url = selected_style["url"]
+            title += f" [{selected_style['name']}]"
+
+        url_template = self.build_tileset_url(url, used_tileset["tileset_id"], True)
+        maxz_coord = used_tileset["tileset_max_zoomlevel"]
+
+        # Although the vector tiles are only rendered for a specific zoom-level @PDOK (see maxz_coord),
+        # we need to set the minimum z value to 0, which gives better performance, see https://github.com/qgis/QGIS/issues/54312
+        minz_coord = 0
+
+        type = "xyz"
+        uri = f"styleUrl={selected_style_url}&url={url_template}&type={type}&zmax={maxz_coord}&zmin={minz_coord}&http-header:referer="
+        tile_layer = QgsVectorTileLayer(uri, title)
+
+        # Set the VT layer CRS and load the styleUrl
+        tile_layer.setCrs(srs=QgsCoordinateReferenceSystem(crs))
+        tile_layer.loadDefaultStyle()
+        return tile_layer
 
     def load_layer(self, tree_location=None):
         if self.current_layer == None:
@@ -659,7 +812,9 @@ class PdokServicesPlugin(object):
                 adrestekst.setData(result, Qt.UserRole)
                 type = QStandardItem(str(result["type"]))
                 adrestekst.setData(result, Qt.UserRole)
-                search_string = QStandardItem(f'{str(result["weergavenaam"])} {str(result["type"])}')
+                search_string = QStandardItem(
+                    f'{str(result["weergavenaam"])} {str(result["type"])}'
+                )
                 self.geocoder_source_model.appendRow([adrestekst, type, search_string])
             self.geocoder_source_model.setHeaderData(0, Qt.Horizontal, "Resultaat")
             self.geocoder_source_model.setHeaderData(1, Qt.Horizontal, "Type")
@@ -709,14 +864,17 @@ class PdokServicesPlugin(object):
     def add_source_row(self, serviceLayer):
         # you can attache different "data's" to to an QStandarditem
         # default one is the visible one:
-        itemType = QStandardItem(str(serviceLayer["service_type"].upper()))
+        stype = (
+            self.service_type_mapping[serviceLayer["service_type"]]
+            if serviceLayer["service_type"] in self.service_type_mapping
+            else serviceLayer["service_type"].upper()
+        )
+        itemType = QStandardItem(str(stype))
         # userrole is a free form one:
         # only attach the data to the first item
         # service layer = a dict/object with all props of the layer
         itemType.setData(serviceLayer, Qt.UserRole)
-        itemType.setToolTip(
-            f'{serviceLayer["service_type"].upper()} - {serviceLayer["title"]}'
-        )
+        itemType.setToolTip(f'{stype} - {serviceLayer["title"]}')
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
         styles_string = ""
@@ -726,17 +884,13 @@ class PdokServicesPlugin(object):
             )
 
         itemLayername = QStandardItem(str(serviceLayer["title"]))
-        itemLayername.setToolTip(
-            f'{serviceLayer["service_type"].upper()} - {serviceLayer["service_title"]}'
-        )
+        itemLayername.setToolTip(f'{stype} - {serviceLayer["service_title"]}')
         # itemFilter is the item used to search filter in. That is why layername is a combi of layername + filter here
         itemFilter = QStandardItem(
             f'{serviceLayer["service_type"]} {layername} {serviceLayer["service_title"]} {serviceLayer["service_abstract"]} {styles_string}'
         )
         itemServicetitle = QStandardItem(str(serviceLayer["service_title"]))
-        itemServicetitle.setToolTip(
-            f'{serviceLayer["service_type"].upper()} - {serviceLayer["title"]}'
-        )
+        itemServicetitle.setToolTip(f'{stype} - {serviceLayer["title"]}')
         self.sourceModel.appendRow(
             [itemLayername, itemType, itemServicetitle, itemFilter]
         )
@@ -748,7 +902,7 @@ class PdokServicesPlugin(object):
         :param value:
         :return:
         """
-        return value.lower() == 'true' if isinstance(value, str) else bool(value)
+        return value.lower() == "true" if isinstance(value, str) else bool(value)
 
     def run(self, hiddenDialog=False):
         """
@@ -758,14 +912,17 @@ class PdokServicesPlugin(object):
         if QSettings().contains(f"/{PLUGIN_ID}/currenttab"):
             self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
 
-        flashing_geoms = self.valueToBool(QSettings().value(f"/{PLUGIN_ID}/flashing_geoms"))
+        flashing_geoms = self.valueToBool(
+            QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")
+        )
         self.dlg.ui.cb_flashing_geoms.setChecked(flashing_geoms)
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:
+            self.layers_pdok = []
             pdokjson = os.path.join(self.plugin_dir, "resources", "layers-pdok.json")
             with open(pdokjson, "r", encoding="utf-8") as f:
-                self.layers_pdok = json.load(f)
+                self.layers_pdok.extend(json.load(f))
 
             self.sourceModel = QStandardItemModel()
 
@@ -904,7 +1061,7 @@ class PdokServicesPlugin(object):
         a_list = [int(x) for x in a.split(".")]
         b_list = [int(x) for x in b.split(".")]
 
-        for (a_val, b_val) in zip(a_list, b_list):
+        for a_val, b_val in zip(a_list, b_list):
             if a_val > b_val:
                 return True
         return a_list == b_list
@@ -916,7 +1073,9 @@ class PdokServicesPlugin(object):
             bool: boolean indicating whether qgis supports "hidden" layers
         """
         semversion = qgis.utils.Qgis.QGIS_VERSION.split("-")[0]
-        if self.semver_greater_or_equal_then(semversion, "3.18.0") and self.valueToBool(QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")):
+        if self.semver_greater_or_equal_then(semversion, "3.18.0") and self.valueToBool(
+            QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")
+        ):
             # it is possible to use the new shiny flashing geoms
             return True
         # the 'old way' :-)
@@ -1172,7 +1331,6 @@ class PdokServicesPlugin(object):
             nr_of_favs = len(favs)
 
             if fav_index != -1:
-
                 up_fav_action = QAction(f"Verplaats favoriet omhoog")
                 down_fav_action = QAction(f"Verplaats favoriet omlaag")
 
@@ -1207,7 +1365,7 @@ class PdokServicesPlugin(object):
                         **self.current_layer,
                         **{"selectedStyle": selected_style},
                     }
-                add_fav_action = QAction(f"Voeg deze laag toe aan favourieten")
+                add_fav_action = QAction(f"Voeg deze laag toe aan favorieten")
                 add_fav_action.setIcon(self.fav_icon)
                 menu.addAction(add_fav_action)
                 action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))

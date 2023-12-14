@@ -36,6 +36,7 @@ class Ui_PdokServicesPlugin(object):
         self.servicesView.setSizePolicy(sizePolicy)
         self.servicesView.setMinimumSize(QtCore.QSize(0, 0))
         self.servicesView.setObjectName("servicesView")
+        self.servicesView.horizontalHeader().setDefaultSectionSize(150)
         self.gridLayout_2.addWidget(self.servicesView, 1, 0, 1, 4)
         self.layer_info = QtWidgets.QTextBrowser(self.layers_tab)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)

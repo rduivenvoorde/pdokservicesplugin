@@ -49,9 +49,8 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
 
     wcs_url = "https://service.pdok.nl/rws/ahn/wcs/v1_0"
     cap_url = f"{wcs_url}?request=GetCapabilities&service=WCS"
-    coverages = [ "dtm_05m", "dsm_05m"]
+    coverages = ["dtm_05m", "dsm_05m"]
     default_coverage = coverages[0]
-
 
     def tr(self, string):
         """
@@ -139,7 +138,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             self.OUTPUT = "OUTPUT"  # recommended name for the main output parameter
             self.ATTRIBUTE_NAME = "ATTRIBUTE_NAME"
             self.COVERAGE_ID = "COVERAGE_ID"
-           
+
             self.addParameter(
                 QgsProcessingParameterFeatureSource(
                     self.INPUT,
@@ -191,11 +190,13 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             # retrieve wcs object
             _xml_bytes = get_request_bytes(PDOKWCSTool.cap_url)
             self.wcs = WebCoverageService_2_0_1(PDOKWCSTool.wcs_url, _xml_bytes, None)
-            
+
             for cov in PDOKWCSTool.coverages:
                 desc_cov_url = f"{PDOKWCSTool.wcs_url}?request=DescribeCoverage&service=WCS&version=2.0.1&coverageId={cov}"
                 desc_cov_resp = get_request_bytes(desc_cov_url)
-                self.wcs._describeCoverage[cov] = etree.fromstring(desc_cov_resp) # _describeCoverage is cache for DescribeCoverage responses => https://github.com/geopython/OWSLib/blob/0eaf201d587e42237415f0010e8940275cd50ba8/owslib/coverage/wcsBase.py#LL53C37-L53C37
+                self.wcs._describeCoverage[cov] = etree.fromstring(
+                    desc_cov_resp
+                )  # _describeCoverage is cache for DescribeCoverage responses => https://github.com/geopython/OWSLib/blob/0eaf201d587e42237415f0010e8940275cd50ba8/owslib/coverage/wcsBase.py#LL53C37-L53C37
                 # so by filling cache, we ensure owslib does not retrieve describecoverage docs, but we do it ourselves
 
             # read out parameters
@@ -243,7 +244,7 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                     attr = attrs[i]
                     field_name = field_names[i]
                     new_ft.setAttribute(field_name, attr)
-                
+
                 ds = self.get_gdal_ds_from_wcs(x, y, coverage_id, feedback)
 
                 if ds is None:
@@ -260,8 +261,10 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
                     )
                     ahn_val = None
                 else:
-                    ahn_val = round(ahn_val, 2) # reduce precision to 2 digits after the decimal point
-                    
+                    ahn_val = round(
+                        ahn_val, 2
+                    )  # reduce precision to 2 digits after the decimal point
+
                 new_ft.setAttribute(attribute_name, ahn_val)
                 new_ft.setGeometry(geom)
                 sink.addFeature(new_ft, QgsFeatureSink.FastInsert)
@@ -289,11 +292,11 @@ class PDOKWCSTool(QgsProcessingAlgorithm):
             )
             raise QgsProcessingException(message)
 
-
     def get_gdal_ds_from_wcs(self, x, y, coverage_id, feedback):
-        """returns none when x,y outside coverage boundingbox
-        """
-        (minx,miny,maxx,maxy) = self.wcs.contents[coverage_id].boundingboxes[0]['bbox'] # assuming boundingboxes[0] contains nativeproj bounding box
+        """returns none when x,y outside coverage boundingbox"""
+        (minx, miny, maxx, maxy) = self.wcs.contents[coverage_id].boundingboxes[0][
+            "bbox"
+        ]  # assuming boundingboxes[0] contains nativeproj bounding box
         if x < minx or x > maxx or y < miny or y > maxy:
             return None
         origin = [float(i) for i in self.wcs.contents[coverage_id].grid.origin]
