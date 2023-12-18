@@ -61,8 +61,9 @@ import urllib.request, urllib.parse, urllib.error
 import locale
 import re
 import logging
+from . import LOGGER_NAME
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(LOGGER_NAME)
 
 # Initialize Qt resources from file resources.py
 from . import resources_rc
@@ -712,7 +713,7 @@ class PdokServicesPlugin(object):
         return tile_layer
 
     def load_layer(self, tree_location=None):
-        if self.current_layer == None:
+        if self.current_layer is None:
             return
         servicetype = self.current_layer["service_type"]
         if tree_location is None:
@@ -721,6 +722,10 @@ class PdokServicesPlugin(object):
         if new_layer is None:
             return
         self.add_layer(new_layer, tree_location)
+        # only IF this a WMTS, try to zoom to native resolution...
+        if servicetype == 'wmts':
+            self.iface.setActiveLayer(new_layer)
+            self.iface.actionZoomActualSize().trigger()
 
     def add_layer(self, new_layer, tree_location="default"):
         """Adds a QgsLayer to the project and layer tree.
