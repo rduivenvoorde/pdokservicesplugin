@@ -47,25 +47,7 @@ Format python code with:
 black pdokservicesplugin
 ```
 
-Generate `ui_pdokservicesplugindialog.py` from `ui_pdokservicesplugindialog.ui`:
-
-```sh
-cd pdokservicesplugin
-pyuic5 ui_pdokservicesplugindialog.ui -o ui_pdokservicesplugindialog.py
-```
-
-Escape HTML info pagina and insert into `ui_pdokservicesplugindialog.ui` and regenerate `ui_pdokservicesplugindialog.py`:
-
-```sh
-cd pdokservicesplugin
-xmlstarlet ed -u  ".//widget[@name='webView']/property[@name='html']/string" -v "$(sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&#39;/g' < resources/infotab.html)" ui_pdokservicesplugindialog.ui |\
-    xmlstarlet unesc |\
-    sponge ui_pdokservicesplugindialog.ui &&\
-        pyuic5 ui_pdokservicesplugindialog.ui -o ui_pdokservicesplugindialog.py &&\
-            black ui_pdokservicesplugindialog.py
-```
-
-Compile `resources_rc.py` file:
+Compile `resources_rc.py` file (needed for some images in html tab in dialog):
 
 ```sh
 cd pdokservicesplugin

@@ -69,7 +69,7 @@ log = logging.getLogger(LOGGER_NAME)
 from . import resources_rc
 
 # Import the code for the dialog
-from .ui_pdokservicesplugindialog import PdokServicesPluginDialog
+from .pdokservicesplugindialog import PdokServicesPluginDialog
 
 from .processing_provider.provider import Provider
 
@@ -110,13 +110,13 @@ class PdokServicesPlugin(object):
         self.geocoder_source_model = None
 
         self.fq_checkboxes = {
-            self.dlg.ui.cbx_gem: LsType.gemeente,
-            self.dlg.ui.cbx_wpl: LsType.woonplaats,
-            self.dlg.ui.cbx_weg: LsType.weg,
-            self.dlg.ui.cbx_pcd: LsType.postcode,
-            self.dlg.ui.cbx_adr: LsType.adres,
-            self.dlg.ui.cbx_pcl: LsType.perceel,
-            self.dlg.ui.cbx_hmp: LsType.hectometerpaal,
+            self.dlg.cbx_gem: LsType.gemeente,
+            self.dlg.cbx_wpl: LsType.woonplaats,
+            self.dlg.cbx_weg: LsType.weg,
+            self.dlg.cbx_pcd: LsType.postcode,
+            self.dlg.cbx_adr: LsType.adres,
+            self.dlg.cbx_pcl: LsType.perceel,
+            self.dlg.cbx_hmp: LsType.hectometerpaal,
         }
         self.fav_actions = []
 
@@ -226,13 +226,13 @@ class PdokServicesPlugin(object):
         self.iface.addPluginToMenu(f"&{PLUGIN_NAME}", self.about_action)
 
         self.about_action.triggered.connect(self.about)
-        self.dlg.ui.btnLoadLayer.clicked.connect(lambda: self.load_layer("default"))
-        self.dlg.ui.btnLoadLayerTop.clicked.connect(lambda: self.load_layer("top"))
-        self.dlg.ui.btnLoadLayerBottom.clicked.connect(
+        self.dlg.btnLoadLayer.clicked.connect(lambda: self.load_layer("default"))
+        self.dlg.btnLoadLayerTop.clicked.connect(lambda: self.load_layer("top"))
+        self.dlg.btnLoadLayerBottom.clicked.connect(
             lambda: self.load_layer("bottom")
         )
 
-        self.dlg.ui.pushButton.clicked.connect(self.toggle_all_fq_checkboxes)
+        self.dlg.pushButton.clicked.connect(self.toggle_all_fq_checkboxes)
 
         self.dlg.geocoder_search.returnPressed.connect(
             self.ls_dialog_get_suggestions_and_remove_pointer
@@ -260,11 +260,11 @@ class PdokServicesPlugin(object):
             cbx.stateChanged.connect(self.ls_dialog_get_suggestions_and_remove_pointer)
         self.run(True)
 
-        self.dlg.ui.cb_flashing_geoms.stateChanged.connect(self.change_result_visual)
+        self.dlg.cb_flashing_geoms.stateChanged.connect(self.change_result_visual)
 
         # set to hidden when no layer selected
-        self.dlg.ui.layer_info.setHidden(True)
-        self.dlg.ui.layer_options_groupbox.setHidden(True)
+        self.dlg.layer_info.setHidden(True)
+        self.dlg.layer_options_groupbox.setHidden(True)
 
     def about(self):
         infoString = textwrap.dedent(
@@ -307,14 +307,14 @@ class PdokServicesPlugin(object):
     def show_layer(self, selectedIndexes):
         if len(selectedIndexes) == 0:
             self.current_layer = None
-            self.dlg.ui.layer_info.setHtml("")
-            self.dlg.ui.comboSelectProj.clear()
-            self.dlg.ui.layer_info.setHidden(True)
-            self.dlg.ui.layer_options_groupbox.setHidden(True)
+            self.dlg.layer_info.setHtml("")
+            self.dlg.comboSelectProj.clear()
+            self.dlg.layer_info.setHidden(True)
+            self.dlg.layer_options_groupbox.setHidden(True)
             return
 
-        self.dlg.ui.layer_info.setHidden(False)
-        self.dlg.ui.layer_options_groupbox.setHidden(False)
+        self.dlg.layer_info.setHidden(False)
+        self.dlg.layer_options_groupbox.setHidden(False)
 
         # needed to scroll To the selected row incase of using the keyboard / arrows
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
@@ -349,10 +349,10 @@ class PdokServicesPlugin(object):
             maxscale = self.format_scale_denominator(self.current_layer["maxscale"])
         service_md_id = self.current_layer["service_md_id"]
         dataset_md_id = self.current_layer["dataset_md_id"]
-        self.dlg.ui.layer_info.setText("")
-        self.dlg.ui.btnLoadLayer.setEnabled(True)
-        self.dlg.ui.btnLoadLayerTop.setEnabled(True)
-        self.dlg.ui.btnLoadLayerBottom.setEnabled(True)
+        self.dlg.layer_info.setText("")
+        self.dlg.btnLoadLayer.setEnabled(True)
+        self.dlg.btnLoadLayerTop.setEnabled(True)
+        self.dlg.btnLoadLayerBottom.setEnabled(True)
 
         fav = False
         if self.pdok_layer_in_favs(self.current_layer) != -1:
@@ -426,7 +426,7 @@ class PdokServicesPlugin(object):
             else ""
         )
 
-        self.dlg.ui.layer_info.setHtml(
+        self.dlg.layer_info.setHtml(
             f"""
             <h2>{fav_string}{layername_key} ({stype}) - {title}</h2>
             <dl>
@@ -453,14 +453,14 @@ class PdokServicesPlugin(object):
             {dev_urls_html}
             """
         )
-        self.dlg.ui.comboSelectProj.clear()
-        self.dlg.ui.wmsStyleComboBox.clear()
+        self.dlg.comboSelectProj.clear()
+        self.dlg.wmsStyleComboBox.clear()
 
         show_list = {
-            self.dlg.ui.comboSelectProj: ["WMS", "WMTS", "OGC API - Tiles"],
-            self.dlg.ui.labelCrs: ["WMS", "WMTS", "OGC API - Tiles"],
-            self.dlg.ui.wmsStyleComboBox: ["WMS", "OGC API - Tiles"],
-            self.dlg.ui.wmsStyleLabel: ["WMS", "OGC API - Tiles"],
+            self.dlg.comboSelectProj: ["WMS", "WMTS", "OGC API - Tiles"],
+            self.dlg.labelCrs: ["WMS", "WMTS", "OGC API - Tiles"],
+            self.dlg.wmsStyleComboBox: ["WMS", "OGC API - Tiles"],
+            self.dlg.wmsStyleLabel: ["WMS", "OGC API - Tiles"],
         }
 
         for ui_el in show_list.keys():
@@ -471,32 +471,32 @@ class PdokServicesPlugin(object):
             styles = self.current_layer["styles"]
             nr_styles = len(styles)
             style_str = "styles" if nr_styles > 1 else "style"
-            self.dlg.ui.wmsStyleLabel.setText(
+            self.dlg.wmsStyleLabel.setText(
                 f"Style ({nr_styles} {style_str} beschikbaar)"
             )
             style_title_names = [
                 x["title"] if "title" in x else x["name"] for x in styles
             ]
-            self.dlg.ui.wmsStyleComboBox.addItems(style_title_names)
-            self.dlg.ui.wmsStyleComboBox.setCurrentIndex(0)
-            self.dlg.ui.wmsStyleComboBox.setEnabled(
+            self.dlg.wmsStyleComboBox.addItems(style_title_names)
+            self.dlg.wmsStyleComboBox.setCurrentIndex(0)
+            self.dlg.wmsStyleComboBox.setEnabled(
                 nr_styles > 1  # enable if more than one style
             )
 
         if stype == "WMS":
             crs = self.current_layer.get("crs", "EPSG:28992")
             crs = crs.split(",")
-            self.dlg.ui.comboSelectProj.addItems(crs)
+            self.dlg.comboSelectProj.addItems(crs)
             for i, c in enumerate(crs):
                 if c == "EPSG:28992":
-                    self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+                    self.dlg.comboSelectProj.setCurrentIndex(i)
 
         elif stype == "WMTS":
             tilematrixsets = self.current_layer["tilematrixsets"].split(",")
-            self.dlg.ui.comboSelectProj.addItems(tilematrixsets)
+            self.dlg.comboSelectProj.addItems(tilematrixsets)
             for i, tilematrixset in enumerate(tilematrixsets):
                 if tilematrixset.startswith("EPSG:28992"):
-                    self.dlg.ui.comboSelectProj.setCurrentIndex(i)
+                    self.dlg.comboSelectProj.setCurrentIndex(i)
 
         elif stype == "OGC API - Tiles":
             tiles = self.current_layer["tiles"][0]
@@ -504,15 +504,15 @@ class PdokServicesPlugin(object):
                 self.extract_crs(tileset["tileset_crs"])
                 for tileset in tiles["tilesets"]
             ]
-            self.dlg.ui.comboSelectProj.addItems(crs_list)
+            self.dlg.comboSelectProj.addItems(crs_list)
             for i, crs in enumerate(crs_list):
                 if crs.endswith("3857"):
-                    self.dlg.ui.comboSelectProj.setCurrentIndex(i)
-                    self.dlg.ui.comboSelectProj.model().item(i).setEnabled(True)
+                    self.dlg.comboSelectProj.setCurrentIndex(i)
+                    self.dlg.comboSelectProj.model().item(i).setEnabled(True)
                 else:
                     # We disable all options that do not support correct projection of vector tiles
-                    self.dlg.ui.comboSelectProj.model().item(i).setEnabled(False)
-                    self.dlg.ui.comboSelectProj.setToolTip(
+                    self.dlg.comboSelectProj.model().item(i).setEnabled(False)
+                    self.dlg.comboSelectProj.setToolTip(
                         f"""
                         OGC API - Tiles wordt momenteel alleen correct weergegeven in webmercator CRS (EPSG:3857). 
                         Het gebruik van andere CRS zorgt momenteel voor foutieve projecties. 
@@ -569,7 +569,7 @@ class PdokServicesPlugin(object):
         return url
 
     def get_selected_style(self):
-        selected_style_title = self.dlg.ui.wmsStyleComboBox.currentText()
+        selected_style_title = self.dlg.wmsStyleComboBox.currentText()
         selected_style = None
         if "styles" in self.current_layer:
             selected_style = next(
@@ -594,9 +594,9 @@ class PdokServicesPlugin(object):
         return selected_style
 
     def get_crs_comboselect(self):
-        if self.dlg.ui.comboSelectProj.currentIndex() == -1:
+        if self.dlg.comboSelectProj.currentIndex() == -1:
             return "EPSG:28992"
-        return self.dlg.ui.comboSelectProj.currentText()
+        return self.dlg.comboSelectProj.currentText()
 
     def create_new_layer(self):
         servicetype = self.current_layer["service_type"]
@@ -809,9 +809,9 @@ class PdokServicesPlugin(object):
 
     def ls_dialog_get_suggestions(self):
         try:
-            self.dlg.ui.lookupinfo.setHtml("")
-            self.dlg.ui.geocoderResultSearchLabel.setEnabled(False)
-            self.dlg.ui.geocoderResultSearch.setEnabled(False)
+            self.dlg.lookupinfo.setHtml("")
+            self.dlg.geocoderResultSearchLabel.setEnabled(False)
+            self.dlg.geocoderResultSearch.setEnabled(False)
             search_text = self.dlg.geocoder_search.text()
             if len(search_text) <= 1:
                 return
@@ -837,8 +837,8 @@ class PdokServicesPlugin(object):
             self.dlg.geocoderResultView.setColumnHidden(2, True)
 
             self.dlg.geocoderResultView.horizontalHeader().setStretchLastSection(True)
-            self.dlg.ui.geocoderResultSearchLabel.setEnabled(True)
-            self.dlg.ui.geocoderResultSearch.setEnabled(True)
+            self.dlg.geocoderResultSearchLabel.setEnabled(True)
+            self.dlg.geocoderResultSearch.setEnabled(True)
 
         except PdokServicesNetworkException as ex:
             title = f"{PLUGIN_NAME} - HTTP Request Error"
@@ -927,7 +927,7 @@ class PdokServicesPlugin(object):
         flashing_geoms = self.valueToBool(
             QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")
         )
-        self.dlg.ui.cb_flashing_geoms.setChecked(flashing_geoms)
+        self.dlg.cb_flashing_geoms.setChecked(flashing_geoms)
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:
@@ -1179,7 +1179,7 @@ class PdokServicesPlugin(object):
             if isinstance(val, list):
                 val = ", ".join(val)
             result_list = f"{result_list}<li><b>{key}:</b> {val}</li>"
-        self.dlg.ui.lookupinfo.setHtml(f"<lu>{result_list}</lu>")
+        self.dlg.lookupinfo.setHtml(f"<lu>{result_list}</lu>")
 
     def remove_pointer_or_layer(self):
         if not self.show_ls_feature():

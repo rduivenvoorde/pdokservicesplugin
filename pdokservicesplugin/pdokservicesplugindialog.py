@@ -1,35 +1,23 @@
-# -*- coding: utf-8 -*-
-"""
-/***************************************************************************
- PdokServicesPluginDialog
-                                 A QGIS plugin
-
-                             -------------------
-        begin                : 2012-10-11
-        copyright            : (C) 2012 by Richard Duivenvoorde
-        email                : richard@zuidt.nl
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-
-from qgis.PyQt.QtWidgets import QDialog
-from .ui_pdokservicesplugindialog import Ui_PdokServicesPlugin
+import os
+from PyQt5 import QtCore, QtGui, QtWidgets
+from qgis.PyQt import uic
 
 
-class PdokServicesPluginDialog(QDialog):
+import logging
+log = logging.getLogger(__name__)
+
+# This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'pdokservicesplugindialog.ui'))
+
+
+class PdokServicesPluginDialog(QtWidgets.QDialog, FORM_CLASS):
+
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
+        super(PdokServicesPluginDialog, self).__init__(parent)
         # Set up the user interface from Designer.
-        self.ui = Ui_PdokServicesPlugin()
-        self.ui.setupUi(self)
+        self.setupUi(self)
+        self.ui = self
 
         self.servicesView = self.ui.servicesView
         # only select one row at a time:
@@ -47,4 +35,4 @@ class PdokServicesPluginDialog(QDialog):
         # select whole row if an item is clicked
         self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
         self.tabs = self.ui.tabWidget
-        self.ui.buttonBox.rejected.connect(self.reject)
+        self.buttonBox.rejected.connect(self.reject)
