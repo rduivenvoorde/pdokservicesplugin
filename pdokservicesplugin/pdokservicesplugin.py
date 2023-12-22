@@ -260,7 +260,7 @@ class PdokServicesPlugin(object):
             cbx.stateChanged.connect(self.ls_dialog_get_suggestions_and_remove_pointer)
         self.run(True)
 
-        self.dlg.cb_flashing_geoms.stateChanged.connect(self.change_result_visual)
+        self.dlg.cb_flashing_geoms.toggled.connect(self.change_result_visual)
 
         # set to hidden when no layer selected
         self.dlg.layer_info.setHidden(True)
@@ -925,9 +925,11 @@ class PdokServicesPlugin(object):
             self.dlg.tabs.widget(int(QSettings().value(f"/{PLUGIN_ID}/currenttab")))
 
         flashing_geoms = self.valueToBool(
-            QSettings().value(f"/{PLUGIN_ID}/flashing_geoms")
+            QSettings().value(f"/{PLUGIN_ID}/flashing_geoms", defaultValue=True)
         )
+        #log.debug(f"{flashing_geoms=}")
         self.dlg.cb_flashing_geoms.setChecked(flashing_geoms)
+        self.dlg.cb_yellow_cross.setChecked(not flashing_geoms)
         self.clean_ls_search_action.setEnabled(not flashing_geoms)
 
         if self.services_loaded == False:

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PdokServicesPlugin</class>
+ <class>PdokServicesPluginDialog</class>
  <widget class="QDialog" name="PdokServicesPluginDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>838</width>
+    <width>877</width>
     <height>786</height>
    </rect>
   </property>
@@ -372,17 +372,14 @@ p, li { white-space: pre-wrap; }
           <string>Locatieserver prikker</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="cb_flashing_geoms">
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="cb_yellow_cross">
             <property name="text">
-             <string>Gebruik 'Flashing Geoms' om locatieserver resultaat op de kaart te tonen ('Vink UIT' voor blijvend kruisje)</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
+             <string>Toon 'resultaatkruisje' om resultaat op de kaart te tonen, welke met een 'verwijder resultaatkruisje' is weg te halen</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -394,6 +391,13 @@ p, li { white-space: pre-wrap; }
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="cb_flashing_geoms">
+            <property name="text">
+             <string>Toon 'tijdelijk knipperende objecten' om het locatieserver resultaat op de kaart te tonen</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
