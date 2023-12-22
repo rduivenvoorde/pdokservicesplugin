@@ -69,7 +69,7 @@ log = logging.getLogger(LOGGER_NAME)
 from . import resources_rc
 
 # Import the code for the dialog
-from .pdokservicesplugindialog import PdokServicesPluginDialog
+from .ui_pdokservicesplugindialog import PdokServicesPluginDialog
 
 from .processing_provider.provider import Provider
 
@@ -94,6 +94,7 @@ from .lib.locatieserver import (
 
 
 class PdokServicesPlugin(object):
+
     def __init__(self, iface):
         # Save reference to the QGIS interface
         self.iface = iface
@@ -478,9 +479,6 @@ class PdokServicesPlugin(object):
             ]
             self.dlg.ui.wmsStyleComboBox.addItems(style_title_names)
             self.dlg.ui.wmsStyleComboBox.setCurrentIndex(0)
-            completer = QCompleter(style_title_names, self.dlg.ui.wmsStyleComboBox)
-            completer.setFilterMode(Qt.MatchContains)
-            self.dlg.ui.wmsStyleComboBox.setCompleter(completer)
             self.dlg.ui.wmsStyleComboBox.setEnabled(
                 nr_styles > 1  # enable if more than one style
             )

@@ -30,6 +30,7 @@ class PdokServicesPluginDialog(QDialog):
         # Set up the user interface from Designer.
         self.ui = Ui_PdokServicesPlugin()
         self.ui.setupUi(self)
+
         self.servicesView = self.ui.servicesView
         # only select one row at a time:
         self.servicesView.setSelectionMode(self.servicesView.SingleSelection)

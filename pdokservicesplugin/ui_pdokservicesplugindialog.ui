@@ -45,8 +45,8 @@
           </size>
          </property>
          <attribute name="horizontalHeaderDefaultSectionSize">
-                <number>150</number>
-        </attribute>
+          <number>150</number>
+         </attribute>
         </widget>
        </item>
        <item row="2" column="0" colspan="4">
@@ -107,7 +107,7 @@
           <item row="1" column="1">
            <widget class="QComboBox" name="wmsStyleComboBox">
             <property name="editable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
