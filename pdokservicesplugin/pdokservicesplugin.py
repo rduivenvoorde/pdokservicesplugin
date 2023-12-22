@@ -89,8 +89,8 @@ from .lib.locatieserver import (
 
 
 # enable possible remote pycharm debugging
-# import pydevd
-# pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
+#import pydevd
+#pydevd.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True, suspend=False)
 
 
 class PdokServicesPlugin(object):
@@ -379,14 +379,27 @@ class PdokServicesPlugin(object):
             "OGC API - Tiles": "Vector Tiles",
         }
         layername_key = f"{layername_key_mapping[stype]}"
-        dataset_metadata_dd = self.get_dd(
-            dataset_md_id,
-            f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
-        )
-        service_metadata_dd = self.get_dd(
-            service_md_id,
-            f'<a title="Bekijk service metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a>',
-        )
+        if dataset_md_id and dataset_md_id.startswith('http'):
+            dataset_metadata_dd = self.get_dd(
+                dataset_md_id,
+                f'<a title="Info" href="{dataset_md_id}">{dataset_md_id}</a>',
+            )
+        else:
+            dataset_metadata_dd = self.get_dd(
+                dataset_md_id,
+                f'<a title="Bekijk dataset metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{dataset_md_id}">{dataset_md_id}</a>',
+            )
+        if service_md_id and service_md_id.startswith('http'):
+            service_metadata_dd = self.get_dd(
+                service_md_id,
+                f'<a title="Info" href="{service_md_id}">{service_md_id}</a>',
+            )
+
+        else:
+            service_metadata_dd = self.get_dd(
+                service_md_id,
+                f'<a title="Bekijk service metadata in NGR" href="https://www.nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{service_md_id}">{service_md_id}</a>',
+            )
         fav_string = ""
         fav_title = ""
         if fav:
@@ -722,10 +735,6 @@ class PdokServicesPlugin(object):
         if new_layer is None:
             return
         self.add_layer(new_layer, tree_location)
-        # only IF this a WMTS, try to zoom to native resolution...
-        if servicetype == 'wmts':
-            self.iface.setActiveLayer(new_layer)
-            self.iface.actionZoomActualSize().trigger()
 
     def add_layer(self, new_layer, tree_location="default"):
         """Adds a QgsLayer to the project and layer tree.
@@ -1394,7 +1403,7 @@ class PdokServicesPlugin(object):
                 migrate_fav = True
             layer = self.get_layer_in_pdok_layers(fav_layer)
 
-            if "selectedStyle" in fav_layer:
+            if "selectedStyle" in fav_layer and "selectedStyle" in layer:
                 layer["selectedStyle"] = fav_layer["selectedStyle"]
             if migrate_fav:
                 QSettings().setValue(f"/{PLUGIN_ID}/favourite_{index}", layer)
