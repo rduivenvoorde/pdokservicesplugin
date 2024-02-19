@@ -21,18 +21,16 @@ class PdokServicesPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.servicesView = self.ui.servicesView
         # only select one row at a time:
-        self.servicesView.setSelectionMode(self.servicesView.SingleSelection)
+        self.servicesView.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         # select whole row if an item is clicked
-        self.servicesView.setSelectionBehavior(self.servicesView.SelectRows)
+        self.servicesView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.servicesView.setAutoScroll(False)
         self.layerSearch = self.ui.layerSearch
         self.geocoder_search = self.ui.geocoderSearch
         self.geocoderResultSearch = self.ui.geocoderResultSearch
         self.geocoderResultView = self.ui.geocoderResultView
-        self.geocoderResultView.setSelectionMode(
-            self.geocoderResultView.SingleSelection
-        )
+        self.geocoderResultView.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         # select whole row if an item is clicked
-        self.geocoderResultView.setSelectionBehavior(self.geocoderResultView.SelectRows)
+        self.geocoderResultView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.tabs = self.ui.tabWidget
         self.buttonBox.rejected.connect(self.reject)
