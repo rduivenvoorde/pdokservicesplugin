@@ -14,7 +14,7 @@ from owslib.coverage.wcs201 import WebCoverageService_2_0_1
 from qgis.core import QgsMessageLog
 
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from PyQt5 import QtGui
+from qgis.PyQt import QtGui
 from qgis.core import (
     QgsProject,
     QgsProcessing,

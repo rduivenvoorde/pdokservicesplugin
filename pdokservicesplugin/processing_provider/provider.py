@@ -1,6 +1,6 @@
 import os.path
 
-from PyQt5 import QtGui
+from qgis.PyQt import QtGui
 from qgis.core import QgsProcessingProvider
 
 from .processing_geocoder import PDOKGeocoder

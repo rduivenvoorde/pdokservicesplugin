@@ -35,7 +35,9 @@ from qgis.PyQt.QtWidgets import (
     QCompleter,
 )
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QColor
-from qgis.PyQt.QtCore import QSortFilterProxyModel, QRegExp
+from qgis.PyQt.QtCore import QSortFilterProxyModel
+from qgis.PyQt.QtCore import QRegularExpression as QRegExp
+
 from qgis.core import (
     QgsApplication,
     Qgis,
@@ -153,7 +155,7 @@ class PdokServicesPlugin(object):
         self.run_action = QAction(self.run_icon, PLUGIN_NAME, self.iface.mainWindow())
         self.run_button = QToolButton()
         self.run_button.setMenu(QMenu())
-        self.run_button.setPopupMode(QToolButton.MenuButtonPopup)
+        self.run_button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         self.run_button.setDefaultAction(self.run_action)
 
         self.services_loaded = False
@@ -197,7 +199,7 @@ class PdokServicesPlugin(object):
         self.toolbar_search.mousePressEvent = lambda _: toolbar_search_mouse_event()
 
         self.toolbar_search.setMaximumWidth(300)
-        self.toolbar_search.setAlignment(Qt.AlignLeft)
+        self.toolbar_search.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.toolbar_search.setPlaceholderText("Zoek in PDOK Locatieserver")
         self.toolbar.addWidget(self.toolbar_search)
         self.timer_toolbar_search = QTimer()
@@ -320,7 +322,7 @@ class PdokServicesPlugin(object):
         self.dlg.servicesView.scrollTo(self.dlg.servicesView.selectedIndexes()[0])
         # itemType holds the data (== column 1)
         self.current_layer = self.dlg.servicesView.selectedIndexes()[1].data(
-            Qt.UserRole
+            Qt.ItemDataRole.UserRole
         )
         self.update_layer_panel()
 
@@ -754,7 +756,7 @@ class PdokServicesPlugin(object):
 
     def filter_geocoder_result(self, string):
         self.dlg.geocoderResultView.selectRow(0)
-        self.geocoderProxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.geocoderProxyModel.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.geocoderProxyModel.setFilterFixedString(string)
 
     def toolbar_search_get_suggestions(self):
@@ -763,7 +765,7 @@ class PdokServicesPlugin(object):
             for s in _suggestions:
                 key = s["weergavenaam"]
                 it = QStandardItem(key)
-                it.setData(s, Qt.UserRole)
+                it.setData(s, Qt.ItemDataRole.UserRole)
                 model.appendRow(it)
             return model
 
@@ -775,8 +777,8 @@ class PdokServicesPlugin(object):
         self.completer = QCompleter()
         self.model = create_model(results)
         self.completer.setModel(self.model)
-        self.completer.setCompletionMode(QCompleter.PopupCompletion)
-        self.completer.setFilterMode(Qt.MatchContains)
+        self.completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
+        self.completer.setFilterMode(Qt.MatchFlag.MatchContains)
         self.toolbar_search.setCompleter(self.completer)
         self.toolbar_search.show()
         self.completer.complete()
@@ -789,7 +791,7 @@ class PdokServicesPlugin(object):
         if len(items) == 0:  # check should not be necessary
             return
         item = items[0]
-        data = item.data(Qt.UserRole)
+        data = item.data(Qt.ItemDataRole.UserRole)
         lookup_id = data["id"]
         self.lookup_toolbar_search_and_zoom(lookup_id)
         self.dlg.geocoder_search.setText(suggest_text)
@@ -821,17 +823,17 @@ class PdokServicesPlugin(object):
                 return
             for result in results:
                 adrestekst = QStandardItem(str(result["weergavenaam"]))
-                adrestekst.setData(result, Qt.UserRole)
+                adrestekst.setData(result, Qt.ItemDataRole.UserRole)
                 type = QStandardItem(str(result["type"]))
-                adrestekst.setData(result, Qt.UserRole)
+                adrestekst.setData(result, Qt.ItemDataRole.UserRole)
                 search_string = QStandardItem(
                     f'{str(result["weergavenaam"])} {str(result["type"])}'
                 )
                 self.geocoder_source_model.appendRow([adrestekst, type, search_string])
-            self.geocoder_source_model.setHeaderData(0, Qt.Horizontal, "Resultaat")
-            self.geocoder_source_model.setHeaderData(1, Qt.Horizontal, "Type")
+            self.geocoder_source_model.setHeaderData(0, Qt.Orientation.Horizontal, "Resultaat")
+            self.geocoder_source_model.setHeaderData(1, Qt.Orientation.Horizontal, "Type")
             self.geocoder_source_model.horizontalHeaderItem(0).setTextAlignment(
-                Qt.AlignLeft
+                Qt.AlignmentFlag.AlignLeft
             )
             self.dlg.geocoderResultView.resizeColumnsToContents()
             self.dlg.geocoderResultView.setColumnHidden(2, True)
@@ -863,12 +865,12 @@ class PdokServicesPlugin(object):
     def filter_layers(self, string):
         # remove selection if one row is selected
         self.dlg.servicesView.selectRow(0)
-        self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxyModel.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         strlist = string.strip().split(" ")
         string = ""
         for s in strlist:
             string += f"{s}.*"
-        regexp = QRegExp(string, Qt.CaseInsensitive)
+        regexp = QRegExp(string, Qt.CaseSensitivity.CaseInsensitive)
         regexp.setMinimal(True)
         self.proxyModel.setFilterRegExp(regexp)
         self.proxyModel.insertRow
@@ -885,7 +887,7 @@ class PdokServicesPlugin(object):
         # userrole is a free form one:
         # only attach the data to the first item
         # service layer = a dict/object with all props of the layer
-        itemType.setData(serviceLayer, Qt.UserRole)
+        itemType.setData(serviceLayer, Qt.ItemDataRole.UserRole)
         itemType.setToolTip(f'{stype} - {serviceLayer["title"]}')
         # only wms services have styles (sometimes)
         layername = serviceLayer["title"]
@@ -949,7 +951,7 @@ class PdokServicesPlugin(object):
             self.proxyModel.setFilterKeyColumn(3)
 
             self.dlg.servicesView.setModel(self.proxyModel)
-            self.dlg.servicesView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            self.dlg.servicesView.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
             self.geocoderProxyModel = QSortFilterProxyModel()
             self.geocoder_source_model = QStandardItemModel()
@@ -958,7 +960,7 @@ class PdokServicesPlugin(object):
             self.geocoderProxyModel.setFilterKeyColumn(2)
             self.dlg.geocoderResultView.setModel(self.geocoderProxyModel)
             self.dlg.geocoderResultView.setEditTriggers(
-                QAbstractItemView.NoEditTriggers
+                QAbstractItemView.EditTrigger.NoEditTriggers
             )
             for layer in self.layers_pdok:
                 if isinstance(layer["name"], str):
@@ -972,7 +974,7 @@ class PdokServicesPlugin(object):
                 lambda: self.load_layer(None)
             )  # Using lambda here to prevent sending signal parameters to the loadService() function
 
-            self.dlg.servicesView.setContextMenuPolicy(Qt.CustomContextMenu)
+            self.dlg.servicesView.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             self.dlg.servicesView.customContextMenuRequested.connect(
                 self.make_fav_context_menu
             )
@@ -988,12 +990,12 @@ class PdokServicesPlugin(object):
             self.dlg.servicesView.hideColumn(3)
             self.services_loaded = True
 
-        self.sourceModel.setHeaderData(2, Qt.Horizontal, "Service")
-        self.sourceModel.setHeaderData(1, Qt.Horizontal, "Type")
-        self.sourceModel.setHeaderData(0, Qt.Horizontal, "Laagnaam")
-        self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignLeft)
-        self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignLeft)
-        self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignLeft)
+        self.sourceModel.setHeaderData(2, Qt.Orientation.Horizontal, "Service")
+        self.sourceModel.setHeaderData(1, Qt.Orientation.Horizontal, "Type")
+        self.sourceModel.setHeaderData(0, Qt.Orientation.Horizontal, "Laagnaam")
+        self.sourceModel.horizontalHeaderItem(2).setTextAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.sourceModel.horizontalHeaderItem(1).setTextAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.sourceModel.horizontalHeaderItem(0).setTextAlignment(Qt.AlignmentFlag.AlignLeft)
         self.dlg.servicesView.setColumnWidth(
             0, 300
         )  # set name to 300px (there are some huge layernames)
@@ -1191,7 +1193,7 @@ class PdokServicesPlugin(object):
         self.remove_pointer_or_layer()
         if len(self.dlg.geocoderResultView.selectedIndexes()) == 0:
             return
-        data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.UserRole)
+        data = self.dlg.geocoderResultView.selectedIndexes()[0].data(Qt.ItemDataRole.UserRole)
         if (
             not "wkt_centroid" in data
         ):  # this method is called from lsDialog that already has retrieved objects
@@ -1248,8 +1250,8 @@ class PdokServicesPlugin(object):
             self.iface.mainWindow(),
             title,
             (message),
-            QMessageBox.Ok,
-            QMessageBox.Ok,
+            QMessageBox.StandardButton.Ok,
+            QMessageBox.StandardButton.Ok,
         )
 
     def show_warning(self, message, title="PDOK plugin"):
@@ -1260,8 +1262,8 @@ class PdokServicesPlugin(object):
             self.iface.mainWindow(),
             title,
             (message),
-            QMessageBox.Ok,
-            QMessageBox.Ok,
+            QMessageBox.StandardButton.Ok,
+            QMessageBox.StandardButton.Ok,
         )
 
     def save_fav_layer_in_settings(self, fav_layer):
@@ -1360,7 +1362,7 @@ class PdokServicesPlugin(object):
                 menu.addAction(down_fav_action)
                 menu.addAction(delete_fav_action)
 
-                action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
+                action = menu.exec(self.dlg.servicesView.mapToGlobal(position))
                 if action == delete_fav_action:
                     # delete layer to favourites with qsettngs
                     # then update favourite context menu
@@ -1382,7 +1384,7 @@ class PdokServicesPlugin(object):
                 add_fav_action = QAction(f"Voeg deze laag toe aan favorieten")
                 add_fav_action.setIcon(self.fav_icon)
                 menu.addAction(add_fav_action)
-                action = menu.exec_(self.dlg.servicesView.mapToGlobal(position))
+                action = menu.exec(self.dlg.servicesView.mapToGlobal(position))
                 if action == add_fav_action:
                     # save layer to favourites with qsettngs
                     # then update favourite context menu
@@ -1416,11 +1418,11 @@ class PdokServicesPlugin(object):
             self.iface.mainWindow(),
             "Geen Favoriet aanwezig (of verouderd)...",
             "Het lijkt erop dat deze Favoriet niet meer bestaat (bij PDOK). Uit uw Favorieten verwijderen?",
-            QMessageBox.Yes,
-            QMessageBox.No,
+            QMessageBox.StandardButton.Yes,
+            QMessageBox.StandardButton.No,
         )
         # if YES: clean it up from settings and update the toolbar actions
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             log.debug("CLEAN UP")
             self.delete_fav_layer_in_settings(fav_layer)
             self.add_fav_actions_to_toolbar_button()

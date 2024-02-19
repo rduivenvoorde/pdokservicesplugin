@@ -9,8 +9,8 @@ import traceback
 import re
 import os.path
 
-from PyQt5 import QtGui
-from PyQt5.QtCore import QCoreApplication, QVariant
+from qgis.PyQt import QtGui
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import QgsWkbTypes
 
 from qgis.core import (
