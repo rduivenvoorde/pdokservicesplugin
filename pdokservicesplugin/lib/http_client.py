@@ -21,7 +21,7 @@ def get_reply(url):
 
     reply = qgs_request.reply()
     reply_err = reply.error()
-    if reply_err != int(QNetworkReply.NetworkError.NoError):
+    if reply_err != QNetworkReply.NetworkError.NoError:
         status_code = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
         message = ""
         if status_code is not None:
