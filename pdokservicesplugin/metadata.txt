@@ -17,7 +17,7 @@ author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
-    5.0.0   (02-3024) support for qt6 (and qt5), base64 encode html images, remove PayPal button,
+    5.0.0   (02-3024) support for qt6 (and qt5), base64 encode html images, remove PayPal button, new services!
     4.2.0   (12-2023) support ogcapi tiles and update services (Thanks Laurent/Kadaster), Add OpenBasisKaart layers
     4.1.6   (12-2023) update service url's, fix #99 (ability to remove old favs), save fq filter state to QSettings, make it possible (and create setting) to use the old yellow cross again (no flashing geom), fix LS filter
     4.1.5   (06-2023) quickfix for ahn4 wcs (Anton)
