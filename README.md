@@ -8,7 +8,7 @@ It shows a list of available web services (WMS, WMTS, WFS, OGC:API tiles/feature
 national data services (in our national crs EPSG:28992).
 Further information in dutch below.
 
-If you think this plugin is useful, consider to donate via Paypal button below, OR sent me a kind email of tweet :-)
+If you think this plugin is useful sent me a kind email :-)
 
 ## Nederlands
 
@@ -24,8 +24,6 @@ Op basis van een json bestand (IN de plugin) met alle op dit moment beschikbare 
 Door op een item te klikken wordt de service direct aangeroepen een getoond.
 
 Alle services zijn minstens in EPSG:28992 beschikbaar
-
-[![paypal](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=DZ8R5JPAW55CJ&currency_code=EUR&source=url)
 
 ## Developers
 
@@ -45,14 +43,6 @@ Format python code with:
 
 ```sh
 black pdokservicesplugin
-```
-
-Compile `resources_rc.py` file (needed for some images in html tab in dialog):
-
-```sh
-cd pdokservicesplugin
-pyrcc5 resources.qrc -o resources_rc.py &&
-    black resources_rc.py
 ```
 
 Update layers config file in [`pdokservicesplugin/resources/layers-pdok.json`](pdokservicesplugin/resources/layers-pdok.json) (run from root of repo):
