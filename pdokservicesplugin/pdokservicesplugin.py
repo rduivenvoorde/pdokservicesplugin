@@ -43,7 +43,7 @@ from qgis.PyQt.QtGui import (
 )
 from qgis.PyQt.QtCore import QSortFilterProxyModel
 # note: needed for Qt6!
-from qgis.PyQt.QtCore import QRegularExpression as QRegExp
+from qgis.PyQt.QtCore import QRegularExpression
 
 from qgis.core import (
     QgsApplication,
@@ -909,9 +909,8 @@ class PdokServicesPlugin(object):
         string = ""
         for s in strlist:
             string += f"{s}.*"
-        regexp = QRegExp(string, Qt.CaseSensitivity.CaseInsensitive)
-        regexp.setMinimal(True)
-        self.proxyModel.setFilterRegExp(regexp)
+        regexp = QRegularExpression(string, QRegularExpression.PatternOption.CaseInsensitiveOption | QRegularExpression.PatternOption.InvertedGreedinessOption)
+        self.proxyModel.setFilterRegularExpression(regexp)
         self.proxyModel.insertRow
 
     def add_source_row(self, serviceLayer):
