@@ -11,7 +11,7 @@ about=Nederlands:
         - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://www.pdok.nl/datasets
         - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://www.pdok.nl/datasets ophalen.
 
-version=5.0.1
+version=5.0
 
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
