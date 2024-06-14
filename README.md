@@ -46,19 +46,22 @@ black pdokservicesplugin
 ```
 
 Update layers config file in [`pdokservicesplugin/resources/layers-pdok.json`](pdokservicesplugin/resources/layers-pdok.json) (run from root of repo):
+Note: some layers (specifically OpenBasisKaart) are added manually, make sure not to delete those.
 
 ```sh
 ./scripts/generate-pdok-layers-config.sh pdokservicesplugin/resources/layers-pdok.json
 ```
 
-Create symlink to QGIS plugin directory from repository directory (Windows):
+Create symlink to QGIS plugin directory from repository directory: 
+
+- Windows:
 
 ```bat
 Rem maak een QGIS profiel aan met de naam "pdokplugin-develop"
 mklink /d "%APPDATA%\QGIS\QGIS3\profiles\pdokplugin-develop\python\plugins\pdokservicesplugin" "%REPODIR%\pdokservicesplugin"
 ```
 
-Create symlink to QGIS plugin directory from repository directory (Ubuntu):
+- Linux (Ubuntu):
 
 ```sh
 # maak een QGIS profiel aan met de naam "pdokplugin-develop"
@@ -67,4 +70,13 @@ mkdir -p $(dirname "$symlink_path")
 ln -s "$(pwd)/pdokservicesplugin" "$symlink_path" # uitvoeren vanuit root van repo
 ```
 
-Extend the layers config file using OGC:API urls, see [`scripts/modify-layers-pdok-ogcapi.py`](scripts/modify-layers-pdok-ogcapi.py) for more detailed instructions.
+- macOS:
+
+```sh
+# maak een QGIS profiel aan met de naam "pdokplugin-develop"
+symlink_path="/Users/$USER/Library/Application Support/QGIS/QGIS3/profiles/pdokplugin-develop/python/plugins/pdokservicesplugin"
+mkdir -p $(dirname "$symlink_path")
+ln -s "$(pwd)/pdokservicesplugin" "$symlink_path" # uitvoeren vanuit root van repo
+```
+
+Optionally: extend the layers config file using OGC:API urls, see [`scripts/modify-layers-pdok-ogcapi.py`](scripts/modify-layers-pdok-ogcapi.py) for more detailed instructions.
