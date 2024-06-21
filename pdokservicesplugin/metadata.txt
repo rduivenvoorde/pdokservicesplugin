@@ -11,12 +11,13 @@ about=Nederlands:
         - Een paar opmerkingen: alle dataset en de url's zijn te vinden op https://www.pdok.nl/datasets
         - LET OP: van sommige (vooral grote) dataset worden/zijn de WFS services uitgefaseerd, en dan vervangen door een ATOM-feed. In de feed zit dan een download-url voor de gehele dataset. Die feed moet u zelf van https://www.pdok.nl/datasets ophalen.
 
-version=5.0
+version=5.1.0
 
 author=Richard Duivenvoorde
 email=richard@zuidt.nl
 
 changelog=
+    5.1.0   (06-2024) fix #119 and NEW: OGC API Features for BGT
     5.0.1   (03-2024) quickfixes for #113 and #114
     5.0.0   (02-2024) support for qt6 (and qt5), base64 encode html images, remove PayPal button, new services!
     4.2.0   (12-2023) support ogcapi tiles and update services (Thanks Laurent/Kadaster), Add OpenBasisKaart layers
