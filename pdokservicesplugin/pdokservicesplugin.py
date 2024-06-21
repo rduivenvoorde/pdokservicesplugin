@@ -695,23 +695,17 @@ class PdokServicesPlugin(object):
             )
             return None
         url = self.quote_wmts_url(url)
-        tilematrixset = self.get_crs_comboselect()
-
         imgformat = self.current_layer["imgformats"].split(",")[0]
-        if tilematrixset.startswith("EPSG:"):
-            crs = tilematrixset
-            i = crs.find(":", 5)
-            if i > -1:
-                crs = crs[:i]
-        elif tilematrixset.startswith("OGC:1.0"):
-            crs = "EPSG:3857"
-        else:
-            # non PDOK services do not have a strict tilematrixset naming based on crs...
-            crs = self.current_layer["crs"]
-        uri = f"tileMatrixSet={tilematrixset}&crs={crs}&layers={layername}&styles=default&format={imgformat}&url={url}"
+        # some fiddling with tilematrixset names and crs's (which sometimes are the same, but other times are not)
+        tilematrixset = self.get_crs_comboselect()
+        # IF there is a selectedCrs in the current_layer, this was a favourite (with selected crs)
+        if "selectedCrs" in self.current_layer:
+            # this means this was a WMTS layer from a favourite with one selected Crs (actually a MatrixSet!)
+            tilematrixset = self.current_layer["selectedCrs"]
+        uri = f"tileMatrixSet={tilematrixset}&layers={layername}&styles=default&format={imgformat}&url={url}"
         return QgsRasterLayer(
             uri, title, "wms"
-        )  # `wms` is correct, zie ook quote_wmts_url
+        )  # LET OP: `wms` is correct, zie ook quote_wmts_url
 
     def create_wfs_layer(self, layername, title, url):
         uri = f" pagingEnabled='true' restrictToRequestBBOX='1' srsname='EPSG:28992' typename='{layername}' url='{url}' version='2.0.0'"
@@ -1413,12 +1407,19 @@ class PdokServicesPlugin(object):
                 self.add_fav_actions_to_toolbar_button()
 
             else:
+                # when creating the menu, we ALSO have to take the current selected style AND current selected CRS
+                # into account
                 selected_style = self.get_selected_style()
                 if selected_style is not None:
+                    # this looks like a complex way to set selectedStyle in self.current_layer ???
+                    # why not: self.current_layer["selectedStyle"] = selected_style ?
                     self.current_layer = {
                         **self.current_layer,
                         **{"selectedStyle": selected_style},
                     }
+                selected_crs = self.get_crs_comboselect()
+                if selected_crs is not None:
+                    self.current_layer["selectedCrs"] = selected_crs
                 add_fav_action = QAction(f"Voeg deze laag toe aan favorieten")
                 add_fav_action.setIcon(self.fav_icon)
                 menu.addAction(add_fav_action)
@@ -1442,12 +1443,13 @@ class PdokServicesPlugin(object):
                 fav_layer["name"] = fav_layer["layers"]
                 migrate_fav = True
             layer = self.get_layer_in_pdok_layers(fav_layer)
-
-            if "selectedStyle" in fav_layer and "selectedStyle" in layer:
-                layer["selectedStyle"] = fav_layer["selectedStyle"]
-            if migrate_fav:
-                QSettings().setValue(f"/{PLUGIN_ID}/favourite_{index}", layer)
             if layer:
+                if layer and "selectedStyle" in fav_layer:
+                    layer["selectedStyle"] = fav_layer["selectedStyle"]
+                if layer and "selectedCrs" in fav_layer:
+                    layer["selectedCrs"] = fav_layer["selectedCrs"]
+                if migrate_fav:
+                    QSettings().setValue(f"/{PLUGIN_ID}/favourite_{index}", layer)
                 self.current_layer = layer
                 self.load_layer()
                 return
