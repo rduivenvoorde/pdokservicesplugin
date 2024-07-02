@@ -12,5 +12,5 @@ zip:
 	#$(CURDIR)/repo$(CURDIR)/repo First remove an maybe already available older zip (with same version number)
 	mkdir -p $(CURDIR)/repo
 	rm -f $(CURDIR)/repo/$(PLUGINNAME).$(VERSION).zip
-	zip -9r $(CURDIR)/repo/$(PLUGINNAME).$(VERSION).zip $(PLUGINNAME) -x *.pyc -x *__pycache__*
+	zip -9r $(CURDIR)/repo/$(PLUGINNAME).$(VERSION).zip $(PLUGINNAME) LICENSE -x *.pyc -x *__pycache__*
 	@echo Successfully created zip: $(CURDIR)/repo/$(PLUGINNAME).$(VERSION).zip
