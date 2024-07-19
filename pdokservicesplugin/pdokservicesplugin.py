@@ -702,7 +702,19 @@ class PdokServicesPlugin(object):
         if "selectedCrs" in self.current_layer:
             # this means this was a WMTS layer from a favourite with one selected Crs (actually a MatrixSet!)
             tilematrixset = self.current_layer["selectedCrs"]
-        uri = f"tileMatrixSet={tilematrixset}&layers={layername}&styles=default&format={imgformat}&url={url}"
+        # QGIS 3.28 does not play well without crs query parameter, add it here (loosely based on tilematrixset)
+        if tilematrixset.startswith("EPSG:"):
+            crs = tilematrixset
+            i = crs.find(":", 5)
+            if i > -1:
+                crs = crs[:i]
+        elif tilematrixset.startswith("OGC:1.0"):
+            crs = "EPSG:3857"
+        else:
+            # non PDOK services do not have a strict tilematrixset naming based on crs...
+            crs = self.current_layer["crs"]
+
+        uri = f"crs={crs}&tileMatrixSet={tilematrixset}&layers={layername}&styles=default&format={imgformat}&url={url}"
         return QgsRasterLayer(
             uri, title, "wms"
         )  # LET OP: `wms` is correct, zie ook quote_wmts_url
